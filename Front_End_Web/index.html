@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Azania - Employee Management System</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Employee Management, Staff Management, Shifts" name="keywords">
+    <meta content="Comprehensive employee management system for shift scheduling, payroll, and leave management"
+        name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- Vue CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner"
+            class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link active"><i
+                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
+                        Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-user-edit me-2"></i>New</a>
+                            <a href="status.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-info-circle me-2"></i>Status</a>
+                        </div>
+                    </div>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item dropdown">
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">
+                                <div class="d-flex align-items-center">
+                                    <img class="rounded-circle" src="img/user.jpg" alt=""
+                                        style="width: 40px; height: 40px;">
+                                    <div class="ms-2">
+                                        <h6 class="fw-normal mb-0">New employee registered</h6>
+                                        <small>15 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <div class="d-flex align-items-center">
+                                    <img class="rounded-circle" src="img/user.jpg" alt=""
+                                        style="width: 40px; height: 40px;">
+                                    <div class="ms-2">
+                                        <h6 class="fw-normal mb-0">Overtime request submitted</h6>
+                                        <small>25 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item text-center">See all notifications</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fa fa-bell me-lg-2"></i>
+                            <span class="d-none d-lg-inline-flex">Notifications</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">Leave request approved</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">New shift scheduled</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">Payroll processed</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item text-center">See all notifications</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt=""
+                                style="width: 40px; height: 40px;">
+                            <span class="d-none d-lg-inline-flex">Admin User</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">My Profile</a>
+                            <a href="#" class="dropdown-item">Settings</a>
+                            <a href="#" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <!-- Navbar End -->
+
+            <!-- Dashboard Stats Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-users fa-3x text-info"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">Employees</p>
+                                <h6 class="mb-0">5</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-clock fa-3x text-info"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">Today's Shifts</p>
+                                <h6 class="mb-0">3</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-calendar-check fa-3x text-info"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">Clocked In</p>
+                                <h6 class="mb-0">2</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-sign-out-alt fa-3x text-info"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">On Leave</p>
+                                <h6 class="mb-0">1</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dashboard Stats End -->
+
+
+            <!-- Employee Categories End -->
+
+            <!-- SHAYZAD -->
+            <!-- Today's Shifts Section -->
+            <div class="container-fluid pt-4 px-4" id="todaysShiftsApp">
+                <div class="bg-secondary text-center rounded p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h6 class="mb-0">
+                            Today's Shifts
+                            <!-- <span v-if="todaysShifts.length > 3">
+                                -{{todaysShifts.length}} Total
+                            </span> -->
+                        </h6>
+                        <a href="view-shifts.html" class="badge bg-info ms-2">View All Shifts</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table text-start align-middle table-bordered table-hover mb-0">
+                            <thead>
+                                <tr class="text-white">
+                                    <th scope="col">Employee</th>
+                                    <th scope="col">Date-Time</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Show message if no shifts today -->
+                                <tr v-if="todaysShifts.length === 0">
+                                    <td colspan="3" class="text-center text-muted">
+                                        No shifts scheduled for today
+                                    </td>
+                                </tr>
+                                <!-- Loop through today's shifts (limit to first 3) -->
+                                <tr v-for="shift in previewShifts" :key="shift.shift_id">
+                                    <td>
+                                        {{ shift.employee_name }} 
+                                        <br><small>{{ shift.role_title }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center text-light fw-medium mb-1">
+                                            <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5h16V4H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/>
+                                            </svg>
+                                            {{ formatShiftDateWithDay(shift.date_) }}
+                                        </div>
+                                        <div class="d-flex align-items-center text-muted">
+                                            <svg class="me-2" width="16" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                            </svg>
+                                            <span>{{ shift.start_time }} → {{ shift.end_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill d-inline-flex justify-content-center align-items-center" 
+                                            style="width: 100px" :class="{
+                                            'bg-success': shift.status_ === 'completed',
+                                            'bg-warning': shift.status_ === 'scheduled',
+                                            'bg-danger': shift.status_ === 'missed' || shift.status_ === 'cancelled',
+                                            'bg-info': shift.status_ === 'in progress' || shift.status_ === 'pending'
+                                            }">
+                                            {{ shift.status_.charAt(0).toUpperCase() + shift.status_.slice(1).toLowerCase() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widgets Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+
+                    <div class="col-sm-12 col-md-6 col-xl-4">
+                        <div class="h-100 bg-secondary rounded p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">Calendar</h6>
+                                <a href="leave.html">Show All</a>
+                            </div>
+                            <div id="calender"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6 col-xl-8">
+                        <div class="h-100 bg-secondary rounded p-4" id="vue-dashboard-leave">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">Leave Requests</h6>
+                                <a href="leave.html">Show All</a>
+                            </div>
+                            <div class="d-flex align-items-center border-bottom py-2" v-for="request in leaveRequests"
+                                :key="request.leave_id">
+                                <div class="w-100">
+                                    <div class="d-flex w-100 align-items-center justify-content-between">
+                                        <span>{{ request.first_name }} {{ request.last_name }} (EMP-{{
+                                            request.employee_id }}): {{ request.leave_type }}</span>
+                                        <div>
+                                            <button @click="respondToLeave(request.leave_id, 'approved')"
+                                                class="btn btn-sm btn-success me-2">Approve</button>
+                                            <button @click="respondToLeave(request.leave_id, 'rejected')"
+                                                class="btn btn-sm btn-danger">Deny</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Widgets End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved.
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const { createApp } = Vue;
+
+            createApp({
+                data() {
+                // Editted by Yatin for leave requests
+                    return {
+                        leaveRequests: [] 
+                    };
+                },
+                mounted() {
+                    this.fetchLeaveRequests();
+                },
+                methods: {
+                    async fetchLeaveRequests() {
+                        try {
+                            const response = await fetch('http://localhost:3000/api/leave/all');
+                            const allRequests = await response.json();
+                            // Get the latest 5 requests
+                            this.leaveRequests = allRequests.slice(0, 5);
+                        } catch (err) {
+                            console.error('Failed to fetch leave requests:', err);
+                        }
+                    },
+                    async respondToLeave(leaveId, action) {
+                        try {
+                            const response = await fetch('http://localhost:3000/api/leave/respond', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ leave_id: leaveId, action })
+                            });
+
+                            if (response.ok) {
+                                alert(`Leave request ${action}!`);
+                                this.fetchLeaveRequests(); // Refresh the list
+                            } else {
+                                alert('Failed to update leave request.');
+                            }
+                        } catch (err) {
+                            console.error('Error:', err);
+                        }
+                    }
+                }
+            }).mount('#vue-dashboard-leave');
+        });
+    </script>
+
+    <script src="js/todaysShifts.js"></script>
+
+</body>
+
+</html>

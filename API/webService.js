@@ -1,0 +1,220 @@
+const express = require('express');
+const session = require('express-session');
+//const cors = require('cors');
+const app = express();
+const PORT = 3000;
+const pool = require('./db');
+const authRoutes = require('./authRoutes');
+const leaveRoutes = require('./leaveRoutes');
+const shiftsRoutes = require('./shiftsRoutes'); //SHAYZAAD
+const payrollRoutes = require('./payrollRoutes'); //SHAYZAAD
+const overtimeRoutes = require('./overtimeRoutes');;//SHAYZAAD
+const normalQRRouter = require('./normalRoutes');//SHAYZAAD
+const leaveController = require('./leaveController'); //Added by Cletus.
+const profileRoutes = require('./profileRoutes'); // Added by Yatin
+const employeeRoutes = require('./employeeRoutes'); // Added by Yatin
+const reportRoutes = require('./reportRoutes'); // Added by Yatin
+const cors = require('cors'); //Added by Yatin for testing
+const leavesRoutes = require('./leavesRoutes');
+const leavesController = require('./leavesController'); //Added by Cletus.
+const shiftSwapRoutes = require('./shiftSwapRoutes'); //Added by Cletus.
+const qrRoute = require('./qrRoutes'); //Added by Cletus
+const profilesRoutes = require('./profilesRoutes'); //Added by Cletus.
+const menuRoutes = require('./menuRoutes'); //Added by Cletus.
+const menuController = require('./menuController'); //Added by Cletus.
+const scheduleRoute = require('./scheduleRoute'); //Added by Cletus.
+const shiftRoutes = require('./shiftRoute');
+const forgotPassRoute = require('./forgotPassRoute');
+const notifyRoute = require('./notifyRoute');
+const payrollsRoute = require('./payrollsRoutes');
+
+// Load environment variables
+require('dotenv').config();
+
+app.use(express.urlencoded({ extended: true })); // For form submissions
+app.use(express.json()); // For API JSON payloads
+
+//SHAYZAAD - Cors Middleware
+//app.use(cors());
+// Middleware
+app.use(express.json());
+
+app.set('view engine', 'ejs');
+
+// In webService.js, replace CORS middleware with:
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // List of allowed origins - add your frontend URLs here
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'http://127.0.0.1:3000'
+  ];
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+  res.header('Access-Control-Allow-Credentials', 'true'); // This is important for credentials
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.get('/', (req, res) => {
+    res.render('registration');
+});
+
+// Test API endpoint
+app.get('/api/test', (req, res) => {
+    res.json({ message: "API works on web & mobile!" });
+});
+
+// Session configuration - DO WE NEED (SHAYZAAD)??
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-strong-secret-here',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production', // HTTPS in production
+        maxAge: 3600000, // 1 hour
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Important for cross-origin
+    }
+}));
+
+// Make database pool available in routes
+app.use((req, res, next) => {
+    req.db = pool;
+    next();
+});
+
+// Routes
+// app.get('/', (req, res) => {
+//     res.send('Hello from Express!');
+// });
+
+// Auth routes 
+app.use('/auth', authRoutes);
+
+// Leave routes
+
+//No session check
+app.post('/api/leave/request', leaveController.requestLeave); //Added by Cletus.
+app.post('/api/leave/request', leavesController.requestLeave); //Added by Cletus.
+
+
+// app.use('/api/leave', (req, res, next) => {
+//     if (!req.session.user) {
+//         return res.status(401).json({ message: 'Unauthorized' });
+//     }
+//     next();
+// }, leaveRoutes);
+
+//No session check - Edited by Shayzaad
+app.use('/api/leave', leaveRoutes); 
+
+
+app.use('/api/manager', profileRoutes); //Added by Yatin
+app.use('/api/employees', employeeRoutes); //Added by Yatin
+app.use('/api/reports', reportRoutes); // Added by Yatin
+
+// app.use(cors({                          // Added by Yatin for testing
+//     origin: 'http://localhost', // Or your frontend URL
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+
+
+// app.use('/api/reports', (req, res, next) => {   //Added by Yatin, still in progress...
+//     if (!req.session.user) {
+//         return res.status(401).json({ message: 'Unauthorized' });
+//     }
+//     next();
+// }, reportRoutes);
+
+//SHAYZAAD - Added middleware for the shifts routes
+app.use('/shifts', shiftsRoutes)
+
+//SHAYZAAD - Added middleware for the payroll routes
+app.use('/payroll', payrollRoutes);
+
+//SHAYZAAD - Added middleware for the overtime routes
+app.use('/api/overtime', overtimeRoutes);
+
+//SHAYZAAD - Added middleware for the normal QR routes
+app.use('/api/normal-qr', normalQRRouter);
+
+//SHAYZAAD - Added roles endpoint
+app.get('/api/roles', async (req, res) => {
+  try {
+    const [roles] = await pool.query('SELECT role_id, title FROM t_role');
+    res.json(roles);
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.use('/api/leave', (req, res, next) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    next();
+}, leavesRoutes);
+
+app.get('/register', (req, res) => {
+    res.render('registration', { 
+        formData: {}, 
+        errorMessage: null, 
+        successMessage: null, 
+        temporaryPassword: null 
+    });
+});
+
+// Protected profile route
+app.get('/profile', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    res.json({ user: req.session.user });
+});
+
+app.listen(3000, '0.0.0.0', () => {  // Listen on all network interfaces
+    console.log("Server running on http://localhost:3000");
+});
+
+//CLETUS
+//Shiftswap routes....
+app.use('/api/shift-swap', shiftSwapRoutes);
+
+//Qr Code routes
+app.use('/api/qr', qrRoute)
+//Profile route
+app.use('/api/profile', profilesRoutes);
+//Burger menu route.
+app.use('/api/menu', menuRoutes);
+
+app.post('/api/menu/respond', menuController.getEmpDetails); //Added by Cletus.
+//Schedule route
+app.use('/api/schedule', scheduleRoute); //Added by Cletus.
+
+app.use('/api/shifts', shiftRoutes);
+
+app.use('/api', forgotPassRoute);
+
+app.use('/api', notifyRoute);
+
+app.use('/api/payroll', payrollsRoute);

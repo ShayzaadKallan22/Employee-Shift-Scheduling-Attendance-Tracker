@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Azania - Overtime QR</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Employee Management, Overtime, QR Code" name="keywords">
+    <meta content="Overtime management system with QR code generation" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet"> 
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        /* Custom styles for QR code display */
+        .qr-container {
+            overflow: visible !important;
+            min-height: 400px;
+        }
+        
+        .qr-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .qr-code-section {
+            background: #2C3E50;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .qr-code-section img {
+            max-width: 200px;
+            height: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .qr-code-section h5 {
+            color: #3498DB;
+            margin-bottom: 15px;
+        }
+        
+        .qr-code-section p {
+            color: #BDC3C7;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #34495E;
+            border: 2px dashed #7F8C8D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #BDC3C7;
+            margin: 0 auto;
+        }
+
+        .overtime-duration {
+            background: #34495E;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #3498DB;
+        }
+
+        .overtime-duration h6 {
+            color: #3498DB;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .overtime-duration .duration-value {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .qr-code-section img {
+                max-width: 150px;
+            }
+            
+            .qr-placeholder {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link active"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
+                            <a href="status.html" class="dropdown-item ps-5"><i class="fa fa-info-circle me-2"></i>Status</a>
+                        </div>
+                    </div>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item dropdown">
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">
+                                <div class="d-flex align-items-center">
+                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                                    <div class="ms-2">
+                                        <h6 class="fw-normal mb-0">New employee registered</h6>
+                                        <small>15 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <div class="d-flex align-items-center">
+                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                                    <div class="ms-2">
+                                        <h6 class="fw-normal mb-0">Overtime request submitted</h6>
+                                        <small>25 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item text-center">See all notifications</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fa fa-bell me-lg-2"></i>
+                            <span class="d-none d-lg-inline-flex">Notifications</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">Leave request approved</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">New shift scheduled</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">Payroll processed</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item text-center">See all notifications</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                            <span class="d-none d-lg-inline-flex">Admin User</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">My Profile</a>
+                            <a href="#" class="dropdown-item">Settings</a>
+                            <a href="#" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <!-- Navbar End -->
+
+            <!-- Overtime QR Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div id="overtime-app" class="row g-4">
+                    <!-- QR Code Section -->
+                    <div class="col-12">
+                        <div class="bg-secondary rounded p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="mb-4"><i class="fa fa-qrcode me-2"></i>Overtime Shift QR Codes</h4>
+                                    
+                                    <!-- Overtime Duration Display -->
+                                    <div class="overtime-duration" v-if="currentSession">
+                                        <h6><i class="fa fa-clock me-2"></i>Current Duration</h6>
+                                        <p class="duration-value">{{ formattedDuration }}</p>
+                                    </div>
+                                    
+                                    <!-- Session Creation Form -->
+                                    <div v-if="!currentSession">
+                                        <div class="mb-3">
+                                            <label class="form-label">Select Roles:</label>
+                                            <div v-for="role in availableRoles" :key="role.role_id" class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       v-model="selectedRoles" :value="role.role_id"
+                                                       :id="'role-'+role.role_id">
+                                                <label class="form-check-label" :for="'role-'+role.role_id">
+                                                    {{ role.title }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Duration (minutes, max 180):</label>
+                                            <input type="number" min="1" max="180" 
+                                                   class="form-control bg-dark text-white"
+                                                   v-model.number="duration">
+                                        </div>
+                                        
+                                        <button class="btn btn-primary" @click="generateQR" :disabled="isLoading">
+                                            <i class="fa fa-qrcode me-2"></i>
+                                            {{ isLoading ? 'Generating...' : 'Generate QR Code' }}
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Session Management -->
+                                    <div v-else>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-warning me-2" @click="openExtendModal">
+                                                <i class="fa fa-clock me-2"></i>Extend
+                                            </button>
+                                            <button class="btn btn-danger" @click="openEndModal">
+                                                <i class="fa fa-stop me-2"></i>End Overtime
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <!-- <h4 class="mb-4"><i class="fa fa-qrcode me-2"></i>QR Codes</h4> -->
+                                    <div class="qr-container">
+                                        <div class="qr-display">
+                                            <!-- Primary QR Code -->
+                                            <div class="qr-code-section" v-if="qrImage">
+                                                <h5><i class="fa fa-qrcode me-2"></i>Overtime QR</h5>
+                                                <img :src="qrImage" alt="Overtime QR" style="width: 200px; height: 200px;">
+                                                <p class="text-success">Scan this code to start overtime session</p>
+                                                <small class="text-muted">Valid until: {{qrExpiration}}</small>
+                                            </div>
+                                            
+                                            <!-- Placeholder for primary QR -->
+                                            <div class="qr-code-section" v-else>
+                                                <h5><i class="fa fa-qrcode me-2"></i>Overtime QR</h5>
+                                                <div class="qr-placeholder" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; border-radius: 8px;">
+                                                    <div class="text-center">
+                                                        <i class="fa fa-clock fa-3x mb-3 text-muted"></i>
+                                                        <p class="text-muted">QR will appear at start of overtime</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Proof QR Code -->
+                                            <div class="qr-code-section mt-4" v-if="proofImage">
+                                                <h5><i class="fa fa-check-circle me-2"></i>Proof QR</h5>
+                                                <img :src="proofImage" alt="Proof QR Code" style="width: 200px; height: 200px;">
+                                                <p class="text-success">Scan this code to verify overtime completion</p>
+                                                <small class="text-muted">Valid until: {{proofExpiration}}</small>
+                                            </div>
+
+                                            <!-- Placeholder for proof QR -->
+                                            <div class="qr-code-section mt-4" v-else>
+                                                <h5><i class="fa fa-check-circle me-2"></i>Proof QR</h5>
+                                                <div class="qr-placeholder" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; border-radius: 8px;">
+                                                    <div class="text-center">
+                                                        <i class="fa fa-check-circle fa-3x mb-3 text-muted"></i>
+                                                        <p class="text-muted">QR will appear at end of overtime</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Message -->
+                    <div v-if="errorMessage" class="alert alert-danger" role="alert">
+                        {{ errorMessage }}
+                    </div>
+
+                    <!-- Extend Modal -->
+                    <div v-if="showExtendModal" class="modal d-block" style="background-color: rgba(0,0,0,0.5)">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-secondary">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Extend Overtime</h5>
+                                    <button type="button" class="btn-close" @click="closeExtendModal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <label class="form-label">Additional Minutes (max 180):</label>
+                                    <input type="number" min="1" max="180" class="form-control bg-dark text-white" v-model.number="extendMinutes">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" @click="closeExtendModal">Cancel</button>
+                                    <button type="button" class="btn btn-warning" @click="extendOvertime" :disabled="isLoading">
+                                        {{ isLoading ? 'Extending...' : 'Extend' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- End Modal -->
+                    <div v-if="showEndModal" class="modal d-block" style="background-color: rgba(0,0,0,0.5)">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-secondary">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">End Overtime</h5>
+                                    <button type="button" class="btn-close" @click="closeEndModal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to end this overtime session?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" @click="closeEndModal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" @click="endOvertime" :disabled="isLoading">
+                                        {{ isLoading ? 'Ending...' : 'End Overtime' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Overtime QR End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved. 
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <!-- Overtime Vue App -->
+    <script src="js/overtime.js"></script>
+</body>
+
+</html>

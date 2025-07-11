@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Azania - Reports</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Employee Management, Reports, Analytics" name="keywords">
+    <meta content="Comprehensive reporting system for employee management" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <script src="lib/chart.js/dist/chart.umd.js"></script>
+
+    <!-- Sheet.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Excel.js & File Saver lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner"
+            class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Reports Dashboard</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i
+                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
+                        Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-user-edit me-2"></i>New</a>
+                            <a href="status.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-info-circle me-2"></i>Status</a>
+                        </div>
+                    </div>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link active"><i
+                            class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fa fa-bell me-lg-2"></i>
+                            <span class="d-none d-lg-inline-flex">Notifications</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">Payroll processed</h6>
+                                <small>15 minutes ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item">
+                                <h6 class="fw-normal mb-0">New employee added</h6>
+                                <small>1 hour ago</small>
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item text-center">See all notifications</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt=""
+                                style="width: 40px; height: 40px;">
+                            <span class="d-none d-lg-inline-flex">Employee Manager</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">My Profile</a>
+                            <a href="#" class="dropdown-item">Settings</a>
+                            <a href="#" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <!-- Navbar End -->
+
+            <!-- Reports Section Start -->
+            <div class="container-fluid pt-4 px-4" id="app">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="bg-secondary rounded p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="mb-0"><i class="fa fa-chart-bar me-2"></i>Reports</h4>
+                                <div class="d-flex">
+                                    <div class="input-group me-3" style="width: 200px;">
+                                        <select class="form-select" v-model="reportType" id="reportType">
+                                            <option value="payroll">Payroll</option>
+                                            <option value="attendance">Attendance</option>
+                                            <option value="leave">Leave</option>
+                                            <option value="swaps">Swaps</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary" @click="showExportOptions" :disabled="!reportData" 
+    data-bs-toggle="tooltip" data-bs-placement="top" title="Export Report">
+    <i class="fa fa-download me-2"></i>Export
+</button>
+                                </div>
+                            </div>
+
+                            <!-- Report Filter Section -->
+                            <div class="bg-dark rounded p-4 mb-4">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">From Date</label>
+                                        <input type="date" class="form-control bg-secondary" v-model="startDate">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">To Date</label>
+                                        <input type="date" class="form-control bg-secondary" v-model="endDate">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Employee</label>
+                                        <select class="form-select bg-secondary" v-model="employeeId">
+                                            <option value="all">All Employees</option>
+                                            <option v-for="employee in employees" :value="employee.employee_id">
+                                                {{ employee.first_name }} {{ employee.last_name }} (EMP-{{
+                                                employee.employee_id }})
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <!-- <div class="col-md-3 mb-3" v-if="reportType === 'payroll'">
+                                        <label class="form-label">Payroll Period</label>
+                                        <select class="form-select bg-secondary" v-model="selectedPayrollPeriod">
+                                            <option v-for="period in payrollPeriods" :value="period.period_id">
+                                                {{ formatDate(period.start_date) }} to {{ formatDate(period.end_date) }}
+                                            </option>
+                                        </select> 
+                                    </div> -->
+                                    <!-- In the filter section, add this after the employee dropdown -->
+<div class="col-md-3 mb-3" v-if="reportType === 'attendance'">
+    <label class="form-label">Shift Type</label>
+    <select class="form-select bg-secondary" v-model="shiftType">
+        <option value="all">All Shift Types</option>
+        <option value="normal">Normal Shifts</option>
+        <option value="overtime">Overtime Shifts</option>
+    </select>
+</div>
+
+                                    <div class="col-md-3 mb-3 d-flex align-items-end">
+                                        <button class="btn btn-primary w-100" @click="generateReport"
+                                            :disabled="isLoading">
+                                            <i class="fa fa-refresh me-2"></i>
+                                            <span v-if="!isLoading">Generate Report</span>
+                                            <span v-else>Loading...</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loading State -->
+                            <div v-if="isLoading" class="text-center py-5">
+                                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"
+                                    role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-3">Generating report...</p>
+                            </div>
+
+                            <!-- Report Display Area -->
+                            <div class="bg-dark rounded p-4" v-if="!isLoading && reportData">
+                                <!-- Payroll Report -->
+                                <div v-if="reportType === 'payroll'" class="report-section">
+                                    <h5 class="mb-4"><i class="fa fa-money-bill-wave me-2"></i>Payroll Report ({{
+                                        formattedDateRange }})</h5>
+
+                                    <!-- Payroll Charts -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-8">
+                                            <div class="bg-secondary rounded p-3">
+                                                <canvas id="payrollChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="bg-secondary rounded p-3 h-100">
+                                                <h6 class="text-center mb-3">Payment Distribution</h6>
+                                                <canvas id="payrollPieChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="text-white">
+                                                <tr>
+                                                    <th>Employee</th>
+                                                    <th>Role</th>
+                                                    <th>Base Wage</th>
+                                                    <th>Overtime</th>
+                                                    <th>Net Pay</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="row in payrollTableData" :key="row.employee">
+                                                    <td>{{ row.employee }}</td>
+                                                    <td>{{ row.role }}</td>
+                                                    <td>{{ row.baseSalary }}</td>
+                                                    <td>{{ row.overtime }}</td>
+                                                    <td>{{ row.netPay }}</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot class="text-white">
+                                                <tr>
+                                                    <td colspan="4" class="text-end"><strong>Total</strong></td>
+                                                    <td><strong>{{ payrollTotal }}</strong></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Attendance Report -->
+                                <div v-if="reportType === 'attendance'" class="report-section">
+                                    <h5 class="mb-4"><i class="fa fa-calendar-check me-2"></i>Attendance Report ({{
+                                        formattedDateRange }})</h5>
+
+                                    <!-- Attendance Charts -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-8">
+                                            <div class="bg-secondary rounded p-3">
+                                                <canvas id="attendanceChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="bg-secondary rounded p-3 h-100">
+                                                <h6 class="text-center mb-3">Attendance Rate</h6>
+                                                <canvas id="attendanceGauge" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <!-- In the attendance report section -->
+<table class="table table-hover mb-0">
+    <thead class="text-white">
+        <tr>
+            <th>Employee</th>
+            <th :class="{ 'text-muted': attendanceColumnToDim === 'normalShifts' }">Normal Shifts</th>
+            <th :class="{ 'text-muted': attendanceColumnToDim === 'overtimeShifts' }">Overtime Shifts</th>
+            <th>Shifts Scheduled</th>
+            <th>Shifts Completed</th>
+            <th>Missed Shifts</th>
+            <th>Total Hours</th>
+            <th>Completion %</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="row in attendanceTableData" :key="row.employee">
+            <td>{{ row.employee }}</td>
+            <td :class="{ 'text-muted': attendanceColumnToDim === 'normalShifts' }">{{ row.normalShifts }}</td>
+            <td :class="{ 'text-muted': attendanceColumnToDim === 'overtimeShifts' }">{{ row.overtimeShifts }}</td>
+            <td>{{ row.shiftsScheduled }}</td>
+            <td>{{ row.shiftsWorked }}</td>
+            <td>{{ row.absences }}</td>
+            <td>{{ row.totalHours }}</td>
+            <td>{{ row.attendancePercentage }}</td>
+        </tr>
+    </tbody>
+</table>
+                                    </div>
+                                </div>
+
+                                <!-- Leave Report -->
+                                <div v-if="reportType === 'leave'" class="report-section">
+                                    <h5 class="mb-4"><i class="fa fa-sign-out-alt me-2"></i>Leave Report ({{
+                                        formattedDateRange }})</h5>
+
+                                    <!-- Leave Charts -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="bg-secondary rounded p-3">
+                                                <canvas id="leaveTrendChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="bg-secondary rounded p-3">
+                                                <canvas id="leaveTypeChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="text-white">
+                                                <tr>
+                                                    <th>Employee</th>
+                                                    <th>Leave Type</th>
+                                                    <th>Start Date</th>
+                                                    <th>End Date</th>
+                                                    <th>Days Taken</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="row in leaveTableData" :key="row.employee + row.startDate">
+                                                    <td>{{ row.employee }}</td>
+                                                    <td>{{ row.leaveType }}</td>
+                                                    <td>{{ row.startDate }}</td>
+                                                    <td>{{ row.endDate }}</td>
+                                                    <td>{{ row.daysTaken }}</td>
+                                                    <td>
+                                                        <span class="badge" :class="{
+                                                                  'bg-success': row.status === 'approved',
+                                                                  'bg-warning': row.status === 'pending',
+                                                                  'bg-danger': row.status === 'rejected'
+                                                              }">
+                                                            {{ row.status }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Swaps Report -->
+                                <div v-if="reportType === 'swaps'" class="report-section">
+                                    <h5 class="mb-4"><i class="fa fa-exchange-alt me-2"></i>Shift Swaps Report ({{
+                                        formattedDateRange }})</h5>
+
+                                    <!-- Swaps Chart -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="bg-secondary rounded p-3"
+                                                style="position: relative; height: 500px;">
+                                                <canvas id="swapsChart" height="250"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <!-- In the swaps report section -->
+                                        <table class="table table-hover mb-0">
+                                            <thead class="text-white">
+                                                <tr>
+                                                    <th>Requesting Employee</th>
+                                                    <th>Taking Employee</th>
+                                                    <th>Original Shift</th>
+                                                    <th>Requested Shift</th>
+                                                    <th>Requested</th>
+                                                    <th>Approved</th>
+                                                    <th>Days to Approve</th>
+                                                    <!-- <th>Approved By</th> -->
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="row in swapsTableData"
+                                                    :key="row.originalEmployee + row.requestDate">
+                                                    <td>{{ row.originalEmployee }}</td>
+                                                    <td>{{ row.swapEmployee }}</td>
+                                                    <td>
+                                                        {{ row.originalDate }}<br>
+                                                        {{ row.originalShift }}
+                                                    </td>
+                                                    <td>
+                                                        {{ row.swapDate }}<br>
+                                                        {{ row.swapShift }}
+                                                    </td>
+                                                    <td>{{ row.requestDate }}</td>
+                                                    <td>{{ row.approvalDate }}</td>
+                                                    <td>{{ row.daysToApproval }}</td>
+                                                    <!-- <td>{{ row.approvedBy }}</td> -->
+                                                    <td>
+                                                        <span class="badge" :class="{
+                          'bg-success': row.status === 'approved',
+                          'bg-warning': row.status === 'pending',
+                          'bg-danger': row.status === 'rejected',
+                          'bg-secondary': row.status === 'cancelled'
+                      }">
+                                                            {{ row.status }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div v-if="!isLoading && !reportData" class="bg-dark rounded p-4 text-center py-5">
+                                <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No report generated yet</h5>
+                                <p class="text-muted">Select filters and click "Generate Report" to view data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Reports Section End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved.
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="lib/chart/chart.min.js"></script> -->
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        // Fallback if CDN fails
+        if (typeof Vue === 'undefined') {
+            document.write('<script src="js/vue.global.prod.js"><\/script>');
+        }
+    </script>
+    <script src="js/vue-reports.js"></script>
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</body>
+
+</html>
