@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
 
-const API_URL = 'http:// 192.168.1.187:3000/api';
+const API_URL = 'http://192.168.1.187:3000/api';
 
 const Payslip = () => {
   const navigation = useNavigation();
@@ -185,71 +185,84 @@ const Payslip = () => {
           );
         }}/>
 
-      <ScrollView style={styles.payslipList}>
-        {loading ? (
-         <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 20 }}>
-              Loading payslip...
-         </Text>
-         ) : !payslip ? (
-         <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 20 }}>
-              No payslip found.
-         </Text>
-         ) : (
+      <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {loading ? (
+          <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 20 }}>
+             Loading payslip...
+          </Text>
+          ) : !payslip ? (
+          <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 20 }}>
+             No payslip found.
+          </Text>
+          ) : (
          <TouchableOpacity
             style={[
-            styles.payslipItem,
-            selectedPayslip?.id === payslip.id && styles.selectedPayslip,
+              styles.payslipItem,
+              selectedPayslip?.payroll_id === payslip.payroll_id && styles.selectedPayslip,
             ]}
-           onPress={() => setSelectedPayslip(payslip)}
-         >
-         <Text style={styles.payslipTitle}>Payslip {payslip.id}</Text>
-         <Text style={styles.payslipPeriod}>{payslip.period}</Text>
-        </TouchableOpacity>
-        )}
-      </ScrollView>
-
-      {selectedPayslip && (
-        <View style={styles.detailsContainer}>
-          <Text style={styles.detailsHeader}>Payslip Summary</Text>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Employee:</Text>
-            <Text style={styles.detailValue}>{selectedPayslip.first_name} {selectedPayslip.last_name}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Wage:</Text>
-            <Text style={styles.detailValue}>{selectedPayslip.total_amount}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Base Hours:</Text>
-            <Text style={styles.detailValue}>{selectedPayslip.base_hours}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Overtime Hours:</Text>
-            <Text style={styles.detailValue}>{selectedPayslip.overtime_hours}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date Paid:</Text>
-            <Text style={styles.detailValue}> {dayjs(selectedPayslip.payment_date).format('YYYY-MM-DD')}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Status:</Text>
-            <Text style={styles.detailValue}>{selectedPayslip._status}</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.downloadButton}
-            onPress={() => downloadPayslip(selectedPayslip.payroll_id)}>
-            <Icon name="download-outline" size={20} color="#ffffff" />
-            <Text style={styles.downloadText}>Download Payslip</Text>
+            onPress={() => {
+              if (selectedPayslip?.payroll_id === payslip.payroll_id) {
+                 setSelectedPayslip(null); //If payslip summary has already been displayed, hide summary.
+              } else {
+                 setSelectedPayslip(payslip); //If payslip has been selected show summary.
+              }
+            }}
+          >
+          <Text style={styles.payslipTitle}>Payslip {payslip.id}</Text>
+          <Text style={styles.payslipPeriod}>{payslip.period}</Text>
           </TouchableOpacity>
+         )}
+
+    {selectedPayslip && (
+      <View style={styles.detailsContainer}>
+        <Text style={styles.detailsHeader}>Payslip Summary</Text>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Employee:</Text>
+          <Text style={styles.detailValue}>
+            {selectedPayslip.first_name} {selectedPayslip.last_name}
+          </Text>
         </View>
-      )}
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Wage:</Text>
+          <Text style={styles.detailValue}>{selectedPayslip.total_amount}</Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Base Hours:</Text>
+          <Text style={styles.detailValue}>{selectedPayslip.base_hours}</Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Overtime Hours:</Text>
+          <Text style={styles.detailValue}>{selectedPayslip.overtime_hours}</Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Date Paid:</Text>
+          <Text style={styles.detailValue}>
+            {dayjs(selectedPayslip.payment_date).format('YYYY-MM-DD')}
+          </Text>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Status:</Text>
+          <Text style={styles.detailValue}>{selectedPayslip._status}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.downloadButton}
+          onPress={() => downloadPayslip(selectedPayslip.payroll_id)}
+        >
+          <Icon name="download-outline" size={20} color="#ffffff" />
+          <Text style={styles.downloadText}>Download Payslip</Text>
+        </TouchableOpacity>
+      </View>
+    )}
+  </ScrollView>
+</View>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('BurgerMenu')} style={styles.navButton}>
@@ -323,6 +336,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     marginBottom: 15, 
     textAlign: 'center',
+  },
+  scrollContent: {
+  paddingHorizontal: 20,
+  paddingBottom: 100, 
   },
   detailRow: {
     flexDirection: 'row', 
