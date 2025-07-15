@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://192.168.1.187:3000/api';
+
 const ProfileScreen = () => {
 
   const navigation = useNavigation(); 
@@ -72,8 +73,14 @@ const ProfileScreen = () => {
     
   };
   
-
-
+  //Generate employee initials from their name.
+  const getInitials = (name) => {
+     if (!name) return '';
+        const empName = name.trim().split(' ');
+        if (empName.length === 1) return empName[0][0].toUpperCase();
+           return (empName[0][0] + empName[1][0]).toUpperCase();
+  };
+  //Handle profile data change.
   const handleChange =(key, value)=>{
     setProfileData(prev => ({ ...prev, [key]: value}));
   };
@@ -123,12 +130,15 @@ if(loading){
       <Text style={styles.header}>My Profile</Text>
 
       <View style={styles.profilePictureContainer}>
-        <Image
-          source={require('./assets/profile.png')}
-          style={styles.profilePicture}/>
+        <View style={styles.initialsContainer}>
+          <Text style={styles.initialsText}>
+             {getInitials(profileData.name)}
+          </Text>
+        </View>
+
         <TouchableOpacity
-          style={styles.editPictureButton}
-          onPress={() => console.log('Change photo pressed')}>
+           style={styles.editPictureButton}
+           onPress={() => console.log('Change photo pressed')}>
           <Icon name="camera-outline" size={20} color="#ffffff" />
         </TouchableOpacity>
       </View>
@@ -220,13 +230,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  profilePicture: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#007bff',
-  },
+  initialsContainer: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  backgroundColor: '#007AFF',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+initialsText: {
+  fontSize: 36,
+  color: '#fff',
+  fontWeight: 'bold',
+},
   editPictureButton: {
     position: 'absolute',
     right: 10,

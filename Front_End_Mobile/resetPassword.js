@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const API_URL = 'http://192.168.1.187:3000';
 
@@ -15,6 +16,7 @@ const ResetPassword = () => {
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [secureEntry, setSecureEntry] = useState(true);
   //Check if the reset token and new password have been entered and are valid.
   const handleReset = async () => {
     if (!token || !newPassword) {
@@ -42,22 +44,38 @@ const ResetPassword = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reset Password</Text>
-
+      <View style={styles.inputContainer}>
+      <Icon name="refresh-circle" size={20} color="#aaaaaa" style={styles.inputIcon} />
       <TextInput
         style={styles.input}
         placeholder="Reset Token"
         placeholderTextColor="#aaa"
         value={token}
-        onChangeText={setToken}/>
+        onChangeText={setToken}
+        />
+       </View>
 
+      <View style={styles.inputContainer}>
+      <Icon name="lock-closed-outline" size={20} color="#aaaaaa" style={styles.inputIcon} />
       <TextInput
         style={styles.input}
         placeholder="New Password"
         placeholderTextColor="#aaa"
-        secureTextEntry
         value={newPassword}
-        onChangeText={setNewPassword}/>
-
+        onChangeText={setNewPassword}
+        secureTextEntry={secureEntry}
+        />
+        <TouchableOpacity 
+          onPress={() => setSecureEntry(!secureEntry)}
+          style={styles.eyeIcon}>
+          <Icon 
+            name={secureEntry ? "eye-off-outline" : "eye-outline"} 
+            size={20} 
+            color="#aaaaaa" 
+          />
+        </TouchableOpacity>
+      </View>
+       
       <TouchableOpacity style={styles.button} onPress={handleReset} disabled={loading}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
@@ -81,13 +99,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  input: {
-    backgroundColor: '#333',
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3e3e3e',
     borderRadius: 8,
-    color: '#fff',
     marginBottom: 15,
     paddingHorizontal: 15,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    color: '#ffffff',
     height: 50,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   button: {
     backgroundColor: '#007bff',
