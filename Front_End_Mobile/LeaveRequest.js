@@ -14,7 +14,7 @@ import { Alert, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://10.254.224.142:3000/api';
 
 const LeaveRequest = () => {
 
@@ -203,7 +203,7 @@ const handleConfirmEnd = (date) => {
               <Text style={styles.requestText}>End Date: {request.endDate}</Text>
               <Text style={styles.requestText}>Type: {request.leaveType}</Text>
               <Text style={styles.requestText}>Status: {request.leaveStatus}</Text>
-              {request.leaveStatus === 'Pending' && (
+              {request.leaveStatus === 'pending' && (
                 <TouchableOpacity 
                   style={styles.cancelButton}
                   onPress={() => handleCancelRequest(request.id)} >
@@ -296,6 +296,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
+    alignContent: 'center',
+    alignItems: 'center',
   },
   label: {
     color: '#ffffff',
@@ -335,6 +337,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 10,
+    marginLeft: 10,
   },
   requestsContainer: {
     flex: 1,

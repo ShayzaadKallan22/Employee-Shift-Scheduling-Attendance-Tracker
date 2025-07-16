@@ -10,11 +10,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://10.254.224.142:3000/api';
 
 const ClockInScreen = () => {
   const navigation = useNavigation();
   const [shifts, setShifts] = useState([]);
+  const [item, setItem] = useState('');
 
   useEffect(()=>{
     //Fetch the upcoming shifts.
@@ -37,14 +38,13 @@ const ClockInScreen = () => {
     navigation.replace('ScanScreen');
   };
 
-  const handleLogout = async () => {
-   if (item.name === 'Logout') {
-                //Handle logout
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
-  };
+  const handleLogout= async () => {
+      //Handle logout
+      navigation.reset({
+        index: 0,
+        routes:'Login' ,
+      });
+ 
   }
   return (
     <View style={styles.screen}>
