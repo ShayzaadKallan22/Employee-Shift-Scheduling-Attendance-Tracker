@@ -1,325 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Azania - Employee Status</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Employee Management, Status, Staff Management" name="keywords">
-    <meta content="Employee status tracking system" name="description">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      content="Employee Management, Status, Staff Management"
+      name="keywords"
+    />
+    <meta content="Employee status tracking system" name="description" />
+    <link href="img/favicon.ico" rel="icon" />
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet"> 
-    
-    <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Icon Fonts -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <!-- Libraries -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link
+      href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css"
+      rel="stylesheet"
+    />
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Template Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
-</head>
-
-<body>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <style>
+    #employeeSearch {
+      color: #fff;
+      background-color: #2a3038 !important;
+      border-color: #3a424b !important;
+    }
+    #employeeSearch:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      border-color: #4e5d6c;
+    }
+    #searchButton {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    #searchButton:hover {
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+  </style>
+  <body>
     <div class="container-fluid position-relative d-flex p-0">
-        <!-- Spinner Start -->
-        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
+      <!-- Sidebar Start -->
+      <div class="sidebar pe-4 pb-3">
+        <nav class="navbar bg-secondary navbar-dark">
+          <a href="index.html" class="navbar-brand mx-4 mb-3">
+            <img
+              src="img/AzaniaWhite.png"
+              alt="Azania Logo"
+              style="height: 45px"
+            />
+          </a>
+          <div class="d-flex align-items-center ms-4 mb-4">
+            <div class="position-relative">
+              <img
+                class="rounded-circle"
+                src="img/user.jpg"
+                alt=""
+                style="width: 40px; height: 40px"
+              />
+              <div
+                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"
+              ></div>
             </div>
-        </div>
-        <!-- Spinner End -->
-
-        <!-- Sidebar Start -->
-         <div class="sidebar pe-4 pb-3">
-            <nav class="navbar bg-secondary navbar-dark">
-                <a href="index.html" class="navbar-brand mx-4 mb-3">
-                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
-                </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
-                    <div class="position-relative">
-                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
-                    </div>
-                    <div class="ms-3">
-                        <h6 class="mb-0">Employee Manager Demo</h6>
-                        <span>Admin</span>
-                    </div>
-                </div>
-                <div class="navbar-nav w-100">
-    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
-    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
-    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
-    <div class="nav-item dropdown">
-        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" id="registrationDropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
-        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
-            <a href="registration.html" class="dropdown-item ps-5 registration-item"><i class="fa fa-user-edit me-2"></i>New</a>
-            <a href="status.html" class="dropdown-item ps-5 status-item"><i class="fa fa-info-circle me-2"></i>Status</a>
-        </div>
-    </div>
-    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-</div>
-            </nav>
-        </div>
-        <!-- Sidebar End -->
-
-        <!-- Content Start -->
-        <div class="content">
-           <!-- Navbar Start -->
-            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-                </a>
-                <a href="#" class="sidebar-toggler flex-shrink-0">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <div class="navbar-nav align-items-center ms-auto">
-                    <div class="nav-item dropdown">
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">New employee registered</h6>
-                                        <small>15 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">Overtime request submitted</h6>
-                                        <small>25 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa fa-bell me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Notifications</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Leave request approved</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">New shift scheduled</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Payroll processed</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Admin User</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">My Profile</a>
-                            <a href="#" class="dropdown-item">Settings</a>
-                            <a href="#" class="dropdown-item">Log Out</a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-            <!-- Navbar End -->
-
-            <!-- Employee Status Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="bg-secondary rounded p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h4 class="mb-0"><i class="fa fa-info-circle me-2"></i>Employee Status</h4>
-                                <span>Azania Night Lounge</span>
-                            </div>
-                            
-                            <!-- Status Summary -->
-                            <div class="row mb-4">
-                                <div class="col-md-4">
-                                    <div class="bg-dark rounded p-3 text-center">
-                                        <h5 class="mb-0">Active</h5>
-                                        <h2 class="text-primary mt-2">7</h2>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="bg-dark rounded p-3 text-center">
-                                        <h5 class="mb-0">Inactive</h5>
-                                        <h2 class="text-danger mt-2">2</h2>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="bg-dark rounded p-3 text-center">
-                                        <h5 class="mb-0">Total</h5>
-                                        <h2 class="text-success mt-2">9</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Status List -->
-                            <div class="bg-dark rounded p-4">
-                                <div class="list-group list-group-flush">
-                                    <div class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">Employee 1 (EMP-23)</h5>
-                                        <span class="badge bg-danger">Inactive</span>
-                                    </div>
-                                    <div class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">Employee 2 (EMP-17)</h5>
-                                        <span class="badge bg-success">Active</span>
-                                    </div>
-                                    <div class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">Employee 3 (EMP-45)</h5>
-                                        <span class="badge bg-danger">Inactive</span>
-                                    </div>
-                                    <div class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">Employee 4 (EMP-11)</h5>
-                                        <span class="badge bg-success">Active</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="ms-3">
+              <h6 class="mb-0">Employee Manager Demo</h6>
+              <span>Admin</span>
             </div>
-            <!-- Employee Status End -->
-
-<!-- Staffing Insights Start -->
-<div class="container-fluid pt-4 px-4">
-    <div class="row g-4">
-        <div class="col-12">
-            <div class="bg-secondary rounded p-4">
-                <h4 class="mb-4"><i class="fa fa-chart-line me-2"></i>Staffing Insights</h4>
-                
-                <div class="row">
-                    <!-- Staffing Level Indicator -->
-                    <div class="col-md-6 mb-4">
-                        <div class="bg-dark rounded p-4 h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Staffing Level</h5>
-                                <span class="badge bg-warning">Moderate</span>
-                            </div>
-                            <div class="progress mb-3" style="height: 20px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
-                            </div>
-                            <p class="mb-0">
-                                <i class="fa fa-info-circle text-primary me-2"></i>
-                                Optimal staffing is between 70-85%. Consider hiring 1-2 more employees.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Shift Coverage -->
-                    <div class="col-md-6 mb-4">
-                        <div class="bg-dark rounded p-4 h-100">
-                            <h5 class="mb-3">Shift Coverage</h5>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Today's Shift</span>
-                                <span class="text-danger">2 Short</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Overtime Shift</span>
-                                <span class="text-warning">1 Short</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Tomorrow's Shift</span>
-                                <span class="text-success">Fully Covered</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- New row for chart and recent changes side by side -->
-                <div class="row">
-                    <!-- Employee Status Ratio -->
-                    <div class="col-md-6 mb-4">
-                        <div class="bg-dark rounded p-4 h-100">
-                            <h5 class="mb-3">Employee Status Ratio</h5>
-                            <div style="position: relative; height: 200px;">
-                                <canvas id="statusChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Recent Changes -->
-                    <div class="col-md-6 mb-4">
-                        <div class="bg-dark rounded p-4 h-100">
-                            <h5 class="mb-3">Recent Status Changes</h5>
-                            <div class="d-flex align-items-center border-bottom border-secondary py-2">
-                                <i class="fa fa-user-clock text-primary me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">EMP-23 - Inactive</h6>
-                                    <small>Changed 3 days ago</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom border-secondary py-2">
-                                <i class="fa fa-user-check text-success me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">EMP-45 - Active</h6>
-                                    <small>Changed 1 week ago</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center pt-2">
-                                <i class="fa fa-user-plus text-info me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">EMP-77 - New Hire</h6>
-                                    <small>Added 2 weeks ago</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="navbar-nav w-100">
+            <a href="index.html" class="nav-item nav-link"
+              ><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a
+            >
+            <a href="view-shifts.html" class="nav-item nav-link"
+              ><i class="fa fa-calendar me-2"></i>View Shifts</a
+            >
+            <a href="overtime.html" class="nav-item nav-link"
+              ><i class="fa fa-clock me-2"></i>Overtime QR</a
+            >
+            <a href="payroll.html" class="nav-item nav-link"
+              ><i class="fa fa-money-bill me-2"></i>Payroll</a
+            >
+            <div class="nav-item dropdown">
+              <a
+                href="#"
+                class="nav-link dropdown-toggle"
+                data-bs-toggle="dropdown"
+                ><i class="fa fa-user-plus me-2"></i>Registration</a
+              >
+              <div
+                class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3"
+              >
+                <a href="registration.html" class="dropdown-item ps-5"
+                  ><i class="fa fa-user-edit me-2"></i>New</a
+                >
+                <a href="status.html" class="dropdown-item ps-5"
+                  ><i class="fa fa-info-circle me-2"></i>Status</a
+                >
+              </div>
             </div>
-        </div>
-    </div>
-</div>
-<!-- Staffing Insights End -->
+            <a href="leave.html" class="nav-item nav-link"
+              ><i class="fa fa-sign-out-alt me-2"></i>Leave</a
+            >
+            <a href="reports.html" class="nav-item nav-link"
+              ><i class="fa fa-chart-bar me-2"></i>Reports</a
+            >
+          </div>
+        </nav>
+      </div>
+      <!-- Sidebar End -->
 
-            <!-- Footer Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="bg-secondary rounded-top p-4">
-                    <div class="row">
-                        <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">Azania</a>, All Rights Reserved. 
-                        </div>
-                        <div class="col-12 col-sm-6 text-center text-sm-end">
-                            Designed By <a href="#">Code Connoisseurs</a>
-                        </div>
-                    </div>
+      <!-- Content Start -->
+      <div class="content">
+        <!-- Navbar Start -->
+        <div id="navbar-container"></div>
+        <!-- Navbar End -->
+
+        <!-- Employee Status Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="bg-secondary rounded p-4">
+                <h4 class="mb-4">
+                  <i class="fa fa-info-circle me-2"></i>Employee Status
+                </h4>
+               
+                <div id="employee-status-app">
+                  <employee-status-panel></employee-status-panel>
                 </div>
+              </div>
             </div>
-            <!-- Footer End -->
+          </div>
         </div>
-        <!-- Content End -->
+        <!-- Employee Status End -->
 
-        <!-- Back to Top -->
-        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+        <!-- Footer Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="bg-secondary rounded-top p-4">
+            <div class="row">
+              <div class="col-12 col-sm-6 text-center text-sm-start">
+                &copy; <a href="#">Azania</a>, All Rights Reserved.
+              </div>
+              <div class="col-12 col-sm-6 text-center text-sm-end">
+                Designed By <a href="#">Code Connoisseurs</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Footer End -->
+      </div>
+      <!-- Content End -->
     </div>
 
     <!-- JavaScript Libraries -->
@@ -332,95 +183,247 @@
     <script src="lib/tempusdominus/js/moment.min.js"></script>
     <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/session.js"></script>
 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+      const { createApp, ref, computed, onMounted } = Vue;
 
-<script>
-    // Status Chart - Improved Version
-    document.addEventListener('DOMContentLoaded', function() {
-        // Wait a brief moment to ensure DOM is fully ready
-        setTimeout(function() {
-            var ctx = document.getElementById('statusChart');
-            if (ctx) {
-                var statusChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Active (7)', 'Inactive (2)'],
-                        datasets: [{
-                            data: [7, 2],
-                            backgroundColor: [
-                                'rgba(0, 200, 83, 0.8)',  // Green for active
-                                'rgba(244, 67, 54, 0.8)'   // Red for inactive
-                            ],
-                            borderColor: [
-                                'rgba(0, 200, 83, 1)',
-                                'rgba(244, 67, 54, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: '#FFFFFF',  // White text for legend
-                                    font: {
-                                        size: 12
-                                    },
-                                    padding: 20
-                                }
-                            },
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)'
-                            }
-                        },
-                        cutout: '70%',
-                        animation: {
-                            animateScale: true,
-                            animateRotate: true
-                        }
-                    }
+      createApp({
+        components: {
+          "employee-status-panel": {
+            template: `
+        <div>
+          <!-- Status Cards -->
+          <div class="row mb-4">
+            <div class="col-md-4" v-for="(count, label) in statusCounts" :key="label">
+              <div class="bg-dark rounded p-3 text-center">
+                <h5 class="mb-0">{{ label }}</h5>
+                <h2 :class="statusColors[label] + ' mt-2'">
+                  {{ count }}
+                  <br />
+                  <small class="text-muted">{{ getPercentage(count) }}% of total</small>
+                </h2>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie Chart -->
+          <div class="rounded p-4 mb-4" style="background:rgba(0,123,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(0,123,255,0.2);border-radius:.5rem;">
+            <h5 class="mb-3 text-light">Employee Status Ratio</h5>
+            <div style="position:relative;height:300px;width:100%">
+              <canvas id="statusPieChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="mb-4">
+            <div class="row g-2">
+              <div class="col-md-8">
+                <div class="input-group">
+                  <input v-model="searchTerm" @keyup.enter="filterEmployees" type="text" class="form-control bg-dark border-secondary" placeholder="Search employees by name..." />
+                  <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="input-group">
+                  <select v-model="selectedRole" class="form-select bg-dark border-secondary text-white">
+                    <option value="">All Roles</option>
+                    <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
+                  </select>
+                  <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employee List -->
+          <div class="bg-dark rounded p-4">
+            <div class="list-group list-group-flush">
+              <div v-if="filteredEmployees.length === 0" class="alert alert-info">No employees match your search criteria.</div>
+              <div v-for="emp in filteredEmployees" :key="emp.id" class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <div class="position-relative me-3">
+                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 30px; height: 30px" />
+                    <div :class="'bg-' + statusBadgeColor(emp.status) + ' rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1'"></div>
+                  </div>
+                  <div>
+                    <h6 class="mb-0">{{ emp.name }}</h6>
+                    <small class="text-muted">{{ emp.role }}</small>
+                  </div>
+                </div>
+                <span :class="'badge ' + statusBadgeClass(emp.status)">{{ emp.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+            setup() {
+              const employees = ref([]);
+              const roles = ref([]);
+              const searchTerm = ref("");
+              const selectedRole = ref("");
+
+              const statusCounts = ref({
+                Working: 0,
+                "Not Working": 0,
+                "On Leave": 0,
+              });
+
+              const statusColors = {
+                Working: "text-success",
+                "Not Working": "text-danger",
+                "On Leave": "text-warning",
+              };
+
+              const fetchEmployees = async () => {
+                const res = await fetch("/api/employees");
+                const data = await res.json();
+                employees.value = data;
+                updateStatusCounts();
+                initPieChart();
+              };
+
+              const fetchRoles = async () => {
+                const res = await fetch("/api/roles");
+                const data = await res.json();
+                roles.value = data.map((r) => r.title);
+              };
+
+              const updateStatusCounts = () => {
+                const total = employees.value.length;
+                statusCounts.value.Working = employees.value.filter(
+                  (e) => e.status === "Working"
+                ).length;
+                statusCounts.value["Not Working"] = employees.value.filter(
+                  (e) => e.status === "Not Working"
+                ).length;
+                statusCounts.value["On Leave"] = employees.value.filter(
+                  (e) => e.status === "On Leave"
+                ).length;
+              };
+
+              const getPercentage = (count) => {
+                const total = employees.value.length;
+                return total ? Math.round((count / total) * 100) : 0;
+              };
+
+              const statusBadgeColor = (status) => {
+                return status === "Working"
+                  ? "success"
+                  : status === "On Leave"
+                  ? "warning"
+                  : "danger";
+              };
+
+              const statusBadgeClass = (status) => {
+                return status === "Working"
+                  ? "bg-success"
+                  : status === "On Leave"
+                  ? "bg-warning text-dark"
+                  : "bg-danger";
+              };
+
+              const filteredEmployees = computed(() => {
+                return employees.value.filter((emp) => {
+                  const matchesName = emp.name
+                    .toLowerCase()
+                    .includes(searchTerm.value.toLowerCase());
+                  const matchesRole = selectedRole.value
+                    ? emp.role === selectedRole.value
+                    : true;
+                  return matchesName && matchesRole;
                 });
-            } else {
-                console.error("Could not find element with ID 'statusChart'");
-            }
-        }, 100);
-    });
-</script>
+              });
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Get current page
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    // Check if we're on registration or status page
-    if (currentPage === 'registration.html' || currentPage === 'status.html') {
-        // Keep dropdown open
-        const dropdown = document.getElementById('registrationDropdown');
-        if (dropdown) {
-            dropdown.classList.add('active');
-            const dropdownMenu = dropdown.nextElementSibling;
-            if (dropdownMenu) {
-                dropdownMenu.classList.add('show');
-            }
-        }
-        
-        // Set active state for the current item
-        if (currentPage === 'registration.html') {
-            document.querySelector('.registration-item').classList.add('active');
-        } else if (currentPage === 'status.html') {
-            document.querySelector('.status-item').classList.add('active');
-        }
-    }
-});
-</script>
-</body>
+              const filterEmployees = () => {
+                // Vue handles filtering reactively
+              };
 
+              const initPieChart = () => {
+                const ctx = document
+                  .getElementById("statusPieChart")
+                  .getContext("2d");
+                if (window.employeePieChart) window.employeePieChart.destroy();
+                window.employeePieChart = new Chart(ctx, {
+                  type: "pie",
+                  data: {
+                    labels: ["Working", "Not Working", "On Leave"],
+                    datasets: [
+                      {
+                        data: [
+                          statusCounts.value.Working,
+                          statusCounts.value["Not Working"],
+                          statusCounts.value["On Leave"],
+                        ],
+                        backgroundColor: [
+                          "rgba(0,200,83,0.8)",
+                          "rgba(244,67,54,0.8)",
+                          "rgba(255,152,0,0.8)",
+                        ],
+                        borderColor: [
+                          "rgba(0,200,83,1)",
+                          "rgba(244,67,54,1)",
+                          "rgba(255,152,0,1)",
+                        ],
+                        borderWidth: 1,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          color: "#fff",
+                          font: { size: 14 },
+                        },
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => {
+                            const label = context.label || "";
+                            const value = context.raw || 0;
+                            const total = employees.value.length;
+                            const percentage = Math.round(
+                              (value / total) * 100
+                            );
+                            return `${label}: ${value} (${percentage}%)`;
+                          },
+                        },
+                      },
+                    },
+                  },
+                });
+              };
+
+              onMounted(() => {
+                fetchEmployees();
+                fetchRoles();
+              });
+
+              return {
+                employees,
+                roles,
+                searchTerm,
+                selectedRole,
+                statusCounts,
+                statusColors,
+                filteredEmployees,
+                getPercentage,
+                statusBadgeColor,
+                statusBadgeClass,
+                filterEmployees,
+              };
+            },
+          },
+        },
+      }).mount("#employee-status-app");
+    </script>
+  </body>
 </html>

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Azania - View All Notifications</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      content="Employee Management, Staff Management, Shifts"
+      name="keywords"
+    />
+    <meta
+      content="Comprehensive employee management system for shift scheduling, payroll, and leave management"
+      name="description"
+    />
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icon Font Stylesheet -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link
+      href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet" />
+  </head>
+
+  <style>
+    .notification-card.empty-state {
+      text-align: center;
+      background-color: #1f2937;
+      border-left: 4px solid #4b5563;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Ensure main content respects sidebar width */
+    .content {
+      margin-left: 220px;
+    }
+
+    /* Stats Section */
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #191c24 !important; /* Dark gray */
+      border-radius: 8px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 240px; /* match your desired width */
+      height: 100vh;
+      background-color:  #191c24; /* or your dark gray */
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    /* Sidebar navbar takes full width */
+    .sidebar .navbar {
+      height: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+    /* Sidebar nav items fill the available width */
+    .sidebar .navbar-nav {
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Sidebar nav links stretch full width and align left */
+    .sidebar .nav-link {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+    }
+
+    .sidebar .nav-link {
+      white-space: nowrap; /* Prevent wrapping */
+      overflow: hidden; /* If needed, hide overflow */
+      text-overflow: ellipsis; /* Show ... if text is too long */
+      padding: 0.75rem 1rem; /* More horizontal padding */
+      display: flex;
+      align-items: center;
+    }
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar .nav-link i {
+      font-size: 1.2rem;
+      min-width: 24px;
+      margin-right: 12px;
+    }
+
+    .sidebar.collapsed {
+      margin-left: -240px;
+    }
+
+    .content.expanded {
+      margin-left: 0;
+      width: 100%;
+    }
+
+    .number-notifications {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff; /* White for contrast */
+      white-space: nowrap;
+    }
+
+    .btn-mark-as-read {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-mark-as-read:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Filter Section */
+    .filter-card {
+      background-color: #191c24 !important; /* Dark gray */
+      border: 1px solid #2a2e38; /* Lighter border for definition */
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filter-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .search-wrapper {
+      display: flex;
+      align-items: center;
+      border: 1px solid #2a2e38;
+      border-radius: 6px;
+      overflow: hidden;
+      background-color: #2a2e38; /* Slightly lighter for inputs */
+    }
+
+    .icon-search {
+      padding: 10px;
+      color: #9ca3af; /* Light gray for icon */
+    }
+
+    .search-input {
+      border: none;
+      padding: 10px;
+      width: 200px;
+      font-size: 0.875rem;
+      background-color: #2a2e38;
+      color: #e5e7eb; /* Light gray text */
+    }
+
+    .search-input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .search-input::placeholder {
+      color: #9ca3af; /* Lighter placeholder */
+    }
+
+    .filter-select {
+      padding: 10px;
+      border: 1px solid #2a2e38;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      background-color: #2a2e38; /* Slightly lighter for inputs */
+      color: #e5e7eb; /* Light gray text */
+      width: 200px;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .filter-select option {
+      background-color: #2a2e38;
+      color: #e5e7eb;
+    }
+
+    /* Tabs Section */
+    .tabs-list {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      background-color: #2a2e38; /* Slightly lighter for tabs */
+      color: #e5e7eb; /* Light gray text */
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .tab.active,
+    .tab:hover {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .tab-badge {
+      background-color: #dc2626;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      margin-left: 5px;
+    }
+
+    /* Notification Cards */
+    .notification-card {
+      background-color: #191c24 !important; /* Dark gray */
+      border: 1px solid #2a2e38; /* Lighter border for definition */
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+      transition: box-shadow 0.2s;
+    }
+
+    .notification-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .notification-card.unread {
+      border-left: 4px solid #2563eb;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+      color: #e5e7eb; /* Light gray for icons */
+    }
+
+    .card-left h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #ffffff; /* White for contrast */
+      margin: 0;
+    }
+
+    .card-left p {
+      font-size: 0.75rem;
+      color: #9ca3af; /* Light gray for secondary text */
+      margin: 0;
+    }
+
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .category-header {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .category-badge {
+      display: inline-block;
+      background-color: #2a2e38;
+      color: #e5e7eb;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .badge-medium {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+
+    .badge-high {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    .timestamp {
+      font-size: 0.75rem;
+      color: #9ca3af; /* Light gray for secondary text */
+    }
+
+    .card-content p {
+      font-size: 0.875rem;
+      color: #e5e7eb; /* Light gray for body text */
+      margin-bottom: 10px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-action {
+      background-color: #2a2e38;
+      color: #2563eb;
+      border: 1px solid #2563eb;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-action:hover {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-outline {
+      background: none;
+      color: #9ca3af; /* Light gray for disabled */
+      border: 1px solid #2a2e38;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+    }
+
+    .btn-outline:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 767.98px) {
+      .content {
+        margin-left: 0; /* Remove offset when sidebar is hidden */
+      }
+
+      .filter-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-input,
+      .filter-select {
+        width: 100%;
+      }
+
+      .stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .btn-mark-as-read {
+        width: auto;
+      }
+    }
+  </style>
+
+  <body>
+    <!-- Sidebar Start -->
+    <div class="container-fluid position-relative d-flex p-0">
+      <!-- Spinner Start -->
+      <div
+        id="spinner"
+        class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center"
+      >
+        <div
+          class="spinner-border text-primary"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+      <!-- Spinner End -->
+
+      <!-- Sidebar Start -->
+      <div class="sidebar pe-4 pb-3">
+        <nav class="navbar bg-secondary navbar-dark">
+          <a href="index.html" class="navbar-brand mx-4 mb-3">
+            <img
+              src="img/AzaniaWhite.png"
+              alt="Azania Logo"
+              style="height: 45px"
+            />
+          </a>
+          <div class="d-flex align-items-center ms-4 mb-4">
+            <div class="position-relative">
+              <img
+                class="rounded-circle"
+                src="img/user.jpg"
+                alt=""
+                style="width: 40px; height: 40px"
+              />
+              <div
+                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"
+              ></div>
+            </div>
+            <div class="ms-3">
+              <h6 class="mb-0">Employee Manager Demo</h6>
+              <span>Admin</span>
+            </div>
+          </div>
+          <div class="navbar-nav w-100">
+            <a href="index.html" class="nav-item nav-link active"
+              ><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a
+            >
+            <a href="view-shifts.html" class="nav-item nav-link"
+              ><i class="fa fa-calendar me-2"></i>View Shifts</a
+            >
+            <a href="overtime.html" class="nav-item nav-link"
+              ><i class="fa fa-clock me-2"></i>Overtime QR</a
+            >
+            <a href="payroll.html" class="nav-item nav-link"
+              ><i class="fa fa-money-bill me-2"></i>Payroll</a
+            >
+            <div class="nav-item dropdown">
+              <a
+                href="#"
+                class="nav-link dropdown-toggle"
+                data-bs-toggle="dropdown"
+                ><i class="fa fa-user-plus me-2"></i>Registration</a
+              >
+              <div
+                class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3"
+              >
+                <a href="registration.html" class="dropdown-item ps-5"
+                  ><i class="fa fa-user-edit me-2"></i>New</a
+                >
+                <a href="status.html" class="dropdown-item ps-5"
+                  ><i class="fa fa-info-circle me-2"></i>Status</a
+                >
+              </div>
+            </div>
+            <a href="leave.html" class="nav-item nav-link"
+              ><i class="fa fa-sign-out-alt me-2"></i>Leave</a
+            >
+            <a href="reports.html" class="nav-item nav-link"
+              ><i class="fa fa-chart-bar me-2"></i>Reports</a
+            >
+          </div>
+        </nav>
+      </div>
+      <!-- Sidebar End -->
+
+      <!-- Content Start -->
+      <div class="content">
+        <!-- Navbar Start -->
+        <nav
+          class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
+        >
+          <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+            <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+          </a>
+          <a href="#" class="sidebar-toggler flex-shrink-0">
+            <i class="fa fa-bars"></i>
+          </a>
+
+          <div class="navbar-nav align-items-center ms-auto">
+            <div class="nav-item dropdown">
+              <div
+                class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                id="notificationDropdown"
+              >
+                <!-- Notifications will be injected here -->
+              </div>
+            </div>
+            <!-- Update the navbar notifications dropdown -->
+
+            <!-- Update the navbar notifications dropdown -->
+<div class="nav-item dropdown">
+  <a href="ViewAllNotifications.html" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+    <i class="fa fa-bell me-lg-2"></i>
+    <span class="d-none d-lg-inline-flex">Notifications</span>
+    <span id="notification-count" class="badge bg-danger ms-1" style="
+      font-size: 0.75rem;
+      display: none;
+    ">0</span>
+  </a>
+  <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0 p-0" style="width: 350px;">
+    <div class="px-3 py-2 border-bottom">
+      <h6 class="mb-0">Notifications</h6>
+    </div>
+    <div id="recent-notifications" class="overflow-auto" style="max-height: 400px;">
+      <!-- Recent notifications will be loaded here -->
+      <div class="text-center py-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+    <div class="px-3 py-2 border-top">
+      <a href="ViewAllNotifications.html" class="btn btn-primary btn-sm w-100">View All Notifications</a>
+    </div>
+  </div>
+</div>
+
+
+            <div class="nav-item dropdown">
+              <a
+                href="#"
+                class="nav-link dropdown-toggle"
+                data-bs-toggle="dropdown"
+              >
+                <img
+                  class="rounded-circle me-lg-2"
+                  src="img/user.jpg"
+                  alt=""
+                  style="width: 40px; height: 40px"
+                />
+                <span class="d-none d-lg-inline-flex">Admin User</span>
+              </a>
+              <div
+                class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+              >
+                <a href="#" class="dropdown-item">My Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <a href="#" class="dropdown-item">Log Out</a>
+              </div>
+            </div>
+          </div>
+        </nav>
+        <!-- Navbar End -->
+      <!-- Navbar End -->
+
+      <!-- Main Content -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+          <main class="main-content">
+            <!-- Stats -->
+       
+
+            <!-- Filters -->
+<!-- Replace the entire notifications container section with this: -->
+<div class="container-fluid pt-4 px-4">
+  <div class="row g-4">
+    <div class="col-12">
+      <!-- Stats Header -->
+      
+
+      <!-- Filter Card -->
+    
+
+      <!-- Tabs -->
+   
+
+      <!-- Notifications Container -->
+	<div id="notification-app">
+	  <notification-panel :manager-id="managerId"></notification-panel>
+	</div>
+    </div>
+  </div>
+</div>
+              <div class="tabs-content">
+                <!-- Notification Cards -->
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+   <script>
+      const { createApp, ref, onMounted, computed } = Vue;
+      const managerId = localStorage.getItem('employeeId');
+      console.log('Manager ID from localStorage:', managerId);
+
+      if (!managerId) {
+        console.error("❌ Manager ID not found in localStorage. Redirecting to login.");
+        document.getElementById('notification-app').innerHTML = '<p>Please log in to view notifications. <a href="/signin.html">Log in</a></p>';
+      } else {
+        createApp({
+          data() {
+            return { managerId };
+          },
+          components: {
+            'notification-panel': {
+              props: ['managerId'],
+              template: `
+                <div>
+                  <div class="stats">
+                    <p class="number-notifications">Notifications</p>
+                    <button class="btn-mark-as-read" @click="markAllAsRead">Mark All as Read</button>
+                  </div>
+                  <div class="filter-card mb-4">
+                    <div class="filter-content">
+                      <div class="search-wrapper">
+                        <span class="icon-search">🔍</span>
+                        <input class="search-input" v-model="searchTerm" placeholder="Search notifications..." />
+                      </div>
+                      <select class="filter-select" v-model="selectedCategory">
+                        <option value="all">All Categories</option>
+                        <option value="leave_request">Leave Requests</option>
+                        <option value="shift_swap">Shift Swaps</option>
+                        <option value="payroll">Payroll</option>
+                        <option value="system">System</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="tabs-list mb-4">
+                    <button class="tab" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">All</button>
+                    <button class="tab" :class="{ active: statusFilter === 'unread' }" @click="statusFilter = 'unread'">
+                      Unread <span class="tab-badge">{{ unreadCount }}</span>
+                    </button>
+                    <button class="tab" :class="{ active: statusFilter === 'read' }" @click="statusFilter = 'read'">Read</button>
+                  </div>
+                  <div v-if="isLoading" class="notification-card empty-state">
+                    <p>Loading notifications...</p>
+                  </div>
+                  <div v-else-if="error" class="notification-card empty-state">
+                    <p>{{ error }}</p>
+                  </div>
+                  <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
+                    <p>No matching notifications found.</p>
+                  </div>
+                  <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
+                      class="notification-card" :class="{ unread: n.read_status === 'unread' }">
+                    <div class="card-header">
+                      <div class="card-left">
+                        <span class="card-icon">{{ getIcon(n.type) }}</span>
+                        <div>
+                          <h3>{{ n.message }}</h3>
+                          <div class="category-badge">{{ formatCategory(n.type) }}</div>
+                        </div>
+                      </div>
+                      <div class="card-right">
+                        <span class="timestamp">{{ formatTime(n.sent_time) }}</span>
+                        <button class="btn-mark-as-read" @click="toggleRead(n)">
+                          {{ n.read_status === 'read' ? 'Mark as Unread' : 'Mark as Read' }}
+                        </button>
+                      </div>
+                    </div>
+                    <div class="card-actions" v-if="getAction(n)">
+                      <a :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
+                    </div>
+                  </div>
+                </div>
+              `,
+              setup(props) {
+                const notifications = ref([]);
+                const searchTerm = ref('');
+                const selectedCategory = ref('all');
+                const statusFilter = ref('all');
+                const isLoading = ref(true);
+                const error = ref(null);
+
+                const fetchNotifications = async () => {
+                  try {
+                    isLoading.value = true;
+                    console.log('Fetching notifications for employeeId:', props.managerId);
+                    const res = await fetch(`http://localhost:3000/api/manager-notifications?employeeId=${props.managerId}`, {
+                    credentials: 'include'
+          });
+                    console.log('Response status:', res.status);
+                    if (!res.ok) {
+                      const errorData = await res.json();
+                      throw new Error(`HTTP error! status: ${res.status}, message: ${errorData.error || 'Unknown error'}`);
+                    }
+                    const data = await res.json();
+                    console.log('Fetched notifications:', data);
+                    notifications.value = data;
+                  } catch (err) {
+                    error.value = `Failed to load notifications: ${err.message}`;
+                    console.error('Fetch error:', err);
+                    notifications.value = [];
+                  } finally {
+                    isLoading.value = false;
+                  }
+                };
+
+                const unreadCount = computed(() => {
+                  const count = notifications.value.filter(n => n.read_status === 'unread').length;
+                  console.log('Unread count:', count);
+                  return count;
+                });
+
+          const filteredNotifications = computed(() => {
+          const filtered = notifications.value
+          .filter(n => {
+          const matchesStatus = statusFilter.value === 'all' || n.read_status === statusFilter.value;
+          const matchesCategory = selectedCategory.value === 'all' || n.type === selectedCategory.value;
+          const matchesSearch = n.message.toLowerCase().includes(searchTerm.value.toLowerCase());
+          console.log('Notification:', n, 'Matches:', { matchesStatus, matchesCategory, matchesSearch });
+          return matchesStatus && matchesCategory && matchesSearch;
+          })
+              .sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
+              return filtered;
+          });
+
+                const toggleRead = async (n) => {
+                  const endpoint = `/api/notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
+                  try {
+                    const res = await fetch(endpoint, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ employeeId: props.managerId })
+                    });
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    n.read_status = n.read_status === 'read' ? 'unread' : 'read';
+                    console.log(`Notification ${n.notification_id} marked as ${n.read_status}`);
+                  } catch (err) {
+                    console.error('Toggle read error:', err);
+                  }
+                };
+
+                const markAllAsRead = async () => {
+                  const unreadIds = notifications.value.filter(n => n.read_status === 'unread').map(n => n.notification_id);
+                  if (!unreadIds.length) return;
+                  try {
+                    const res = await fetch(`/api/notifications/mark-all-read`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ employeeId: props.managerId, notificationIds: unreadIds })
+                    });
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    notifications.value.forEach(n => n.read_status = 'read');
+                    console.log('All notifications marked as read');
+                  } catch (err) {
+                    console.error('Mark all as read error:', err);
+                  }
+                };
+
+                const getIcon = (type) => ({
+                  leave_request: '📅',
+                  payroll: '💰',
+                  shift_swap: '🔄',
+                  system: '⚙️',
+                  default: '🔔'
+                })[type] || '🔔';
+
+                const getAction = (n) => ({
+                  leave_request: { text: 'Review Leave', link: 'leave.html' },
+                  shift_swap: { text: 'Manage Shift', link: 'view-shifts.html' }
+                })[n.type] || null;
+
+                const formatCategory = (type) =>
+                  type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+                const formatTime = (timeString) => {
+                  const date = new Date(timeString.replace(' ', 'T'));
+                  return date.toLocaleString('en-ZA', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                  });
+                };
+
+                onMounted(fetchNotifications);
+
+                return {
+                  notifications,
+                  searchTerm,
+                  selectedCategory,
+                  statusFilter,
+                  filteredNotifications,
+                  unreadCount,
+                  toggleRead,
+                  markAllAsRead,
+                  getIcon,
+                  getAction,
+                  formatCategory,
+                  formatTime,
+                  isLoading,
+                  error
+                };
+              }
+            }
+          }
+        }).mount('#notification-app');
+      }
+        
+  </script>
+  </body>
+</html>
