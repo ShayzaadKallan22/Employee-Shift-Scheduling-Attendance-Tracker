@@ -27,7 +27,6 @@ const express = require('express');
   const forgotPassRoute = require('./forgotPassRoute');
   const notifyRoute = require('./notifyRoute');
   const payrollsRoute = require('./payrollsRoutes');
-  const notificationRoutes = require('./notificationRoutes');
   const { register, login, logout } = require('./authController');
   const managerNotificationRoutes = require('./manager_notifications'); // Adjust path as needed
 
