@@ -1,3 +1,4 @@
+//Author: Katlego Mmadi
 const pool = require('./db');
 
 const validateManager = (req, res, next) => {

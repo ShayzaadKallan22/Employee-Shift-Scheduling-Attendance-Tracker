@@ -1,3 +1,4 @@
+//Author: Katlego Mmadi
 console.log("login.js loaded");
 document.getElementById('login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -46,7 +47,7 @@ document.getElementById('login-form').addEventListener('submit', async function 
     console.log("User ID:", user.id, "Type:", user.type_);
 
     alert(message || 'Login successful');
-    window.location.href = 'index.html'; // Redirect to index.html on frontend's origin
+    window.location.href = 'index.html'; // Redirect to index.html 
   } catch (err) {
     console.error("Network Error Details:", {
       message: err.message,

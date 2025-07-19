@@ -1,4 +1,4 @@
-// statusRoutes.js
+// Author : Katlego Mmadi
 const express = require('express');
 const router = express.Router();
 const statusController = require('./statusController');

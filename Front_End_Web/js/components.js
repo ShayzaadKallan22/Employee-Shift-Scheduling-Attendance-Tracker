@@ -1,4 +1,3 @@
-// components.js
 //Author: Katlego Mmadi
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
@@ -78,7 +77,7 @@ function setupLogoutButton() {
       clearInterval(window.notificationRefreshInterval);
     }
 
-    // 3. Try to notify server (but don't block on failure)
+    // 3. Try to notify server but doesn't block on failure
     try {
       await fetch('/api/logout', {
         method: 'POST',
@@ -96,7 +95,7 @@ function setupLogoutButton() {
   });
 }
 
-// Notification System (unchanged)
+// Notification System 
 function initializeNotificationSystem() {
   loadRecentNotifications();
   updateNotificationCount();
@@ -108,7 +107,7 @@ function initializeNotificationSystem() {
 
 async function loadRecentNotifications() {
   try {
-    const response = await fetch('/api/manager-notifications/unread/latest?employeeId=17');
+    const response = await fetch('http://localhost:3000/api/manager-notifications/unread/latest?employeeId=17');
     if (!response.ok) throw new Error('Failed to fetch notifications');
     
     const notifications = await response.json();
@@ -139,7 +138,7 @@ async function loadRecentNotifications() {
 
 async function updateNotificationCount() {
   try {
-    const response = await fetch('/api/manager-notifications/unread/count?employeeId=17');
+    const response = await fetch('http://localhost:3000/api/manager-notifications/unread/count?employeeId=17');
     if (!response.ok) throw new Error('Failed to fetch count');
     
     const data = await response.json();

@@ -1,4 +1,4 @@
-// session.js
+//Author: Katlego Mmadi 
 async function loadUnreadNotificationCount() {
   try {
     const user = localStorage.getItem("user"); // Check for user instead of token

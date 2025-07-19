@@ -1,4 +1,4 @@
-// statusController.js
+// Author: Katlego Mmadi
 const pool = require('./db');
 
 // Get all employees with their status

@@ -27,6 +27,7 @@ const express = require('express');
   const forgotPassRoute = require('./forgotPassRoute');
   const notifyRoute = require('./notifyRoute');
   const payrollsRoute = require('./payrollsRoutes');
+  //Author : Katlego Mmadi
   const { register, login, logout } = require('./authController');
   const managerNotificationRoutes = require('./manager_notifications'); 
 const statusRoutes = require('./statusRoutes');

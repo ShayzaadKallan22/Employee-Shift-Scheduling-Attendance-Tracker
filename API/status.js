@@ -38,8 +38,8 @@ function fetchAndDisplayEmployees() {
     .then((data) => {
       console.log("✅ Employees fetched:", data);
       allEmployees = data;
-      renderStaticMetrics(data); // ← Only once
-      updateDisplay(data);       // ← Initial list
+      renderStaticMetrics(data);
+      updateDisplay(data);       
     })
     .catch((err) => {
       console.error("❌ Failed to fetch employees:", err);

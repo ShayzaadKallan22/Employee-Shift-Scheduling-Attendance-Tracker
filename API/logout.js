@@ -1,3 +1,4 @@
+//Author: Katlego Mmadi
 function logout() {
   // Clear storage
   localStorage.removeItem('token');
