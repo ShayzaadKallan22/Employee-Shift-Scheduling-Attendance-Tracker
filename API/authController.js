@@ -66,15 +66,36 @@ const register = async (req, res) => {
   res.status(501).json({ error: 'Register not implemented' });
 };
 
+// authController.js 
 const logout = async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ error: 'Logout failed' });
-    }
-    res.clearCookie('employeeId');
-    res.json({ message: 'Logged out successfully' });
-  });
+  try {
+    // Clear the session without waiting too long
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        // Still respond successfully to ensure client redirects
+        return res.json({ 
+          success: true,
+          message: 'Logged out (session may not have cleared completely)' 
+        });
+      }
+      
+      // Clear the cookies
+      res.clearCookie('employeeId');
+      res.clearCookie('connect.sid');
+      
+      return res.json({ 
+        success: true,
+        message: 'Logged out successfully' 
+      });
+    });
+  } catch (err) {
+    console.error('Logout error:', err);
+    // Still respond successfully to ensure client redirects
+    return res.json({ 
+      success: true,
+      message: 'Logged out (with possible server errors)' 
+    });
+  }
 };
-
 module.exports = { login, register, logout };

@@ -280,7 +280,7 @@
               };
 
               const fetchEmployees = async () => {
-                const res = await fetch("/api/employees");
+                const res = await fetch("http://localhost:3000/api/status/employees");
                 const data = await res.json();
                 employees.value = data;
                 updateStatusCounts();
@@ -288,7 +288,7 @@
               };
 
               const fetchRoles = async () => {
-                const res = await fetch("/api/roles");
+                const res = await fetch("/api/status/roles");
                 const data = await res.json();
                 roles.value = data.map((r) => r.title);
               };

@@ -27,6 +27,7 @@ exports.getEmpNotifications = async (req , res) =>{
 
 exports.markAsRead = async (req, res) =>{
 
+    console.log("Marking notification as read");
     const {notificationId} = req.params;
 
     try {
@@ -35,6 +36,7 @@ exports.markAsRead = async (req, res) =>{
              [notificationId]
         );
         res.status(200).json({message: "Notification marked as read"});
+        console.log("Notification marked as read:", notificationId);
     }catch(err){
         console.error("Error updating notification:", err);
         res.status(500).json({error: "Server error"});

@@ -1,11 +1,13 @@
-//Author: Katlego Mmadi
+// session.js
 async function loadUnreadNotificationCount() {
   try {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; employeeId=`);
-    if (parts.length !== 2) return;
-    const employeeId = parts.pop().split(';').shift();
+    const user = localStorage.getItem("user"); // Check for user instead of token
+    if (!user) {
+      window.location.replace("/Front_End_Web/signin.html");
+      return;
+    }
 
+    const employeeId = JSON.parse(user).id; // Get ID from stored user object
     const response = await fetch(`/api/manager-notifications/unread/count?employeeId=${employeeId}`);
     const data = await response.json();
 
@@ -21,12 +23,11 @@ async function loadUnreadNotificationCount() {
   }
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.replace("/signin.html");
+    const user = localStorage.getItem("user"); // Check for user instead of token
+    if (!user) {
+      window.location.replace("/Front_End_Web/signin.html");
       return;
     }
 
@@ -40,14 +41,15 @@ document.addEventListener("DOMContentLoaded", () => {
           const response = await fetch("/api/logout", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           });
 
           const result = await response.json();
           if (result.success) {
-            localStorage.clear();
-            window.location.replace("/signin.html");
+            localStorage.removeItem("user"); // Clear user data
+            localStorage.removeItem("employeeId");
+            window.location.replace("/Front_End_Web/signin.html");
           } else {
             alert("Logout failed. Please try again.");
           }
@@ -57,5 +59,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
-  }, 100); // Delay to ensure navbar is injected
+  }, 100);
 });

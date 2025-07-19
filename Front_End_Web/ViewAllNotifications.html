@@ -393,49 +393,7 @@
       <!-- Content Start -->
       <div class="content">
         <!-- Navbar Start -->
-        <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-          <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-            <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-          </a>
-          <a href="#" class="sidebar-toggler flex-shrink-0">
-            <i class="fa fa-bars"></i>
-          </a>
-          <div class="navbar-nav align-items-center ms-auto">
-            <div class="nav-item dropdown">
-              <a href="ViewAllNotifications.html" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fa fa-bell me-lg-2"></i>
-                <span class="d-none d-lg-inline-flex">Notifications</span>
-                <span id="notification-count" class="badge bg-danger ms-1" style="font-size: 0.75rem; display: none;">0</span>
-              </a>
-              <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0 p-0" style="width: 350px;">
-                <div class="px-3 py-2 border-bottom">
-                  <h6 class="mb-0">Notifications</h6>
-                </div>
-                <div id="recent-notifications" class="overflow-auto" style="max-height: 400px;">
-                  <div class="text-center py-3">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Loading...</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="px-3 py-2 border-top">
-                  <a href="ViewAllNotifications.html" class="btn btn-primary btn-sm w-100">View All Notifications</a>
-                </div>
-              </div>
-            </div>
-            <div class="nav-item dropdown">
-              <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px" />
-                <span class="d-none d-lg-inline-flex">Admin User</span>
-              </a>
-              <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                <a href="#" class="dropdown-item">My Profile</a>
-                <a href="#" class="dropdown-item">Settings</a>
-                <a href="#" class="dropdown-item">Log Out</a>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <div id="navbar-container"></div>
         <!-- Navbar End -->
 
         <!-- Main Content -->
@@ -465,6 +423,7 @@
 
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="js/components.js"></script>
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
@@ -597,35 +556,37 @@
                 });
 
                 const toggleRead = async (n) => {
-                  console.log('Sending PATCH request for notification:', n.notification_id, 'employeeId:', props.managerId);
-                  const endpoint = `http://localhost:3000/api/manager-notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
-                  try {
-                    const res = await fetch(endpoint, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ employeeId: props.managerId })
-                    });
-                    console.log('PATCH response status:', res.status);
-                    if (!res.ok) {
-                      const text = await res.text();
-                      console.error('Raw response:', text);
-                      throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
-                    }
-                    if (n.read_status === 'read') {
-                      n.read_status = 'unread';
-                    } else {
-                      n.isDisappearing = true;
-                      setTimeout(() => {
-                        notifications.value = notifications.value.filter(item => item.notification_id !== n.notification_id);
-                      }, 300); // Match transition duration
-                    }
-                    console.log(`Notification ${n.notification_id} marked as ${n.read_status}`);
-                    error.value = null;
-                  } catch (err) {
-                    error.value = `Failed to update notification: ${err.message}`;
-                    console.error('Toggle read error:', err);
-                  }
+                console.log('Sending PATCH request for notification:', n.notification_id, 'employeeId:', props.managerId);
+                const endpoint = `http://localhost:3000/api/manager-notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
+                try {
+                  const res = await fetch(endpoint, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ employeeId: props.managerId })
+                });
+                  console.log('PATCH response status:', res.status);
+                  if (!res.ok) {
+                  const text = await res.text();
+                  console.error('Raw response:', text);
+                  throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
+                }
+                  const data = await res.json();
+                  console.log('Response data:', data);
+                  if (n.read_status === 'read') {
+                  n.read_status = 'unread';
+                  } else {
+                  n.isDisappearing = true;
+                  setTimeout(() => {
+                    notifications.value = notifications.value.filter(item => item.notification_id !== n.notification_id);
+                  }, 300);
+                }
+                  console.log(`Notification ${n.notification_id} marked as ${n.read_status}`);
+                  error.value = null;
+                } catch (err) {
+                  error.value = `Failed to update notification: ${err.message}`;
+                  console.error('Toggle read error:', err);
+                }
                 };
 
                 const markAllAsRead = async () => {

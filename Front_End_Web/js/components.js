@@ -92,7 +92,7 @@ function setupLogoutButton() {
     }
 
     // 4. Force reload to clear memory
-    window.location.href = '/signin.html?logout=success&t=' + Date.now();
+    window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
   });
 }
 

@@ -1,13 +1,13 @@
-//AUTHOR - SHAYZAAD
-
 const express = require('express');
 const router = express.Router();
-const normalQRController = require('./normalController');
+const notificationController = require('./notificationController');
 
-//Get current active normal QR
-router.get('/current', normalQRController.getCurrentNormalQR);
+router.use(notificationController.validateManager);
 
-//Get proof QR by ID
-router.get('/proof/:qrId', normalQRController.getProofQR);
+router.get('/', notificationController.getNotifications);
+router.get('/unread/count', notificationController.getUnreadCount);
+router.get('/unread/latest', notificationController.getLatestUnread);
+router.patch('/:notification_id/:read_status', notificationController.toggleReadStatus);
+router.patch('/mark-all-read', notificationController.markAllAsRead);
 
 module.exports = router;

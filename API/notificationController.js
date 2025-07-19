@@ -1,15 +1,29 @@
-// controllers/notificationController.js
 const pool = require('./db');
 
-// Validate if the employee is a manager
-async function validateManager(employeeId) {
-  const [rows] = await pool.query('SELECT type_ FROM t_employee WHERE employee_id = ?', [employeeId]);
-  return rows.length > 0 && rows[0].type_ === 'manager';
-}
+const validateManager = (req, res, next) => {
+  const employeeId = req.query.employeeId || req.body.employeeId;
+  if (!employeeId) {
+    console.log('No employeeId provided in query or body');
+    return res.status(400).json({ error: 'Employee ID required' });
+  }
+  pool.query('SELECT type_ FROM t_employee WHERE employee_id = ?', [employeeId])
+    .then(([rows]) => {
+      console.log('Employee query result:', rows);
+      if (rows.length === 0 || rows[0].type_ !== 'manager') {
+        console.log('Invalid manager or employee not found');
+        return res.status(403).json({ error: 'Access restricted to managers only' });
+      }
+      req.employeeId = employeeId;
+      next();
+    })
+    .catch(err => {
+      console.error('🛑 Manager validation error:', err);
+      res.status(500).json({ error: 'Failed to validate manager status' });
+    });
+};
 
-exports.getNotifications = async (req, res) => {
+const getNotifications = async (req, res) => {
   try {
-    const { employeeId } = req;
     const { type } = req.query;
     let query = `
       SELECT 
@@ -21,18 +35,16 @@ exports.getNotifications = async (req, res) => {
       FROM t_notification n
       JOIN t_notification_type nt 
         ON n.notification_type_id = nt.notification_type_id
-      WHERE n.employee_id = ?`;
-    const params = [employeeId];
-
+      WHERE n.employee_id = ?
+    `;
+    const params = [req.employeeId];
     if (type) {
       query += ` AND nt._name = ?`;
       params.push(type);
     }
-
     query += ` ORDER BY n.sent_time DESC`;
-
     const [notifications] = await pool.query(query, params);
-    console.log('📦 Notifications for manager', employeeId, 'fetched:', notifications.length);
+    console.log('📦 Notifications for manager', req.employeeId, 'fetched:', notifications.length);
     res.json(notifications);
   } catch (err) {
     console.error('🛑 Notification fetch error for manager', req.employeeId, ':', err);
@@ -40,14 +52,13 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-exports.getUnreadCount = async (req, res) => {
+const getUnreadCount = async (req, res) => {
   try {
     const [result] = await pool.query(`
       SELECT COUNT(*) AS unreadCount
       FROM t_notification
       WHERE read_status = 'unread' AND employee_id = ?
     `, [req.employeeId]);
-
     console.log('📦 Unread notification count for manager', req.employeeId, ':', result[0].unreadCount);
     res.json(result[0]);
   } catch (err) {
@@ -56,7 +67,7 @@ exports.getUnreadCount = async (req, res) => {
   }
 };
 
-exports.getLatestUnread = async (req, res) => {
+const getLatestUnread = async (req, res) => {
   try {
     const [notifications] = await pool.query(`
       SELECT 
@@ -72,7 +83,6 @@ exports.getLatestUnread = async (req, res) => {
       ORDER BY n.sent_time DESC
       LIMIT 2
     `, [req.employeeId]);
-
     res.json(notifications);
   } catch (err) {
     console.error('Failed to fetch latest notifications:', err);
@@ -80,22 +90,60 @@ exports.getLatestUnread = async (req, res) => {
   }
 };
 
-// Middleware
-exports.validateManagerMiddleware = async (req, res, next) => {
-  const employeeId = req.query.employeeId;
-  if (!employeeId) {
-    return res.status(400).json({ error: 'Employee ID required' });
+const toggleReadStatus = async (req, res) => {
+  const { notification_id, read_status } = req.params;
+  console.log(`Processing PATCH for notification ${notification_id} to ${read_status}, employeeId: ${req.employeeId}`);
+  if (!['read', 'unread'].includes(read_status)) {
+    console.log('Invalid read_status:', read_status);
+    return res.status(400).json({ error: 'Invalid read_status' });
   }
-
   try {
-    const isManager = await validateManager(employeeId);
-    if (!isManager) {
-      return res.status(403).json({ error: 'Access restricted to managers only' });
+    const [existing] = await pool.query(
+      'SELECT * FROM t_notification WHERE notification_id = ? AND employee_id = ?',
+      [notification_id, req.employeeId]
+    );
+    console.log('Existing notification:', existing);
+    const [result] = await pool.query(
+      'UPDATE t_notification SET read_status = ? WHERE notification_id = ? AND employee_id = ?',
+      [read_status, notification_id, req.employeeId]
+    );
+    console.log('Query result:', result);
+    if (result.affectedRows === 0) {
+      console.log('No rows affected, notification_id:', notification_id, 'employeeId:', req.employeeId);
+      return res.status(404).json({ error: 'Notification not found or not authorized' });
     }
-    req.employeeId = employeeId;
-    next();
+    console.log(`Notification ${notification_id} marked as ${read_status}`);
+    res.json({ success: true });
   } catch (err) {
-    console.error('🛑 Manager validation error:', err);
-    res.status(500).json({ error: 'Failed to validate manager status' });
+    console.error('🛑 Error updating notification status:', err);
+    res.status(500).json({ error: 'Failed to update notification status' });
   }
+};
+
+const markAllAsRead = async (req, res) => {
+  const { notificationIds } = req.body;
+  console.log('Processing mark all as read for employeeId:', req.employeeId, 'notificationIds:', notificationIds);
+  if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
+    return res.status(400).json({ error: 'No notification IDs provided' });
+  }
+  try {
+    const [result] = await pool.query(
+      'UPDATE t_notification SET read_status = "read" WHERE employee_id = ? AND notification_id IN (?)',
+      [req.employeeId, notificationIds]
+    );
+    console.log(`Marked ${result.affectedRows} notifications as read for employeeId: ${req.employeeId}`);
+    res.json({ success: true, affectedRows: result.affectedRows });
+  } catch (err) {
+    console.error('🛑 Error marking all notifications as read:', err);
+    res.status(500).json({ error: 'Failed to mark notifications as read' });
+  }
+};
+
+module.exports = {
+  validateManager,
+  getNotifications,
+  getUnreadCount,
+  getLatestUnread,
+  toggleReadStatus,
+  markAllAsRead
 };

@@ -28,7 +28,9 @@ const express = require('express');
   const notifyRoute = require('./notifyRoute');
   const payrollsRoute = require('./payrollsRoutes');
   const { register, login, logout } = require('./authController');
-  const managerNotificationRoutes = require('./manager_notifications'); // Adjust path as needed
+  const managerNotificationRoutes = require('./manager_notifications'); 
+const statusRoutes = require('./statusRoutes');
+
 
   // Load environment variables
   require('dotenv').config();
@@ -38,25 +40,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // CORS Middleware
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://127.0.0.1:3000'
-  ];
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(cors({
+  origin: 'http://127.0.0.1:5500',
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
 
 // Session configuration
 app.use(session({
@@ -102,9 +91,13 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api', forgotPassRoute);
 app.use('/api', notifyRoute);
 app.use('/api/payroll', payrollsRoute);
+app.use('/api/status', statusRoutes);
 
-// Static files (place AFTER API routes)
-app.use(express.static(path.join(__dirname, '../FrontEnd')));
+
+
+
+
+
 
 // Routes for HTML pages
 app.get('/dashboard', (req, res) => {
@@ -128,3 +121,8 @@ app.get('/', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+//Author : Katlego Mmadi
+console.log('Static file path:', path.join(__dirname, '../Front_End_Web'));
+app.use(express.static(path.join(__dirname, '../Front_End_Web')));
+
