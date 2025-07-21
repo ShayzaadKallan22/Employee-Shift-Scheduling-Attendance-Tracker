@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 
 //API URL for API connection and database connection.
-const API_URL = 'http://192.168.1.187:3000'; 
+const API_URL = 'http://192.168.149.179:3000';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');

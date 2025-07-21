@@ -14,7 +14,7 @@ import { Alert, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 
-const API_URL = 'http://10.254.224.142:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const LeaveRequest = () => {
 
@@ -67,32 +67,36 @@ const handleConfirmEnd = (date) => {
     };
    
 
-    const leaveTypeId = leaveTypeMap[leaveType];
+    const leaveTypeId = Number(leaveTypeMap[leaveType]);
     //Replace the EMP with an empty character if the employee id comes with the EMP.
     const numericId = employeeId.replace('EMP-', '');
     
     //Send request to the API to handle.
     const response = await axios.post(`${API_URL}/leave/request`, {
       employee_id: parseInt(numericId, 10),
-      leave_type_id: leaveTypeId,
+      leave_type_id: parseInt(leaveTypeId,10),
       start_date: startDate,
       end_date: endDate      
     });
-    setLeaveStatus(response.data.status);
+    console.log('Full response:', response.data);
+
+    
+    console.log('Leave status from backend:', response.data.status_);
     //Add the new request to pendingRequests with the response data
     const newRequest = {
       id: response.data.leave_id.toString(),
       startDate,
       endDate,
       leaveType,
-      leaveStatus: response.data.status
+      leaveStatus : response.data.status_
     };
 
     setPendingRequests([...pendingRequests, newRequest]);
     setStartDate('');
     setEndDate('');
-    setLeaveType('');
-    setLeaveStatus('');
+    setLeaveType('Annual');
+    setLeaveStatus(response.data.status_);
+    //setLeaveStatus('');
 
     //Pop up if leave request was was submitted succesfully
     Alert.alert('Success', 'Leave request submitted successfully');
@@ -202,7 +206,14 @@ const handleConfirmEnd = (date) => {
               <Text style={styles.requestText}>Start Date: {request.startDate}</Text>
               <Text style={styles.requestText}>End Date: {request.endDate}</Text>
               <Text style={styles.requestText}>Type: {request.leaveType}</Text>
-              <Text style={styles.requestText}>Status: {request.leaveStatus}</Text>
+              <Text style={[styles.requestText, { color: 
+                request.leaveStatus === 'approved' ? '#4CAF50' :
+                request.leaveStatus === 'pending' ? '#FFC107' :
+                request.leaveStatus === 'rejected' ? '#F44336' : '#ffffff',
+              },]}>
+                Status:{' '} {request.leaveStatus ? request.leaveStatus.charAt(0).toUpperCase() + request.leaveStatus.slice(1) : 'unknown'}
+              </Text>
+
               {request.leaveStatus === 'pending' && (
                 <TouchableOpacity 
                   style={styles.cancelButton}
@@ -296,8 +307,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
-    alignContent: 'center',
-    alignItems: 'center',
   },
   label: {
     color: '#ffffff',

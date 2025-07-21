@@ -19,7 +19,15 @@ exports.requestLeave = async (req, res) => {
         //Calculate the number of leave days.
         const start = new Date(start_date);
         const end = new Date(end_date);
+         
+        //Sanitize dates 
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
         const daysRequested = Math.ceil((end-start)/ (1000 * 60 * 60 * 24)) + 1;
+        if (daysRequested <= 0) {
+           return res.status(400).json({ message: 'Invalid date range' });
+        }
 
         //get max balance for the leave type.
         const leaveTypeMax ={
@@ -27,22 +35,39 @@ exports.requestLeave = async (req, res) => {
             2: 30,  //Sick
             3: 15   //Family
         };
+        //For debugging purposes.
+        console.log('Received leave_type_id:', leave_type_id, typeof leave_type_id);
 
-        const maxBalance = leaveTypeMax[leave_type_id];
+        const leaveTypeIdNum = parseInt(leave_type_id);
+        const maxBalance = leaveTypeMax[leaveTypeIdNum];
+        
+        if (!maxBalance) {
+           return res.status(400).json({ message: 'Invalid leave type ID' });
+        }
 
         //Auto approve sick leave.
-        let status ='pending';
+        let status_ = 'pending';
+        //Debugging purposes....
+        console.error('Error:', status_);
         let usedDays = 0;
         let remaining = maxBalance;
 
-        if(leave_type_id === 2){
-            status = 'approved';
+        //Debugging purposes....
+        console.log('leaveTypeIdNum is:', leaveTypeIdNum, typeof leaveTypeIdNum);
+
+        if (!leaveTypeMax.hasOwnProperty(leaveTypeIdNum)) {
+           return res.status(400).json({ message: 'Invalid leave type ID' });
+        }
+
+        if(leaveTypeIdNum === 2){
+            console.log('Auto-approving sick leave');
+            status_ = 'approved';
         }else{
             //Check leave balance
             const [rows] = await db.execute(
                 `SELECT COALESCE(SUM(DATEDIFF(end_date, start_date) + 1), 0) AS used_days
-                 FROM T_Leave
-                 WHERE employee_id = ? AND leave_type_id = ? AND status_ = 'approved'`, [employee_id, leave_type_id]
+                 FROM t_leave
+                 WHERE employee_id = ? AND leave_type_id = ? AND status_ = 'approved'`, [employee_id, leaveTypeIdNum]
             );
 
             usedDays = rows[0].used_days;
@@ -50,30 +75,38 @@ exports.requestLeave = async (req, res) => {
 
             //Auto- approve if more than half of max balance remains
             if(remaining >= (maxBalance / 2) && remaining >= daysRequested){
-                status = 'approved';
+                status_ = 'approved';
             }
         }
         //Insert leave request
         const [insertResult] = await db.execute(
-            `INSERT INTO T_Leave (start_date, end_date, status_, employee_id, leave_type_id, used_days, remaining_days)
+            `INSERT INTO t_leave (start_date, end_date, status_, employee_id, leave_type_id, used_days, remaining_days)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [start_date, end_date, status, employee_id, leave_type_id, usedDays, remaining]
+            [start_date, end_date, status_, employee_id, leaveTypeIdNum, usedDays, remaining]
         );
 
         await db.execute(
             `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
              VALUES (?, ?, NOW(), ?, ?)`, 
-             [employee_id, `Your leave request has been ${status} for ${daysRequested} days.`, 'unread', 1]
+             [employee_id, `Your leave request has been ${status_} for ${daysRequested} days.`, 'unread', 1]
         );
 
-        if(status === 'approved'){
+        if(status_ === 'approved'){
             await db.execute(
                  `UPDATE t_employee SET status_ = ? 
                   WHERE employee_id = ?`, ['On Leave', employee_id]
             );
         }
         //res.json(insertResult);
-        res.status(201).json({ message: 'Leave request submitted', leave_id: insertResult.insertId, status });
+        //Debugging purposes....
+        console.log('Returning status:', status_);
+        console.log('Sending response:', {
+             message: 'Leave request submitted',
+             leave_id: insertResult.insertId,
+             status_: status_
+        });
+
+        res.status(200).json({ message: 'Leave request submitted', leave_id: insertResult.insertId, status_: status_});
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });

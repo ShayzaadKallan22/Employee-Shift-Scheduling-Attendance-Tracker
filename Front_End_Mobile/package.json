@@ -1,5 +1,5 @@
 {
-  "name": "ProjectName",
+  "name": "Azania-App",
   "license": "0BSD",
   "version": "1.0.0",
   "main": "index.js",
@@ -39,8 +39,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-uuid": "^2.0.3",
     "react-native-vector-icons": "^10.2.0",
-    "undefined": "\\",
-    "expo-sharing": "~13.0.1"
+    "expo-sharing": "~13.0.1",
+    "expo-media-library": "~17.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

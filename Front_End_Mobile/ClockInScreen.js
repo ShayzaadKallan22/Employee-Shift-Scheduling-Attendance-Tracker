@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://10.254.224.142:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const ClockInScreen = () => {
   const navigation = useNavigation();
@@ -33,19 +33,26 @@ const ClockInScreen = () => {
     fetchShifts();
   }, []);
   
+  //Handle clock in button action
   const handleClockIn = async () => {
     //Navigate to the scan screen.
     navigation.replace('ScanScreen');
   };
 
+  //Handle Logout icon press action.
   const handleLogout= async () => {
-      //Handle logout
-      navigation.reset({
-        index: 0,
-        routes:'Login' ,
-      });
+      try{
+        //Remove all keys in asyncstorage.
+        await AsyncStorage.clear();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login'}],
+        });
+      }catch(error){
+        console.error('Error during logout:', error);
+      }
  
-  }
+  };
   return (
     <View style={styles.screen}>
       <View style={styles.topBar}>

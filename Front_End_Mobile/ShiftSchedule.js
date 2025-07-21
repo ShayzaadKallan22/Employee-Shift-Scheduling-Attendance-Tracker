@@ -10,7 +10,7 @@ import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const ShiftSchedule = () => {
 
@@ -29,7 +29,7 @@ const ShiftSchedule = () => {
         const res = await  axios.get(`${API_URL}/schedule/employee/${employee_id}/shifts`);
         const shiftData = res.data.map(({date_, start_time, end_time, role}) =>({
           date: new Date(date_).getDate().toString().padStart(2,'0'),
-          fullDate: new Date(date_).toISOString().split('T')[0],
+          fullDate: new Date(date_).toLocaleDateString('en-CA'),
           role: role,
           start: start_time,
           end: end_time
