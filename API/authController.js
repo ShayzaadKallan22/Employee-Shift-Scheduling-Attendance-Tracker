@@ -2,12 +2,12 @@ const bcrypt = require('bcryptjs');
 const pool = require('./db');
 const jwt = require('jsonwebtoken');
 
-// Helper function to generate 6-digit password
+//Helper function to generate 6-digit password
 const generatePassword = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Role name to ID mapping
+//Role name to ID mapping
 const roleMap = {
     'bartender': 1,
     'sparkler_girl': 2,
@@ -22,7 +22,7 @@ const register = async (req, res) => {
     try {
         let { first_name, last_name, email, phone_number, role_id, mac_address, type_ } = req.body;
 
-        // Convert role name to ID if needed
+        //Convert role name to ID if needed
         if (typeof role_id === 'string') {
             const roleKey = role_id.toLowerCase().replace(' ', '_');
             if (!roleMap[roleKey]) {
@@ -31,22 +31,22 @@ const register = async (req, res) => {
             role_id = roleMap[roleKey];
         }
 
-        // Validate input
+        //Validate input
         if (!first_name || !last_name || !email || !phone_number || !role_id || !mac_address || !type_) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // Validate type_ enum
+        //Validate type_ enum
         if (!['employee', 'manager'].includes(type_)) {
             return res.status(400).json({ message: 'Invalid employee type' });
         }
 
-        // Validate MAC address format
+        //Validate MAC address format
         if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac_address)) {
             return res.status(400).json({ message: 'Invalid MAC address format' });
         }
 
-        // Check if user exists
+        //Check if user exists
         const [existingUser] = await pool.query(
             'SELECT * FROM T_Employee WHERE email = ?', 
             [email]
@@ -56,7 +56,7 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Check if MAC address is registered
+        //Check if MAC address is registered
         const [existingDevice] = await pool.query(
             'SELECT * FROM T_Device WHERE mac_address = ?',
             [mac_address]
@@ -66,16 +66,16 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'MAC address already registered' });
         }
 
-        // Generate and hash password
+        //Generate and hash password
         const generatedPassword = generatePassword();
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
-        // Start transaction
+        //Start transaction
         await pool.query('START TRANSACTION');
 
         try {
-            // Create user with dynamic type_
+            //Create user with dynamic type_
             const [employeeResult] = await pool.query(
                 'INSERT INTO T_Employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "active", ?, ?)',
                 [first_name, last_name, email, phone_number, hashedPassword, type_, role_id]
@@ -83,16 +83,16 @@ const register = async (req, res) => {
 
             const newEmployeeId = employeeResult.insertId;
 
-            // Register device
+            //Register device
             await pool.query(
                 'INSERT INTO T_Device (mac_address, employee_id) VALUES (?, ?)',
                 [mac_address, newEmployeeId]
             );
 
-            // Commit transaction
+            //Commit transaction
             await pool.query('COMMIT');
 
-            // Get the newly created user
+            //Get the newly created user
             const [newUser] = await pool.query(`
                 SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id, d.mac_address
                 FROM T_Employee e
@@ -100,7 +100,7 @@ const register = async (req, res) => {
                 WHERE e.employee_id = ?
             `, [newEmployeeId]);
 
-            // Generate JWT token for the new user
+            //Generate JWT token for the new user
             const token = jwt.sign(
                 { 
                     id: newUser[0].employee_id,
@@ -142,12 +142,12 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input
+        //Validate input
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        // Check user exists
+        //Check user exists
         const [user] = await pool.query(
             'SELECT * FROM T_Employee WHERE email = ?', 
             [email]
@@ -157,13 +157,13 @@ const login = async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Verify password
+        //Verify password
         const isMatch = await bcrypt.compare(password, user[0].password_hash);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Generate JWT token
+        //Generate JWT token
         const token = jwt.sign(
             { 
                 id: user[0].employee_id,
@@ -189,7 +189,7 @@ const login = async (req, res) => {
     }
 };
 
-// authController.js
+//authController.js
 const logout = async (req, res) => {
   try {
     res.json({ success: true, message: "Logged out successfully" });

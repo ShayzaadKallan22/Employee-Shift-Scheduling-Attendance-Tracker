@@ -34,7 +34,7 @@ const statusRoutes = require('./statusRoutes');
 const path = require('path');
 
 
-// Load environment variables
+//Load environment variables
 require('dotenv').config();
 
 app.use(cors({
@@ -43,7 +43,7 @@ app.use(cors({
     'http://127.0.0.1:5500',
     'http://localhost:5500',
     'http://127.0.0.1:3000',
-    'http://localhost' // Added for Yatin's frontend
+    'http://localhost' //Added for Yatin's frontend
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -55,11 +55,11 @@ app.use(cors({
     'Accept',
     'Origin'
   ],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200 //Some legacy browsers choke on 204
 }));
 
-app.use(express.urlencoded({ extended: true })); // For form submissions
-app.use(express.json()); // For API JSON payloads
+app.use(express.urlencoded({ extended: true })); //For form submissions
+app.use(express.json()); //For API JSON payloads
 
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
@@ -102,26 +102,26 @@ app.get('/', (req, res) => {
     res.render('registration');
 });
 
-// Test API endpoint
+//Test API endpoint
 app.get('/api/test', (req, res) => {
     res.json({ message: "API works on web & mobile!" });
 });
 
-// Session configuration - DO WE NEED (SHAYZAAD)??
-// Session configuration
+//Session configuration - DO WE NEED (SHAYZAAD)??
+//Session configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-strong-secret-here',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: process.env.NODE_ENV === 'production', // HTTPS in production
-        maxAge: 3600000, // 1 hour
+        secure: process.env.NODE_ENV === 'production', //HTTPS in production
+        maxAge: 3600000, //1 hour
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Important for cross-origin
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' //Important for cross-origin
     }
 }));
 
-// Make database pool available in routes
+//Make database pool available in routes
 app.use((req, res, next) => {
     req.db = pool;
     next();
@@ -132,10 +132,10 @@ app.use((req, res, next) => {
 //     res.send('Hello from Express!');
 // });
 
-// Auth routes 
+//Auth routes 
 app.use('/auth', authRoutes);
 
-// Leave routes
+//Leave routes
 
 //No session check
 //app.post('/api/leave/request', leaveController.requestLeave); //Added by Cletus.
@@ -178,7 +178,7 @@ app.post('/api/login', login);
 app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 
-// Routes for HTML pages
+//Routes for HTML pages
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../Front_End_Web', 'index.html'));
 });
@@ -232,7 +232,7 @@ app.get('/register', (req, res) => {
     });
 });
 
-// Protected profile route
+//Protected profile route
 app.get('/profile', (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -249,20 +249,20 @@ app.listen(3000, '0.0.0.0', () => {  // Listen on all network interfaces
 app.use('/api/shift-swap', shiftSwapRoutes);
 
 //Qr Code routes
-app.use('/api/qr', qrRoute)
+app.use('/api/qr', qrRoute); //Added by Cletus.
 //Profile route
-app.use('/api/profile', profilesRoutes);
+app.use('/api/profile', profilesRoutes); //Added by Cletus.
 //Burger menu route.
-app.use('/api/menu', menuRoutes);
+app.use('/api/menu', menuRoutes); //Added by Cletus.
 
 app.post('/api/menu/respond', menuController.getEmpDetails); //Added by Cletus.
 //Schedule route
 app.use('/api/schedule', scheduleRoute); //Added by Cletus.
 
-app.use('/api/shifts', shiftRoutes);
+app.use('/api/shifts', shiftRoutes); //Added by Cletus.
 
-app.use('/api', forgotPassRoute);
+app.use('/api', forgotPassRoute); //Added by Cletus.
 
-app.use('/api', notifyRoute);
+app.use('/api', notifyRoute); //Added by Cletus.
 
-app.use('/api/payroll', payrollsRoute);
+app.use('/api/payroll', payrollsRoute); //Added by Cletus.
