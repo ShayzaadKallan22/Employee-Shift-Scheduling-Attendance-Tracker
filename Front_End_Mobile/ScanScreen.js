@@ -9,7 +9,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 export default function ScanScreen() {
 
@@ -49,7 +49,10 @@ export default function ScanScreen() {
         Alert.alert('Success', result.message, [
           {
             text: 'OK',
-            onPress: () => navigation.replace('ClockInScreen')
+            onPress: () => { 
+              setLoading(false); //Stop spinner 
+              navigation.navigate('ClockIn');  //navigate after user clicks OK.
+            }
           }
         ]);
       } else{
@@ -72,8 +75,13 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Scan QR Code</Text>
-      <View style={styles.cameraContainer}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('ClockIn')} style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Scan QR Code</Text>
+      </View>
+        <View style={styles.cameraContainer}>
         {loading && (
          <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#ffffff" />
@@ -116,9 +124,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     alignSelf: 'center',
     marginBottom: 10,
+    marginLeft: 50,
   },
   cameraContainer: {
-    flex: 1,
+    height: 350,
     overflow: 'hidden',
     borderRadius: 15,
     marginBottom: 16,
@@ -151,5 +160,15 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.3)',
     zIndex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#000',
+  },
+  backButton: {
+    marginRight: 10,
   },
 });

@@ -10,6 +10,6 @@ router.post('/request', leaveController.requestLeave);
 router.get('/all', leaveController.getAllLeaveRequests);
 router.post('/respond', leaveController.respondToLeave);
 router.get('/my/:employee_id', leaveController.getMyLeaveRequests);
-router.delete('./cancel/:leave_id', leaveController.cancelLeave);
+router.delete('/cancel/:leave_id', leaveController.cancelLeave);
 
 module.exports = router;

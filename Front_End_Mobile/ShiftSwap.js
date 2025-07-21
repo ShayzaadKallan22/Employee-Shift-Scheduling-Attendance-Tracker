@@ -7,30 +7,34 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, SafeAreaVi
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from 'react-native-calendars';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const ShiftSwap = () => {
 
   const navigation = useNavigation();  
   const [activeTab, setActiveTab] = useState('My Requests');
   const [showRequestForm, setShowRequestForm] = useState(false);
-  const [assignedDate, setAssignedDate] = useState(new Date());
-  const [swapDate, setSwapDate] = useState(new Date());
-  const [showAssignedPicker, setShowAssignedPicker] = useState(false);
-  const [showSwapPicker, setShowSwapPicker] = useState(false);
+  const [assignedDate, setAssignedDate] = useState(null);
+  const [swapDate, setSwapDate] = useState(null);
+  const [showAssignedCalendar, setShowAssignedCalendar] = useState(false);
+  const [showSwapCalendar, setShowSwapCalendar] = useState(false);
   const [colleagues, setColleagues] = useState([]);
   const [selectedColleague, setSelectedColleague] = useState('');
   const [colleagueRequests, setColleagueRequests] = useState([]);
   const [requestingEmployeeId, setRequestingEmployeeId] = useState('');
   const [myRequests, setMyRequests] = useState([]);
-  const [requestHistory, setRequestHistory] = useState([]);
-  const [assignedDateFormatted, setAssignedDateFormatted] = useState('');
-  const [swapDateFormatted, setSwapDateFormatted] = useState('');
-
+  const [empShiftDates, setShiftDates] = useState([]);
+  const [colleagueShiftDates, setCollShiftDates] = useState([]);
+  const [minDate, setMinDate] = useState(new Date());
+  const [maxDate, setMaxDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
+  //For debugging...
+  const [empShiftDateStrings, setEmpShiftDateStrings] = useState([]);
+  const [colleagueShiftDateStrings, setColleagueShiftDateStrings] = useState([]);
   const sortByDate = (requests) =>
   [...requests].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
  
@@ -42,6 +46,44 @@ const ShiftSwap = () => {
     };
     loadEmpID();
   },[]);
+
+  //Fetch the requesting employee's shift dates.
+  useEffect(() => {
+    const fetchEmpShiftDates = async () => {
+        if(!requestingEmployeeId) return;
+        setIsLoading(true);
+        try{
+          const response = await fetch(`${API_URL}/shift-swap/employee-shift-dates/${requestingEmployeeId}`);
+          if(!response.ok) throw new Error('Failed to fetch employee', requestingEmployeeId, 'shift dates');
+          const data = await response.json();
+          console.log('Emp dates:', data);
+          const dates = data
+          .map(dateStr => {
+             if (!dateStr || typeof dateStr !== 'string') return null;
+             const date = new Date(dateStr + 'T00:00:00Z');
+           return isNaN(date.getTime()) ? null : date;
+          })
+          .filter(Boolean);
+          setShiftDates(dates);
+
+          setEmpShiftDateStrings(data); //debugging returned data.
+
+          //Set min and max dates for the date picker.
+         if (dates.length > 0) {
+             setMinDate(new Date(Math.min(...dates.map(date => date.getTime()))));
+             setMaxDate(new Date(Math.max(...dates.map(date => date.getTime()))));
+             setAssignedDate(dates[0]); //default to first shift date
+          }
+        } catch (error) {
+             console.error('Error fetching employee shift dates:', error);
+        }finally {
+          setIsLoading(false);
+        }
+   };
+  
+  fetchEmpShiftDates();
+  }, [requestingEmployeeId]);
+  
   //Check the requesting employee's id.
   useEffect(() => {
     if(!requestingEmployeeId) return;
@@ -69,7 +111,8 @@ const ShiftSwap = () => {
 
   fetchColleagues();
   }, [requestingEmployeeId]);
-  
+
+  //Fetch the employees shift IDs
   const getShiftId = async (employeeId, date) => {
   try {
     const response = await fetch(
@@ -83,6 +126,68 @@ const ShiftSwap = () => {
     return null;
    }
   };
+  
+  //Fetch colleague shift dates.
+  useEffect(() => {
+  const fetchColleagueShiftDates = async () => {
+    if (!selectedColleague) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/shift-swap/colleague-shift-dates/${selectedColleague}`);
+      if (!response.ok) throw new Error('Failed to fetch colleague shift dates');
+      const data = await response.json();
+      console.log('Raw colleague shift date strings from backend:', data);
+
+      const parsedDates = data
+      .map(dateStr => {
+        //Skip empty strings or invalid dates
+        if (!dateStr || typeof dateStr !== 'string') return null;
+
+        const date = new Date(dateStr + 'T00:00:00Z');
+        return isNaN(date.getTime()) ? null : date;
+      })
+      .filter(Boolean); //Remove all nulls
+
+    console.log('Parsed colleague shift Dates:', parsedDates);
+      setCollShiftDates(parsedDates);
+      setColleagueShiftDateStrings(data);
+
+     if (parsedDates.length > 0 && !swapDate) {
+      setSwapDate(parsedDates[0]);
+    }
+    } catch (error) {
+      console.error('Error fetching colleague shift dates:', error);
+    }
+  };
+  
+  fetchColleagueShiftDates();
+  }, [selectedColleague]);
+  
+  //Mark colleague's assigned shift dates on the calender.
+  const markedColleagueDates = colleagueShiftDateStrings.reduce((acc, dateStr) => {
+  acc[dateStr] = {
+    selected: true,
+    selectedColor: '#007bff',
+    customStyles: {
+      text: { color: 'white' },
+      container: { backgroundColor: '#007bff' },
+    }
+  };
+  return acc;
+}, {});
+
+//Mark employee assigned shift dates on the Calender.
+const markedAssignedDates = empShiftDateStrings.reduce((acc, dateStr) =>  {
+  acc[dateStr] = {
+    selected: true,
+    selectedColor: '#007bff',
+    customStyles: {
+      text: { color: 'white' },
+      container: { backgroundColor: '#007bff' },
+    }
+  };
+  return acc;
+}, {});
 
   const handleSubmitRequest = async () => {
     //Handle request submission.
@@ -92,20 +197,29 @@ const ShiftSwap = () => {
       //if (!requestingEmployeeId) {
          //throw new Error('Employee ID not found');
      // }
+      const assignedDateStr = assignedDate.toISOString().split('T')[0];
+      const swapDateStr = swapDate.toISOString().split('T')[0];
 
-      const formatDate = (date) => {
-         return date.toISOString().split('T')[0];
-      };
-      useEffect(() => {
-        setAssignedDateFormatted(formatDate(assignedDate));
-      }, [assignedDate]);
+      console.log('Employee Shift Dates:', empShiftDates);
+      console.log('Selected Assigned Date:', assignedDate.toISOString().split('T')[0]);
+      console.log('Colleague Shift Dates:', colleagueShiftDates);
+      console.log('Selected Swap Date:', swapDate.toISOString().split('T')[0]);
 
-      useEffect(() => {
-        setSwapDateFormatted(formatDate(swapDate));
-      }, [swapDate]);
+      const isValidAssignedDate = empShiftDates.some(date => 
+      date.toISOString().split('T')[0] === assignedDateStr
+      );
 
-      const originalShiftId = await getShiftId(requestingEmployeeId, assignedDateFormatted);
-      const requestedShiftId = await getShiftId(selectedColleague, swapDateFormatted);
+      const isValidSwapDate = colleagueShiftDates.some(date => 
+      date.toISOString().split('T')[0] === swapDateStr
+      );
+
+      if(!isValidAssignedDate || !isValidSwapDate){
+        Alert.alert('Invalid Dates', 'Please select valid dates.');
+        return;
+      }
+      //Fetch shift ID's for both requesting and approving employees.
+      const originalShiftId = await getShiftId(requestingEmployeeId, assignedDateStr);
+      const requestedShiftId = await getShiftId(selectedColleague, swapDateStr);
 
       if (!originalShiftId || !requestedShiftId) {
         Alert.alert('Could not find matching shifts for selected dates');
@@ -116,8 +230,8 @@ const ShiftSwap = () => {
         requested_shift_id:requestedShiftId,
         requesting_employee_id: requestingEmployeeId,
         approving_employee_id: selectedColleague,
-        assigned_Date: formatDate(assignedDate),
-        swap_Date: formatDate(swapDate)
+        assigned_Date: assignedDateStr,  
+        swap_Date: swapDateStr 
       };
       const res = await fetch(`${API_URL}/shift-swap/create`, {
         method: 'POST',
@@ -126,10 +240,10 @@ const ShiftSwap = () => {
       });
 
       const result = await res.json();
-      Alert.alert('Shift-Swap submitted succesfully.', result.message);
+      Alert.alert('Shift-Swap submitted successfully.', result.message);
       setShowRequestForm(false);
     } catch (error) {
-    Alert.alert('Failed to submit swap request');
+    Alert.alert('Failed to submit shift-swap request');
     console.error(error);
     }
   };
@@ -209,8 +323,8 @@ useEffect(() => {
         </View>
       </View>
       <Text style={styles.requestText}>Colleague: {request.colleague || 'Unknown'}</Text>
-      <Text style={styles.requestText}>Swap Date: {request.swapDate?.split('T')[0] ||  'N/A'}</Text>
-      <Text style={styles.requestText}>Asigned  Date: {request.assignedDate?.split('T')[0] ||  'N/A'}</Text>
+      <Text style={styles.requestText}>Swap Date: {request.swapDate ? new Date(request.swapDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
+      <Text style={styles.requestText}>Assigned  Date: {request.assignedDate ? new Date(request.assignedDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
       
       {activeTab === 'Colleague Requests' && request.status === 'pending' && (
         <View style={styles.actionButtons}>
@@ -275,6 +389,7 @@ useEffect(() => {
           </ScrollView>
         </>
       ) : (
+        <ScrollView contentContainerStyle={styles.requestFormContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.requestForm}>
           <Text style={styles.formTitle}>New Swap Request</Text>
           
@@ -292,42 +407,94 @@ useEffect(() => {
             </Picker>
           </View>
 
-          <Text style={styles.label}>Assigned Date:</Text>
-          <TouchableOpacity
-            onPress={() => setShowAssignedPicker(true)}
-            style={styles.dateInput}>
-            <Text style={styles.dateText}>{assignedDate.toISOString().split('T')[0]}</Text>
-            </TouchableOpacity>
-            {showAssignedPicker && (
-              <DateTimePicker
-                value={assignedDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                onChange={(event, selectedDate) => {
-                  setShowAssignedPicker(false);
-                  if (selectedDate) setAssignedDate(selectedDate);
-                }}
-              />
-            )}
+         <Text style={styles.label}>Assigned Date:</Text>
+
+           <TouchableOpacity
+             style={styles.dateInput}
+             onPress={() => setShowAssignedCalendar(!showAssignedCalendar)}
+           >
+           <Text style={styles.dateText}>
+             {assignedDate ? assignedDate.toLocaleDateString('en-CA') : 'Select a date'}
+           </Text>
+           </TouchableOpacity>
+
+          {showAssignedCalendar && (
+             <View style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+               <Calendar
+                  markedDates={markedAssignedDates} 
+                  markingType="custom"
+                  onDayPress={(day) => {
+                  const selected = day.dateString;
+                  if (empShiftDateStrings.includes(selected)) {
+                       setAssignedDate(new Date(selected));
+                       setShowAssignedCalendar(false); //Close calender 
+                  } else {
+                       Alert.alert('Invalid Date', 'Please select a date you have a shift scheduled, that is the highlighted dates on the calendar.');
+                  }
+                 }}
+                  enableSwipeMonths={true}
+                  theme={{
+                     backgroundColor: '#ffffff',
+                     calendarBackground: '#ffffff',
+                     selectedDayBackgroundColor: '#007bff',
+                     selectedDayTextColor: '#ffffff',
+                     todayTextColor: '#00adf5',
+                     dayTextColor: '#2d4150',
+                     arrowColor: '#007bff',
+                     monthTextColor: '#007bff',
+                 }}
+               />
+          </View>
+         )}
+
+{/*assignedDate && (
+  <Text style={styles.dateText}>Selected: {assignedDate.toLocaleDateString('en-CA')}</Text>
+)*/}
 
 
-          <Text style={styles.label}>Swap Date:</Text>
+         <Text style={styles.label}>Swap Date:</Text>
+
           <TouchableOpacity
-            onPress={() => setShowSwapPicker(true)}
-            style={styles.dateInput}>
-            <Text style={styles.dateText}>{swapDate.toISOString().split('T')[0]}</Text>
-          </TouchableOpacity>
-          {showSwapPicker && (
-              <DateTimePicker
-              value={swapDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'inline' : 'default'}
-              onChange={(event, selectedDate) => {
-                setShowSwapPicker(false);
-                if (selectedDate) setSwapDate(selectedDate);
-              }}
-            />
-          )}
+              style={styles.dateInput}
+              onPress={() => setShowSwapCalendar(!showSwapCalendar)}
+          >
+           <Text style={styles.dateText}>
+              {swapDate ? swapDate.toLocaleDateString('en-CA') : 'Select a date'}
+           </Text>
+         </TouchableOpacity>
+
+          {showSwapCalendar && (
+          <View style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+            <Calendar
+               markedDates={markedColleagueDates}
+               markingType="custom"
+               onDayPress={(day) => {
+               const selected = day.dateString;
+               if (colleagueShiftDateStrings.includes(selected)) {
+                  setSwapDate(new Date(selected));
+                  setShowSwapCalendar(false); //Close calender 
+               } else {
+                  Alert.alert('Invalid Date', 'Please select a date your colleague has a shift, that is the highlighted dates on the calendar.');
+               }
+          }}
+            enableSwipeMonths={true}
+               theme={{
+                 backgroundColor: '#ffffff',
+                 calendarBackground: '#ffffff',
+                 selectedDayBackgroundColor: '#007bff',
+                 selectedDayTextColor: '#ffffff',
+                 todayTextColor: '#00adf5',
+                 dayTextColor: '#2d4150',
+                 arrowColor: '#007bff',
+                 monthTextColor: '#007bff',
+               }}
+         />
+      </View>
+     )}
+
+{/*swapDate && (
+  <Text style={styles.dateText}>Selected: {swapDate.toLocaleDateString('en-CA')}</Text>
+)*/}
 
           <View style={styles.formButtons}>
             <TouchableOpacity 
@@ -342,7 +509,7 @@ useEffect(() => {
             </TouchableOpacity>
           </View>
         </View>
-       
+       </ScrollView>
       )}
 
       <View style={styles.bottomNav}>
@@ -461,6 +628,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  requestFormContainer: {
+    flexGrow: 1,
+    paddingBottom: 100,
   },
   requestText: {
     color: '#ffffff',

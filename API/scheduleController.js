@@ -14,7 +14,7 @@ try{
          FROM t_shift s
          JOIN t_employee e ON s.employee_id = e.employee_id
          JOIN t_role r ON e.role_id = r.role_id
-         WHERE s.employee_id = ? AND date_ >= CURDATE()
+         WHERE s.employee_id = ? AND DATE(date_) >= CURDATE()
          ORDER BY s.date_ ASC
          LIMIT 30`, [employee_id]
     );

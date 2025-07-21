@@ -2,7 +2,6 @@
  * @author MOYO CT, 221039267
  */
 
-
 const db = require('./db');
 //Fetch the employee's notifications
 exports.getEmpNotifications = async (req , res) =>{

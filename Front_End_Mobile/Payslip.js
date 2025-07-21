@@ -13,12 +13,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //import FileViewer from 'react-native-file-viewer';
 import { Calendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const Payslip = () => {
   const navigation = useNavigation();

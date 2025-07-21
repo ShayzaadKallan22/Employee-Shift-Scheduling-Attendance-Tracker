@@ -2,6 +2,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Splash from './Splash';
 import LoginScreen from './LoginScreen';
 import ClockInScreen from './ClockInScreen';
 import ScanScreen from './ScanScreen';
@@ -15,6 +16,8 @@ import Payslip from './Payslip';
 import ForgotPassword from './forgotPassword';
 import ResetPassword from './resetPassword';
 import NotificationDetail from './NotificationDetail';
+
+
 {/*import * as Font from 'expo-font';
 import AppLoading from 'expo-app-loading';
 import { Ionicons } from '@expo/vector-icons';*/}
@@ -42,7 +45,8 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="forgotPassword" component={ForgotPassword} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />

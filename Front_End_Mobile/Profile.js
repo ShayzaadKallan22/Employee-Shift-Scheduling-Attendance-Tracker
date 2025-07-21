@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = 'http://192.168.149.179:3000/api';
 
 const ProfileScreen = () => {
 
