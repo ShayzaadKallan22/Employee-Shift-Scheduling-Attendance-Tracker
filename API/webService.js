@@ -27,9 +27,36 @@ const shiftRoutes = require('./shiftRoute');
 const forgotPassRoute = require('./forgotPassRoute');
 const notifyRoute = require('./notifyRoute');
 const payrollsRoute = require('./payrollsRoutes');
+//Katlego
+const { register, login, logout } = require('./authControllerMan');
+const managerNotificationRoutes = require('./manager_notifications'); 
+const statusRoutes = require('./statusRoutes');
+const path = require('path');
+
 
 // Load environment variables
 require('dotenv').config();
+
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'http://127.0.0.1:3000',
+    'http://localhost' // Added for Yatin's frontend
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'Cookie',
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+}));
 
 app.use(express.urlencoded({ extended: true })); // For form submissions
 app.use(express.json()); // For API JSON payloads
@@ -37,39 +64,39 @@ app.use(express.json()); // For API JSON payloads
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
 // Middleware
-app.use(express.json());
+//app.use(express.json());
 
 app.set('view engine', 'ejs');
 
 // In webService.js, replace CORS middleware with:
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
   
-  // List of allowed origins - add your frontend URLs here
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://127.0.0.1:3000'
-  ];
+//   // List of allowed origins - add your frontend URLs here
+//   const allowedOrigins = [
+//     'http://localhost:3000',
+//     'http://127.0.0.1:5500',
+//     'http://localhost:5500',
+//     'http://127.0.0.1:3000'
+//   ];
   
-  // Check if origin is in allowed list
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
+//   // Check if origin is in allowed list
+//   if (allowedOrigins.includes(origin)) {
+//     res.header('Access-Control-Allow-Origin', origin);
+//   }
   
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
-  res.header('Access-Control-Allow-Credentials', 'true'); // This is important for credentials
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+//   res.header('Access-Control-Allow-Credentials', 'true'); // This is important for credentials
+//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+//   // Handle preflight requests
+//   if (req.method === 'OPTIONS') {
+//     return res.sendStatus(200);
+//   }
+//   next();
+// });
 
 app.get('/', (req, res) => {
     res.render('registration');
@@ -111,7 +138,7 @@ app.use('/auth', authRoutes);
 // Leave routes
 
 //No session check
-app.post('/api/leave/request', leaveController.requestLeave); //Added by Cletus.
+//app.post('/api/leave/request', leaveController.requestLeave); //Added by Cletus.
 app.post('/api/leave/request', leavesController.requestLeave); //Added by Cletus.
 
 
@@ -136,7 +163,28 @@ app.use('/api/reports', reportRoutes); // Added by Yatin
 //     allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
+//---------------------------------------------------------------------------------------------------
+//Katlego
+//Replace all CORS configurations with this single one:
+// app.use(cors({
+//   origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'http://localhost:3000'],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+// }));
 
+//Katlego
+app.post('/api/login', login);
+app.use('/api/manager-notifications', managerNotificationRoutes);
+app.use('/api/status', statusRoutes);
+
+// Routes for HTML pages
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Front_End_Web', 'index.html'));
+});
+
+app.use(express.static(path.join(__dirname, '../Front_End_Web')));
+//---------------------------------------------------------------------------------------------------
 
 // app.use('/api/reports', (req, res, next) => {   //Added by Yatin, still in progress...
 //     if (!req.session.user) {
