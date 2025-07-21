@@ -66,21 +66,21 @@ const register = async (req, res) => {
   res.status(501).json({ error: 'Register not implemented' });
 };
 
-// authController.js 
+//authController.js 
 const logout = async (req, res) => {
   try {
-    // Clear the session without waiting too long
+    //Clear the session without waiting too long
     req.session.destroy((err) => {
       if (err) {
         console.error('Session destruction error:', err);
-        // Still respond successfully to ensure client redirects
+        //Still respond successfully to ensure client redirects
         return res.json({ 
           success: true,
           message: 'Logged out (session may not have cleared completely)' 
         });
       }
       
-      // Clear the cookies
+      //Clear the cookies
       res.clearCookie('employeeId');
       res.clearCookie('connect.sid');
       
@@ -91,7 +91,7 @@ const logout = async (req, res) => {
     });
   } catch (err) {
     console.error('Logout error:', err);
-    // Still respond successfully to ensure client redirects
+    //Still respond successfully to ensure client redirects
     return res.json({ 
       success: true,
       message: 'Logged out (with possible server errors)' 
