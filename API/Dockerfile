@@ -13,7 +13,7 @@ FROM node:${NODE_VERSION}-alpine
 # Use production node environment by default.
 # ENV NODE_ENV production
 
-WORKDIR /webService
+WORKDIR /API
 
 COPY package*.json ./
 
