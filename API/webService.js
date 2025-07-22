@@ -43,7 +43,8 @@ app.use(cors({
     'http://127.0.0.1:5500',
     'http://localhost:5500',
     'http://127.0.0.1:3000',
-    'http://localhost' //Added for Yatin's frontend
+    'http://localhost', //Added for Yatin's frontend
+    'https://ifm-proj-v1.onrender.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
