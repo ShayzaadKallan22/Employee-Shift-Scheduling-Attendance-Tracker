@@ -104,11 +104,17 @@ cron.schedule('* * * * * * *', async () => {
         if(newShiftStatus === "missed"){
           const formattedDate = new Date(shift.date_).toLocaleDateString('en-ZA');
           await connection.query(
-            `INSERT INTO t_notification 
-             (employee_id, message, sent_time, notification_type_id)
-             VALUES (?, ?,NOW(), ?)`, 
-            [shift.employee_id, `${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}`, 4]
-          );
+          `INSERT INTO t_notification 
+          (employee_id, message, sent_time, notification_type_id)
+          SELECT 
+            e.employee_id,
+            ?,
+            NOW(),
+            ?
+          FROM t_employee e
+          WHERE e.type_ = 'manager'`, 
+          [`${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}`, 4]
+        );
         }
       }
     }
