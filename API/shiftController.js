@@ -13,7 +13,7 @@ exports.getUpcomingShifts = async (req, res) =>{
         const [rows] = await db.query (
         `SELECT date_, start_time
          FROM t_shift
-         WHERE employee_id = ? AND date_ >= CURDATE()
+         WHERE employee_id = ? AND status_ = 'scheduled' AND date_ >= CURDATE() 
          ORDER BY date_ ASC
          LIMIT 5`, [employeeId]
     );
