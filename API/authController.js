@@ -20,6 +20,7 @@ const roleMap = {
 
 const register = async (req, res) => {
     try {
+
         let { first_name, last_name, email, phone_number, role_id, mac_address, type_ } = req.body;
 
         //Convert role name to ID if needed
@@ -77,7 +78,7 @@ const register = async (req, res) => {
         try {
             //Create user with dynamic type_
             const [employeeResult] = await pool.query(
-                'INSERT INTO T_Employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "active", ?, ?)',
+                'INSERT INTO T_Employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "Not Working", ?, ?)',
                 [first_name, last_name, email, phone_number, hashedPassword, type_, role_id]
             );
 
