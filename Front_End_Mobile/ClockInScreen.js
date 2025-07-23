@@ -9,8 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import config from './config';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+const API_URL = config.API_URL;
 
 const ClockInScreen = () => {
   const navigation = useNavigation();
@@ -24,7 +25,7 @@ const ClockInScreen = () => {
         const employeeId = await AsyncStorage.getItem('employee_id');
         if(!employeeId) return;
         //fetch the api response.
-        const res = await axios.get(`${API_URL}/shifts/upcoming/${employeeId}`);
+        const res = await axios.get(`${API_URL}/api/shifts/upcoming/${employeeId}`);
         setShifts(res.data);
       }catch(error){
         console.error('Error fetching shifts:', error);

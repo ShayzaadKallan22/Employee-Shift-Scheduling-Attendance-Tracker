@@ -4,11 +4,11 @@
     "slug": "ProjectName",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/AzaniaB.png",
+    "icon": "./assets/Slide1.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/AzaniaB.png",
+      "image": "./assets/Slide1.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -16,8 +16,18 @@
       "supportsTablet": true
     },
     "android": {
+      "splash": {
+        "backgroundColor": "#000000",
+        "resizeMode": "contain",
+        "mdpi": "./assets/Slide1.png",
+        "hdpi": "./assets/Slide1.png",
+        "xhdpi": "./assets/Slide1.png",
+        "xxhdpi": "./assets/Slide1.png",
+        "xxxhdpi": "./assets/Slide1.png",
+        "ldpi": "./assets/Slide1.png"
+      },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/AzaniaB.png",
+        "foregroundImage": "./assets/Slide1.png",
         "backgroundColor": "#000000"
       },
       "package": "com.cletus_m78.AzaniaApp"
@@ -27,8 +37,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "fcdd0584-e141-4a3a-bbff-345cb7258218"
+        "projectId": "613bf57c-fd11-42d7-9318-4b9769094991"
       }
-    }
+    },
+    "owner": "thabo_m"
   }
 }

@@ -9,7 +9,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 export default function ScanScreen() {
 
@@ -37,7 +39,7 @@ export default function ScanScreen() {
         throw new Error('Employee ID not found');
       }
       //Fetch the api response 
-      const response = await fetch(`${API_URL}/qr/scan`, {
+      const response = await fetch(`${API_URL}/api/qr/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json'},
       body: JSON.stringify({code_value: data, employee_id: employeeId}),

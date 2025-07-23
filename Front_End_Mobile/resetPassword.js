@@ -8,7 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const API_URL = 'http://192.168.149.179:3000';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 const ResetPassword = () => {
 

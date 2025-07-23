@@ -4,16 +4,19 @@
  */
 
 import React, {useEffect, useRef} from 'react';
-import {View, StyleSheet, Animated, Text, Easing, Dimensions} from 'react-native';
+import {View, StyleSheet, Animated, Text, Easing} from 'react-native';
 import Svg, {Polygon} from 'react-native-svg';
-
+import * as SplashScreen from 'expo-splash-screen';
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
+
 export default function Splash({navigation}){
     const dashOffset = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    //Hide native splash screen when component mounts
+    SplashScreen.hideAsync();
     //Triangle stroke animation loop
     Animated.loop(
       Animated.timing(dashOffset, {
@@ -34,7 +37,7 @@ export default function Splash({navigation}){
     //Navigate after splash
     const timer = setTimeout(() => {
       navigation.replace('Login');
-    }, 4000);
+    }, 2550);
 
     return () => clearTimeout(timer);
   }, []);
