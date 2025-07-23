@@ -12,7 +12,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 
 //API URL for API connection and database connection.
-const API_URL = 'http://192.168.149.179:3000';
+import config from './config';
+
+const API_URL = config.API_URL;
+
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -33,13 +36,15 @@ const LoginScreen = () => {
 
     try {
       //fetch the api response 
+      console.time('Login API Call');
       const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password
       });
+      console.timeEnd('Login API Call');
       
       //Store token and employee_ID.
-      await AsyncStorage.setItem('userToken', response.data.token);
+      //await AsyncStorage.setItem('userToken', response.data.token);
       await AsyncStorage.setItem('employee_id', response.data.user.id.toString());
       await AsyncStorage.setItem('role_id', response.data.user.role_id.toString());
       await AsyncStorage.setItem('email', response.data.user.email);

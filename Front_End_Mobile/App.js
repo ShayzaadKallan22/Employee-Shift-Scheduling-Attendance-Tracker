@@ -1,5 +1,7 @@
 // App.js
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Splash from './Splash';
@@ -26,27 +28,46 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
 
-  {/*const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
-  const loadFonts = () =>
-    Font.loadAsync({
-      ...Ionicons.font,
-    });
+  useEffect(() => {
+    async function prepare() {
+      try {
+        //Keep the splash screen visible while we fetch resources
+        await SplashScreen.preventAutoHideAsync();
+        
+        //Load any resources (fonts, API tokens, etc.)
+        //await loadResourcesAsync();
+        
+        //Artificially delay for testing
+        //await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        //Tell the application to render
+        setAppIsReady(true);
+      }
+    }
 
-  if (!fontsLoaded) {
-    return (
-      <AppLoading
-        startAsync={loadFonts}
-        onFinish={() => setFontsLoaded(true)}
-        onError={console.warn}
-      />
-    );
-  }*/}
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      //Hide the splash screen
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
 
   return (
+   <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-         <Stack.Screen name="Splash" component={Splash} />
+        <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="forgotPassword" component={ForgotPassword} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
@@ -63,5 +84,6 @@ export default function App() {
         <Stack.Screen name= "Payslip" component={Payslip} />
       </Stack.Navigator>
     </NavigationContainer>
+   </View>
   );
 }

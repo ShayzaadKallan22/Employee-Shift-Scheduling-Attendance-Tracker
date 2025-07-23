@@ -10,7 +10,9 @@ import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 const ShiftSchedule = () => {
 
@@ -26,7 +28,7 @@ const ShiftSchedule = () => {
 
         if(!employee_id) throw new Error('Employee id could not be found:', employee_id);
         //get the API response using the employeeId.
-        const res = await  axios.get(`${API_URL}/schedule/employee/${employee_id}/shifts`);
+        const res = await  axios.get(`${API_URL}/api/schedule/employee/${employee_id}/shifts`);
         const shiftData = res.data.map(({date_, start_time, end_time, role}) =>({
           date: new Date(date_).getDate().toString().padStart(2,'0'),
           fullDate: new Date(date_).toLocaleDateString('en-CA'),

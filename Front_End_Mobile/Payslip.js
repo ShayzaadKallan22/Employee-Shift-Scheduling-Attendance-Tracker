@@ -13,13 +13,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import * as MediaLibrary from 'expo-media-library';
+//import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //import FileViewer from 'react-native-file-viewer';
 import { Calendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 const Payslip = () => {
   const navigation = useNavigation();
@@ -63,7 +65,7 @@ const Payslip = () => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/payroll/${id}`);
+      const res = await axios.get(`${API_URL}/api/payroll/${id}`);
      if (res.data && Array.isArray(res.data)) {
       //Filter payslips for the selected date
       const payslipForDate = res.data.find(p =>
@@ -103,7 +105,7 @@ const Payslip = () => {
   if (!employeeId) return alert('Employee not found.');
 
   try {
-    const url = `${API_URL}/payroll/${employeeId}/pdf/${payrollId}`;
+    const url = `${API_URL}/api/payroll/${employeeId}/pdf/${payrollId}`;
     const fileUri = FileSystem.documentDirectory + `payslip-${payrollId}.pdf`;
 
     //Download the file using Expo FileSystem

@@ -13,8 +13,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import config from './config';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+const API_URL = config.API_URL;
 
 const LeaveRequest = () => {
 
@@ -72,7 +73,7 @@ const handleConfirmEnd = (date) => {
     const numericId = employeeId.replace('EMP-', '');
     
     //Send request to the API to handle.
-    const response = await axios.post(`${API_URL}/leave/request`, {
+    const response = await axios.post(`${API_URL}/api/leave/request`, {
       employee_id: parseInt(numericId, 10),
       leave_type_id: parseInt(leaveTypeId,10),
       start_date: startDate,
@@ -121,7 +122,7 @@ const handleConfirmEnd = (date) => {
     try{
       
       //Cancel leave request.
-      await axios.delete(`${API_URL}/leave/cancel/${tempRequest.id}`);
+      await axios.delete(`${API_URL}/api/leave/cancel/${tempRequest.id}`);
     
       setPendingRequests(pendingRequests.filter(req => req.id !== tempRequest.id));
       setShowModal(false);
