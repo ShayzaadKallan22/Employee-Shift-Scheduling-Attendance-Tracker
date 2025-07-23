@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 
@@ -117,7 +118,7 @@ exports.cancelLeave = async (req, res) => {
     const {leave_id} = req.params;
 
     try{
-        const[rows] = await db.execute(`SELECT status_ FROM T_Leave WHERE leave_id = ?`, [leave_id]);
+        const[rows] = await db.execute(`SELECT status_ FROM t_leave WHERE leave_id = ?`, [leave_id]);
 
         if(!rows.length) return res.status(404).json({message: 'Leave not found'});
         //Cannot cancel if leave status !== pending.
@@ -125,10 +126,11 @@ exports.cancelLeave = async (req, res) => {
             return res.status(400).json({message: 'Only pending requests can be cancelled.'});
         }
         //Otherwise cancel and delete record.
-        await db.execute(`DELETE FROM T_Leave WHERE leave_id = ?`, [leave_id]);
+        await db.execute(`DELETE FROM t_leave WHERE leave_id = ?`, [leave_id]);
         res.json({message: 'Leave request cancelled'});
     }catch(err){
         console.error(err);
+        console.log(err);
         res.status(500).json({message: 'Server error.'});
     }
 };

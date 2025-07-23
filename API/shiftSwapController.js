@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 
@@ -159,6 +160,8 @@ exports.getColleagueRequests = async (req, res) => {
      WHERE ts.approving_employee_id = ?
      ORDER BY s2.date_ DESC`,[employee_id]
     );
+    
+    console.log(rows);
 
     res.status(200).json(rows);
   } catch (error) {
