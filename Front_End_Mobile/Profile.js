@@ -8,7 +8,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 const ProfileScreen = () => {
 
@@ -26,7 +28,7 @@ const ProfileScreen = () => {
     }
     //const id = employeeId.replace('EMP-','');
    
-       const res = await fetch(`${API_URL}/profile/create/${employee_id}`);
+       const res = await fetch(`${API_URL}/api/profile/create/${employee_id}`);
        if(!res.ok){
         const text = await res.text();
         console.error(`Server error: ${res.status}`, text);
@@ -58,7 +60,7 @@ const ProfileScreen = () => {
     const employee_id = profileData.employeeId.replace('EMP-', '');
 
     try{
-      const res = await fetch(`${API_URL}/profile/update/${employee_id}`, {
+      const res = await fetch(`${API_URL}/api/profile/update/${employee_id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(profileData),

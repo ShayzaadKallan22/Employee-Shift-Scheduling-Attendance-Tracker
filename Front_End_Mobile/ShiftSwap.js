@@ -8,10 +8,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
-import { Platform } from 'react-native';
+//import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.149.179:3000/api';
+import config from './config';
+
+const API_URL = config.API_URL;
 
 const ShiftSwap = () => {
 
@@ -53,7 +55,7 @@ const ShiftSwap = () => {
         if(!requestingEmployeeId) return;
         setIsLoading(true);
         try{
-          const response = await fetch(`${API_URL}/shift-swap/employee-shift-dates/${requestingEmployeeId}`);
+          const response = await fetch(`${API_URL}/api/shift-swap/employee-shift-dates/${requestingEmployeeId}`);
           if(!response.ok) throw new Error('Failed to fetch employee', requestingEmployeeId, 'shift dates');
           const data = await response.json();
           console.log('Emp dates:', data);
@@ -90,7 +92,7 @@ const ShiftSwap = () => {
   //Fetch the colleague names based on the requesting employee's role.
   const fetchColleagues = async () => {
     try {
-      const response = await fetch(`${API_URL}/shift-swap/colleagues/${requestingEmployeeId}`);
+      const response = await fetch(`${API_URL}/api/shift-swap/colleagues/${requestingEmployeeId}`);
       //Check if the api response is ok.
       if (!response.ok) {
          const errText = await response.text();
@@ -116,7 +118,7 @@ const ShiftSwap = () => {
   const getShiftId = async (employeeId, date) => {
   try {
     const response = await fetch(
-      `${API_URL}/shift-swap/shiftID?employee_id=${employeeId}&date=${date}`
+      `${API_URL}/api/shift-swap/shiftID?employee_id=${employeeId}&date=${date}`
     );
     if (!response.ok) throw new Error('No shift found');
     const data = await response.json();
@@ -133,7 +135,7 @@ const ShiftSwap = () => {
     if (!selectedColleague) return;
     
     try {
-      const response = await fetch(`${API_URL}/shift-swap/colleague-shift-dates/${selectedColleague}`);
+      const response = await fetch(`${API_URL}/api/shift-swap/colleague-shift-dates/${selectedColleague}`);
       if (!response.ok) throw new Error('Failed to fetch colleague shift dates');
       const data = await response.json();
       console.log('Raw colleague shift date strings from backend:', data);
@@ -233,7 +235,7 @@ const markedAssignedDates = empShiftDateStrings.reduce((acc, dateStr) =>  {
         assigned_Date: assignedDateStr,  
         swap_Date: swapDateStr 
       };
-      const res = await fetch(`${API_URL}/shift-swap/create`, {
+      const res = await fetch(`${API_URL}/api/shift-swap/create`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
@@ -254,7 +256,7 @@ const markedAssignedDates = empShiftDateStrings.reduce((acc, dateStr) =>  {
     if (!requestingEmployeeId || activeTab !== 'Colleague Requests') return;
 
     try {
-      const res = await fetch(`${API_URL}/shift-swap/colleague-requests/${requestingEmployeeId}`);
+      const res = await fetch(`${API_URL}/api/shift-swap/colleague-requests/${requestingEmployeeId}`);
       if (!res.ok) throw new Error('Failed to fetch colleague requests');
       const data = await res.json();
       setColleagueRequests(data);
@@ -269,10 +271,10 @@ const markedAssignedDates = empShiftDateStrings.reduce((acc, dateStr) =>  {
 //Fetch all employee shift swap requests
 useEffect(() => {
   const fetchMyRequests = async () => {
-    if (!requestingEmployeeId || activeTab !== 'My Requests') return;
+    if (!employee_id || activeTab !== 'My Requests') return;
 
     try {
-      const res = await fetch(`${API_URL}/shift-swap/my-requests/${requestingEmployeeId}`);
+      const res = await fetch(`${API_URL}/api/shift-swap/my-requests/${employee_id}`);
       if (!res.ok) throw new Error('Failed to fetch my requests');
       const data = await res.json();
       setMyRequests(data);
@@ -287,7 +289,7 @@ useEffect(() => {
   //Respond to colleague requests
   const respondToRequest = async (swap_id, action) => {
   try {
-    const res = await fetch(`${API_URL}/shift-swap/respond`, {
+    const res = await fetch(`${API_URL}/api/shift-swap/respond`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ swap_id, action })
