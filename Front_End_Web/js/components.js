@@ -1,4 +1,4 @@
-//Author: Katlego Mmadi
+// Author: Katlego Mmadi
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
   const navbarContainer = document.getElementById("navbar-container");
@@ -59,6 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Create a broadcast channel for real-time updates
+const notificationChannel = new BroadcastChannel('notificationChannel');
+
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (!logoutBtn) return;
@@ -66,18 +69,15 @@ function setupLogoutButton() {
   logoutBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // 1. Get token and clear storage IMMEDIATELY
     const token = localStorage.getItem('token');
     localStorage.removeItem('token');
     localStorage.removeItem('employeeId');
     sessionStorage.clear();
 
-    // 2. Clear any intervals
     if (window.notificationRefreshInterval) {
       clearInterval(window.notificationRefreshInterval);
     }
 
-    // 3. Try to notify server but doesn't block on failure
     try {
       await fetch('/api/logout', {
         method: 'POST',
@@ -86,31 +86,39 @@ function setupLogoutButton() {
           'Content-Type': 'application/json'
         }
       });
+      window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
+
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
     }
 
-    // 4. Force reload to clear memory
-    window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
   });
 }
 
-// Notification System 
+// Notification System
 function initializeNotificationSystem() {
   loadRecentNotifications();
   updateNotificationCount();
+
+  // Polling as a fallback (every 30 seconds)
   window.notificationRefreshInterval = setInterval(() => {
     loadRecentNotifications();
     updateNotificationCount();
   }, 30000);
+
+  // Listen for real-time updates from the broadcast channel
+  notificationChannel.onmessage = (event) => {
+    if (event.data.type === 'update') {
+      updateNotificationCount();
+      loadRecentNotifications();
+    }
+  };
 }
 
 function getEmployeeId() {
-  // Try localStorage first
   let id = localStorage.getItem("employeeId");
   if (id) return id;
 
-  // Fallback to cookie
   const match = document.cookie.match(/(?:^|;\s*)employeeId=([^;]*)/);
   return match ? match[1] : null;
 }
@@ -123,7 +131,7 @@ async function loadRecentNotifications() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/count?employeeId=${employeeId}`);
+    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/latest?employeeId=${employeeId}`);
     if (!response.ok) throw new Error('Failed to fetch notifications');
 
     const notifications = await response.json();

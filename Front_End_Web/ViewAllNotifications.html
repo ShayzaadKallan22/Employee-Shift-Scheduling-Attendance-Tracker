@@ -429,7 +429,7 @@
     <script src="js/main.js"></script>
 
     <script>
-      const { createApp, ref, onMounted, computed } = Vue;
+      const { createApp, ref, onMounted, onUnmounted, computed } = Vue;
       const managerId = localStorage.getItem('employeeId');
       console.log('Manager ID from localStorage:', managerId);
 
@@ -511,12 +511,18 @@
                 const statusFilter = ref('all');
                 const isLoading = ref(true);
                 const error = ref(null);
+                const lastFetched = ref(null);
+                let pollingInterval = null;
 
                 const fetchNotifications = async () => {
                   try {
-                    isLoading.value = true;
-                    console.log('Fetching notifications for employeeId:', props.managerId);
-                    const res = await fetch(`http://localhost:3000/api/manager-notifications?employeeId=${props.managerId}`, {
+                    const url = new URL(`http://localhost:3000/api/manager-notifications`);
+                    url.searchParams.append('employeeId', props.managerId);
+                    if (lastFetched.value) {
+                      url.searchParams.append('since', lastFetched.value.toISOString());
+                    }
+                    console.log('Fetching notifications for employeeId:', props.managerId, 'since:', lastFetched.value);
+                    const res = await fetch(url, {
                       credentials: 'include'
                     });
                     console.log('Response status:', res.status);
@@ -526,13 +532,38 @@
                     }
                     const data = await res.json();
                     console.log('Fetched notifications:', data);
-                    notifications.value = data.map(n => ({ ...n, isDisappearing: false }));
+
+                    // Merge new notifications with existing ones
+                    const currentNotifications = notifications.value.reduce((map, n) => {
+                      map[n.notification_id] = n;
+                      return map;
+                    }, {});
+                    const updatedNotifications = data.map(n => ({
+                      ...n,
+                      isDisappearing: (currentNotifications[n.notification_id]?.isDisappearing || false)
+                    }));
+
+                    // Update notifications, preserving existing ones
+                    notifications.value = Object.values({
+                      ...currentNotifications,
+                      ...updatedNotifications.reduce((map, n) => {
+                        map[n.notification_id] = n;
+                        return map;
+                      }, {})
+                    }).sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
+
+                    // Update lastFetched timestamp
+                    lastFetched.value = new Date();
                   } catch (err) {
                     error.value = `Failed to load notifications: ${err.message}`;
                     console.error('Fetch error:', err);
-                    notifications.value = [];
+                    if (!notifications.value.length) {
+                      notifications.value = [];
+                    }
                   } finally {
-                    isLoading.value = false;
+                    if (isLoading.value) {
+                      isLoading.value = false;
+                    }
                   }
                 };
 
@@ -543,7 +574,7 @@
                 });
 
                 const filteredNotifications = computed(() => {
-                  const filtered = notifications.value
+                  return notifications.value
                     .filter(n => {
                       const matchesStatus = statusFilter.value === 'all' || n.read_status === statusFilter.value;
                       const matchesCategory = selectedCategory.value === 'all' || n.type === selectedCategory.value;
@@ -552,41 +583,50 @@
                       return matchesStatus && matchesCategory && matchesSearch && !n.isDisappearing;
                     })
                     .sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
-                  return filtered;
                 });
 
                 const toggleRead = async (n) => {
-                console.log('Sending PATCH request for notification:', n.notification_id, 'employeeId:', props.managerId);
-                const endpoint = `http://localhost:3000/api/manager-notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
-                try {
-                  const res = await fetch(endpoint, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
-                  body: JSON.stringify({ employeeId: props.managerId })
-                });
-                  console.log('PATCH response status:', res.status);
-                  if (!res.ok) {
-                  const text = await res.text();
-                  console.error('Raw response:', text);
-                  throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
-                }
-                  const data = await res.json();
-                  console.log('Response data:', data);
-                  if (n.read_status === 'read') {
-                  n.read_status = 'unread';
-                  } else {
-                  n.isDisappearing = true;
-                  setTimeout(() => {
-                    notifications.value = notifications.value.filter(item => item.notification_id !== n.notification_id);
-                  }, 300);
-                }
-                  console.log(`Notification ${n.notification_id} marked as ${n.read_status}`);
-                  error.value = null;
-                } catch (err) {
-                  error.value = `Failed to update notification: ${err.message}`;
-                  console.error('Toggle read error:', err);
-                }
+                  const notificationId = n.notification_id;
+                  const newStatus = n.read_status === 'read' ? 'unread' : 'read';
+                  console.log('Sending PATCH request for notification:', notificationId, 'to status:', newStatus, 'employeeId:', props.managerId);
+                  const endpoint = `http://localhost:3000/api/manager-notifications/${notificationId}/${newStatus}`;
+                  try {
+                    const res = await fetch(endpoint, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ employeeId: props.managerId })
+                    });
+                    console.log('PATCH response status:', res.status);
+                    if (!res.ok) {
+                      const text = await res.text();
+                      console.error('Raw response:', text);
+                      throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
+                    }
+                    const data = await res.json();
+                    console.log('Response data:', data);
+                    // Update the notification in the local state
+                    notifications.value = notifications.value.map(item => {
+                      if (item.notification_id === notificationId) {
+                        if (newStatus === 'read') {
+                          return { ...item, read_status: 'read', isDisappearing: true };
+                        } else {
+                          return { ...item, read_status: 'unread', isDisappearing: false };
+                        }
+                      }
+                      return item;
+                    });
+                    if (newStatus === 'read') {
+                      setTimeout(() => {
+                        notifications.value = notifications.value.filter(item => item.notification_id !== notificationId);
+                      }, 300); // Match transition duration
+                    }
+                    console.log(`Notification ${notificationId} marked as ${newStatus}`);
+                    error.value = null;
+                  } catch (err) {
+                    error.value = `Failed to update notification: ${err.message}`;
+                    console.error('Toggle read error:', err);
+                  }
                 };
 
                 const markAllAsRead = async () => {
@@ -610,8 +650,12 @@
                       console.error('Raw response:', text);
                       throw new Error(`Failed to mark all notifications as read: ${res.status}, message: ${text}`);
                     }
-                    unreadNotifications.forEach(n => {
-                      n.isDisappearing = true;
+                    // Update local state
+                    notifications.value = notifications.value.map(n => {
+                      if (unreadIds.includes(n.notification_id)) {
+                        return { ...n, read_status: 'read', isDisappearing: true };
+                      }
+                      return n;
                     });
                     setTimeout(() => {
                       notifications.value = notifications.value.filter(n => n.read_status !== 'read' || !n.isDisappearing);
@@ -652,7 +696,18 @@
                   });
                 };
 
-                onMounted(fetchNotifications);
+                onMounted(() => {
+                  fetchNotifications();
+                  // Start polling every 10 seconds
+                  pollingInterval = setInterval(fetchNotifications, 10000);
+                });
+
+                onUnmounted(() => {
+                  // Clean up polling interval
+                  if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                  }
+                });
 
                 return {
                   notifications,
@@ -666,7 +721,9 @@
                   getIcon,
                   getAction,
                   formatCategory,
-                  formatTime
+                  formatTime,
+                  isLoading,
+                  error
                 };
               }
             }

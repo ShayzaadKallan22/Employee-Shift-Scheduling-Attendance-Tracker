@@ -1,3 +1,4 @@
 # Ignore envronment
+node_modules
 
 .env
