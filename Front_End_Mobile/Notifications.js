@@ -8,7 +8,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useNotifications } from './NotificationContext';
+import BottomNav from './BottomNav';
 import config from './config';
 
 const API_URL = config.API_URL;
@@ -19,6 +20,8 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('All'); 
   
+  const {fetchUnreadCount} = useNotifications();
+
   const fetchNotifications = async () => {
        
     const employeeId = await AsyncStorage.getItem('employee_id');
@@ -44,11 +47,15 @@ const Notifications = () => {
     try{
       await axios.put(`${API_URL}/api/read/${notificationId}`);
       fetchNotifications();
+      fetchUnreadCount();
     }catch(error){
       console.error('Failed to mark notifcation as read:', error);
     }
   };
 
+   useEffect(() => {
+    fetchUnreadCount();
+  }, []);
   //Filter notifications based on active tab
   const filteredNotifications = Array.isArray(notifications)
   ? notifications.filter(notification => {
@@ -119,23 +126,7 @@ const Notifications = () => {
       )}
     </ScrollView>
 
-    <View style={styles.bottomNav}>
-      <TouchableOpacity onPress={() => navigation.navigate('BurgerMenu')} style={styles.navButton}>
-        <Icon name="menu-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ShiftSchedule')} style={styles.navButton}>
-        <Icon name="calendar-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ClockIn')} style={styles.navButton}>
-        <Icon name="home" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.navButton}>
-        <Icon name="notifications-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.navButton}>
-        <Icon name="person-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-    </View>
+    <BottomNav />
   </View>
   );
 };
@@ -243,19 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#444',
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  
 });
 
 export default Notifications;

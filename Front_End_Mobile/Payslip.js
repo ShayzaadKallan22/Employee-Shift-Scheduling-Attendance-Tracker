@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //import FileViewer from 'react-native-file-viewer';
 import { Calendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
-
+import BottomNav from './BottomNav';
 import config from './config';
 
 const API_URL = config.API_URL;
@@ -267,24 +267,8 @@ const Payslip = () => {
   </ScrollView>
 </View>
 
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('BurgerMenu')} style={styles.navButton}>
-          <Icon name="menu-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ShiftSchedule')} style={styles.navButton}>
-          <Icon name="calendar-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ClockIn')} style={styles.navButton}>
-          <Icon name="home" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.navButton}>
-          <Icon name="notifications-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.navButton}>
-          <Icon name="person-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+ <BottomNav />
+</SafeAreaView>
   );
 };
 
@@ -375,19 +359,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     marginLeft: 10,
   },
-  bottomNav: {
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    paddingVertical: 12,
-    borderTopWidth: 1, 
-    borderColor: '#444', 
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10, 
-    alignItems: 'center', 
-    justifyContent: 'center',
-  },
+  
 });
 
 export default Payslip;
