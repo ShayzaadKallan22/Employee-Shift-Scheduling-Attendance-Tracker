@@ -1,3 +1,7 @@
+/**
+ * @author MOYO CT, 221039267
+ * @version mobile_app
+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { NotificationProvider } from './NotificationContext';
@@ -20,6 +24,7 @@ import NotificationDetail from './NotificationDetail';
 
 const Stack = createNativeStackNavigator();
 
+//If app is ready, run app , else run the splash.
 function MainApp() {
   const [appIsReady, setAppIsReady] = useState(false);
 
@@ -70,7 +75,7 @@ function MainApp() {
     </View>
   );
 }
-
+//Wrap main ap with the notification provider
 export default function App() {
   return (
     <NotificationProvider>
