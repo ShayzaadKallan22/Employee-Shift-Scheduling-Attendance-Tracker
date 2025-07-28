@@ -1,6 +1,6 @@
 /**
  * @author MOYO CT, 221039267
- * @version API
+ * @version API_mobile
  */
 
 const db = require('./db');

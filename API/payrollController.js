@@ -344,7 +344,7 @@ async function generatePayroll() {
 
 //Schedule to run every Tuesday at 12:00 PM (noon) to align with payroll period start
 cron.schedule('0 12 * * 2', generatePayroll);
-//cron.schedule('*/5 * * * * *', generatePayroll);
+//cron.schedule('*/5 * * * * *', generatePayroll);;
 
 //getPaymentDetails function - using payroll table with current rates
 exports.getPaymentDetails = async (req, res) => {

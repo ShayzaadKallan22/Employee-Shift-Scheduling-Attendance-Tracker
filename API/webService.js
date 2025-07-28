@@ -139,7 +139,7 @@ app.use('/auth', authRoutes);
 
 //No session check
 //app.post('/api/leave/request', leaveController.requestLeave); //Added by Cletus.
-app.post('/api/leave/request', leavesController.requestLeave); //Added by Cletus.
+//app.post('/api/leaves/request', leavesController.requestLeave); //Added by Cletus.
 
 
 // app.use('/api/leave', (req, res, next) => {
@@ -216,12 +216,12 @@ app.get('/api/roles', async (req, res) => {
   }
 });
 
-app.use('/api/leave', (req, res, next) => {
-    if (!req.session.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-    next();
-}, leavesRoutes);
+// app.use('/api/leave', (req, res, next) => {
+//     if (!req.session.user) {
+//         return res.status(401).json({ message: 'Unauthorized' });
+//     }
+//     next();
+// }, leaveRoutes);
 
 app.get('/register', (req, res) => {
     res.render('registration', { 
@@ -245,6 +245,7 @@ app.listen(3000, '0.0.0.0', () => {  // Listen on all network interfaces
 });
 
 //CLETUS
+app.use('/api/leaves', leavesRoutes);
 //Shiftswap routes....
 app.use('/api/shift-swap', shiftSwapRoutes);
 
