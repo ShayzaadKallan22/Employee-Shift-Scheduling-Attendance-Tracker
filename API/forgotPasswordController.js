@@ -1,7 +1,7 @@
 /**
  * @author MOYO CT, 221039267
- * @version API_mobile
  */
+
 
 const bcrypt = require('bcryptjs');     //For hashing the password 
 const db = require('./db');

@@ -1,7 +1,7 @@
 /**
  * @author MOYO CT, 221039267
- * @version API_mobile
  */
+
 
 const db = require('./db');
 //Get employee shifts according to their monthly schedule.
@@ -14,13 +14,7 @@ try{
          FROM t_shift s
          JOIN t_employee e ON s.employee_id = e.employee_id
          JOIN t_role r ON e.role_id = r.role_id
-         WHERE s.employee_id = ? AND s.status_ = 'scheduled' AND DATE(s.date_) >= CURDATE() 
-         AND NOT EXISTS (
-             SELECT 1 FROM t_leave l 
-             WHERE l.employee_id = s.employee_id
-             AND l.status_ = 'approved'
-             AND s.date_ BETWEEN l.start_date AND l.end_date
-         )
+         WHERE s.employee_id = ? AND DATE(date_) >= CURDATE()
          ORDER BY s.date_ ASC
          LIMIT 30`, [employee_id]
     );

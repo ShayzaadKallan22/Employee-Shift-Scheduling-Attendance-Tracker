@@ -164,19 +164,19 @@ const login = async (req, res) => {
         }
 
         //Generate JWT token
-        // const token = jwt.sign(
-        //     { 
-        //         id: user[0].employee_id,
-        //         email: user[0].email,
-        //         role_id: user[0].role_id 
-        //     }, 
-        //     process.env.JWT_SECRET,
-        //     { expiresIn: '1h' }
-        // );
+        const token = jwt.sign(
+            { 
+                id: user[0].employee_id,
+                email: user[0].email,
+                role_id: user[0].role_id 
+            }, 
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
         res.json({ 
             message: 'Logged in successfully',
-            //token,
+            token,
             user: {
                 id: user[0].employee_id,
                 email: user[0].email,
