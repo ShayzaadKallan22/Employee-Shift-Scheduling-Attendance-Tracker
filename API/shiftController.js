@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 
@@ -11,10 +12,18 @@ exports.getUpcomingShifts = async (req, res) =>{
     
     try{
         const [rows] = await db.query (
-        `SELECT date_, start_time
-         FROM t_shift
-         WHERE employee_id = ? AND status_ = 'scheduled' AND date_ >= CURDATE() 
-         ORDER BY date_ ASC
+        `SELECT s.*
+         FROM t_shift s
+         WHERE s.employee_id = ? 
+         AND s.status_ = 'scheduled' 
+         AND s.date_ >= CURDATE()
+         AND NOT EXISTS (
+             SELECT 1 FROM t_leave l 
+             WHERE l.employee_id = s.employee_id
+             AND l.status_ = 'approved'
+             AND s.date_ BETWEEN l.start_date AND l.end_date
+         )
+         ORDER BY s.date_ ASC
          LIMIT 5`, [employeeId]
     );
 
