@@ -54,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Logout failed. Please try again.");
           }
         } catch (err) {
-          console.error("Logout error:", err);
-          alert("An error occurred during logout.");
+          // console.error("Logout error:", err);
+          // alert("An error occurred during logout.");
         }
       });
     }
