@@ -97,7 +97,7 @@ const BurgerMenuScreen = () => {
                       navigation.navigate('Leave Requests');
                       break;
                     case 'Shift Swap':
-                      navigation.navigate('Shift Swap');
+                      navigation.navigate('Shift');
                       break;
                     case 'Payslip':
                       navigation.navigate('Payslip');

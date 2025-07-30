@@ -3,7 +3,7 @@
  * @version mobile_app
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView,SafeAreaView, Modal, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import BottomNav from './BottomNav';
 import config from './config';
 
 const API_URL = config.API_URL;
@@ -22,6 +23,9 @@ const LeaveRequest = () => {
   const navigation = useNavigation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [remainingDays, setRemainingDays] = useState(null);
+  const [maxBalance, setMaxBalance] = useState(null);
+  const [usedDays, setUsedDays] = useState(null);
   const [leaveType, setLeaveType] = useState('Annual');
   const [leaveStatus, setLeaveStatus] = useState('');
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -30,12 +34,57 @@ const LeaveRequest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-
-  const leaveTypes = ['Annual', 'Sick', 'Family'];
+  const [leaveBalances, setLeaveBalances] = useState({
+  Annual: { remaining: null, max: 20, used: null },
+  Sick: { remaining: null, max: 30, used: null },
+  Family: { remaining: null, max: 15, used: null }
+  });
+  
+  
   //const leaveStatuses = ['Pending', 'Cancelled', 'Approved', 'Rejected'];
   
- //Confirm leave start sate
-  const handleConfirmStart = (date) => {
+//Fetch remaining days for an employee and leave type changes
+useEffect(() => {
+    const fetchRemainingDays = async () => {
+        if (!leaveType) return;
+        
+        try {
+            //Fetch employee ID from AyncStorage.
+            const employeeId = await AsyncStorage.getItem('employee_id');
+            if (!employeeId) return;
+
+            //Get the numeric value of the employee ID.
+            const numericId = employeeId.replace('EMP-', '');
+            //Leave type by ID.
+            const leaveTypeMap = {
+                'Annual': 1,
+                'Sick': 2,
+                'Family': 3
+            };
+           //Fetch all leave types balances
+            for (const [type, id] of Object.entries(leaveTypeMap)) {
+                const response = await axios.get(
+                    `${API_URL}/api/leaves/remaining/${numericId}/${id}`
+                );
+                setLeaveBalances(prev => ({
+                    ...prev,
+                    [type]: {
+                        remaining: response.data.remainingDays,
+                        max: response.data.maxBalance,
+                        used: response.data.usedDays
+                    }
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching remaining leave days:', error);
+        }
+    };
+
+    fetchRemainingDays();
+}, [leaveType]);
+
+//Confirm leave start sate
+const handleConfirmStart = (date) => {
   setStartDate(moment(date).format('YYYY-MM-DD'));
   setShowStartPicker(false);
 };
@@ -73,7 +122,7 @@ const handleConfirmEnd = (date) => {
     const numericId = employeeId.replace('EMP-', '');
     
     //Send request to the API to handle.
-    const response = await axios.post(`${API_URL}/api/leave/request`, {
+    const response = await axios.post(`${API_URL}/api/leaves/request`, {
       employee_id: parseInt(numericId, 10),
       leave_type_id: parseInt(leaveTypeId,10),
       start_date: startDate,
@@ -122,7 +171,7 @@ const handleConfirmEnd = (date) => {
     try{
       
       //Cancel leave request.
-      await axios.delete(`${API_URL}/api/leave/cancel/${tempRequest.id}`);
+      await axios.delete(`${API_URL}/api/leaves/cancel/${tempRequest.id}`);
     
       setPendingRequests(pendingRequests.filter(req => req.id !== tempRequest.id));
       setShowModal(false);
@@ -137,6 +186,12 @@ const handleConfirmEnd = (date) => {
        );
     }
   };
+
+  const leaveTypes = [
+  { label: 'Annual', value: 'Annual', remaining: leaveBalances.Annual.remaining, max: leaveBalances.Annual.max },
+  { label: 'Sick', value: 'Sick', remaining: leaveBalances.Sick.remaining, max: leaveBalances.Sick.max },
+  { label: 'Family', value: 'Family', remaining: leaveBalances.Family.remaining, max: leaveBalances.Family.max }
+  ];
 
   return (
   <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
@@ -179,10 +234,23 @@ const handleConfirmEnd = (date) => {
             style={styles.picker}
             dropdownIconColor="#ffffff" >
             {leaveTypes.map(type => (
-              <Picker.Item key={type} label={type} value={type} />
+              <Picker.Item 
+                key={type.value} 
+                label={`${type.label} (${type.remaining !== null ? type.remaining : '...'}/${type.max} days)`} 
+                value={type.value}
+              />
             ))}
           </Picker>
         </View>
+        
+        {/* <View style={styles.leaveBalanceContainer}>
+            <Text style={styles.leaveBalanceText}>
+               Leave Balance: {remainingDays !== null ? remainingDays : '...'} / {maxBalance !== null ? maxBalance : '...'} days
+            </Text>
+            <Text style={styles.leaveBalanceSubText}>
+              (Used: {usedDays !== null ? usedDays : '...'} days)
+            </Text>
+        </View> */}
 
         <TouchableOpacity 
           style={[styles.submitButton, isLoading && styles.disabledButton]} 
@@ -251,23 +319,7 @@ const handleConfirmEnd = (date) => {
       </Modal>
     </ScrollView>
 
-    <View style={styles.bottomNav}>
-      <TouchableOpacity onPress={() => navigation.navigate('BurgerMenu')} style={styles.navButton}>
-        <Icon name="menu-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ShiftSchedule')} style={styles.navButton}>
-        <Icon name="calendar-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ClockIn')} style={styles.navButton}>
-        <Icon name="home" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.navButton}>
-        <Icon name="notifications-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.navButton}>
-        <Icon name="person-outline" size={26} color="#ffffff" />
-      </TouchableOpacity>
-    </View>
+    <BottomNav />
   </SafeAreaView>
 );
 };
@@ -306,8 +358,11 @@ const styles = StyleSheet.create({
   formContainer: {
     backgroundColor: '#2c2c2c',
     borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
+    padding: 30,
+    marginBottom: 30,
+    width: '100%',
+    left: 0,
+    right: 0,
   },
   label: {
     color: '#ffffff',
@@ -327,10 +382,29 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
     overflow: 'hidden',
+    width: '100%',
   },
   picker: {
     color: '#ffffff',
     height: 50,
+    width: '100%',
+  },
+  leaveBalanceContainer: {
+    backgroundColor: '#3e3e3e',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+  },
+  leaveBalanceText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  leaveBalanceSubText: {
+    color: '#aaaaaa',
+    fontSize: 14,
+    textAlign: 'center',
   },
   submitButton: {
     backgroundColor: '#007bff',
@@ -430,19 +504,7 @@ const styles = StyleSheet.create({
   backgroundColor: '#555555',
   opacity: 0.7,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#444',
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  
 });
 
 export default LeaveRequest;
