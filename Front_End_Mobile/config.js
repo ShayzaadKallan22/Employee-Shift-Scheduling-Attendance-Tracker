@@ -5,6 +5,6 @@
 
 
 export default {
-  API_URL: 'https://ifm-proj-v1.onrender.com/3000'
+  API_URL: 'https://ifm-proj-v1.onrender.com'
 };
 
