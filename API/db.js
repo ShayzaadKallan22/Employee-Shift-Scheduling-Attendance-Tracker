@@ -8,12 +8,19 @@ const poolPromise = mysql.createPool({
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
     port: 45840,
+    waitForConnections: true,
+    connectionLimit: 10,      // Max number of concurrent connections
+    queueLimit: 0,            // Unlimited queue
 }).promise();
+
 
 // Test database connection
 const TestConnection = async () => {
     try {
-        const [rows, fields] = await poolPromise.query("SELECT 1");  // Simple query to test connection
+        console.time("DB Connection Test");
+        const [rows, fields] = await poolPromise.query("SELECT 1");
+        console.timeEnd("DB Connection Test");
+
         if (rows && rows.length > 0) {
             console.log("Database connection successful!");
         } else {
@@ -22,7 +29,8 @@ const TestConnection = async () => {
     } catch (err) {
         console.error("Database connection failed:", err);
     }
-}
+};
+
 
 TestConnection();
 
