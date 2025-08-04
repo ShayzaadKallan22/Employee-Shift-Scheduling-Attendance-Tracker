@@ -1,12 +1,31 @@
-version: '3.8'
 services:
-  app:
+  backend:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
-      - MYSQL_HOST=${MYSQLHOST}
-      - MYSQL_USER=${MYSQLUSER}
-      - MYSQL_PASSWORD=${MYSQLPASSWORD}
-      - MYSQL_DATABASE=${MYSQLDATABASE}
-      - MYSQL_PORT=${MYSQLPORT}
+      - MYSQL_HOST=yamanote.proxy.rlwy.net
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=CnmgfvkkhNsWncGCoRMethOBYcKagnPV
+      - MYSQL_DATABASE=railway
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:  
+    image: mysql:8.0
+    command: --lower-case-table-names=1 --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: CnmgfvkkhNsWncGCoRMethOBYcKagnPV
+      MYSQL_DATABASE: railway
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./Dock_Dump.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mysql_data:
