@@ -123,7 +123,7 @@ async function loadRecentNotifications() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/count?employeeId=${employeeId}`);
+    const response = await fetch(`http://ifmprojv1-production.up.railway.app/api/manager-notifications/unread/count?employeeId=${employeeId}`);
     if (!response.ok) throw new Error('Failed to fetch notifications');
 
     const notifications = await response.json();

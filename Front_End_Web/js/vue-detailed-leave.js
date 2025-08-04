@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       async fetchStats() {
         try {
-          const response = await fetch('http://localhost:3000/api/leave/stats');
+          const response = await fetch('http://ifmprojv1-production.up.railway.app/api/leave/stats');
           if (!response.ok) throw new Error('Failed to fetch stats');
           this.stats = await response.json();
         } catch (err) {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       async fetchChartData() {
         try {
-          const response = await fetch('http://localhost:3000/api/leave/chart-data');
+          const response = await fetch('http://ifmprojv1-production.up.railway.app/api/leave/chart-data');
           if (!response.ok) throw new Error('Failed to fetch chart data');
           const chartData = await response.json();
 

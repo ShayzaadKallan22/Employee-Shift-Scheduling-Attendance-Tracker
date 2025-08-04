@@ -1,7 +1,7 @@
 //AUTHOR - SHAYZAAD
 
 const { createApp } = Vue;
-const API_BASE = 'http://localhost:3000/payroll';
+const API_BASE = 'http://ifmprojv1-production.up.railway.app/payroll';
 
 createApp({
     data() {

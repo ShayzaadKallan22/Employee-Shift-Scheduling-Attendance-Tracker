@@ -16,7 +16,7 @@ createApp({
         //Fetch today's shifts specifically
         async fetchTodaysShifts() {
             try {
-                const response = await fetch('http://localhost:3000/shifts/todays');
+                const response = await fetch('http://ifmprojv1-production.up.railway.app/shifts/todays');
                 this.todaysShifts = await response.json();
             } catch (err) {
                 console.error('Failed to fetch today\'s shifts:', err);
