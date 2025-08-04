@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           console.log("Fetching leave data...");
 
-          const empResponse = await fetch('http://localhost:3000/api/leave/employee-summary');
+          const empResponse = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/employee-summary');
           if (!empResponse.ok) throw new Error('Failed to fetch employee data');
 
-          const typesResponse = await fetch('http://localhost:3000/api/leave/types');
+          const typesResponse = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/types');
           if (!typesResponse.ok) throw new Error('Failed to fetch leave types');
 
           this.employees = await empResponse.json();
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       async fetchStats() {
         try {
-          const response = await fetch('http://ifmprojv1-production.up.railway.app/api/leave/stats');
+          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/stats');
           if (!response.ok) throw new Error('Failed to fetch stats');
           this.stats = await response.json();
         } catch (err) {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       async fetchChartData() {
         try {
-          const response = await fetch('http://ifmprojv1-production.up.railway.app/api/leave/chart-data');
+          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/chart-data');
           if (!response.ok) throw new Error('Failed to fetch chart data');
           const chartData = await response.json();
 

@@ -25,8 +25,8 @@ document.getElementById('login-form').addEventListener('submit', async function 
   button.innerHTML = '<div class="loading"><div class="spinner"></div>Signing in...</div>';
 
   try {
-    console.log("Sending request to http://ifmprojv1-production.up.railway.app/api/login with email:", email);
-    const response = await axios.post('http://ifmprojv1-production.up.railway.app/api/login', {
+    console.log("Sending request to https://ifmprojv1-production.up.railway.app/api/login with email:", email);
+    const response = await axios.post('https://ifmprojv1-production.up.railway.app/api/login', {
       email,
       password
     }, {

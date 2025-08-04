@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 try {
                     this.isSubmitting = true;
-                    const response = await fetch('http://ifmprojv1-production.up.railway.app/auth/register', {
+                    const response = await fetch('https://ifmprojv1-production.up.railway.app/auth/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(this.formData)

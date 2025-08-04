@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       //fetch all leave requests
       async fetchLeaveRequests() {
         try {
-          const response = await fetch('http://ifmprojv1-production.up.railway.app/api/leave/all');
+          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/all');
           this.leaveRequests = await response.json();
         } catch (err) {
           console.error('Failed to fetch leave requests:', err);
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Approve/Reject a request
       async respondToLeave(leaveId, action) {
         try {
-          const response = await fetch('http://localhost:3000/api/leave/respond', {
+          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/respond', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ leave_id: leaveId, action })
