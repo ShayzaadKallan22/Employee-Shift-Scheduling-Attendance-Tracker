@@ -2,17 +2,16 @@ const mysql = require("mysql2");
 const dotenv = require("dotenv");
 dotenv.config();
 
-// In db.js
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  connectionLimit: 10,       // Reuse connections
-  connectTimeout: 5000,      // 5s timeout (down from 10s default)
-  waitForConnections: true,  // Queue queries if all connections busy
-  queueLimit: 0              // Unlimited queue
-});
+const poolPromise = mysql.createPool({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+    port: process.env.PORT,
+    waitForConnections: true,
+    connectionLimit: 10,      // Max number of concurrent connections
+    queueLimit: 0,            // Unlimited queue
+}).promise();
 
 
 // Test database connection
