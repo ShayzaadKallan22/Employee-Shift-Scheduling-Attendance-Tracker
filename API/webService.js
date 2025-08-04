@@ -43,8 +43,8 @@ app.use(cors({
     'http://127.0.0.1:5500',
     'http://localhost:5500',
     'http://127.0.0.1:3000',
-  'https://precious-consideration-production.up.railway.app', // Frontend
-    'https://ifmprojv1-production.up.railway.app',             // Backend
+    'https://front-end-production-adc5.up.railway.app',
+    'https://ifmprojv1-production.up.railway.app',
     'http://localhost' //Added for Yatin's frontend
   ],
   credentials: true,
