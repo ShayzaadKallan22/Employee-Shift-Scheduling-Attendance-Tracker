@@ -7,7 +7,7 @@ const poolPromise = mysql.createPool({
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
-    port: 14901,
+    port: process.env.PORT,
     waitForConnections: true,
     connectionLimit: 10,      // Max number of concurrent connections
     queueLimit: 0,            // Unlimited queue
