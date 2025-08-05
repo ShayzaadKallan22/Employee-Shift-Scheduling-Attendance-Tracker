@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const navbarContainer = document.getElementById("navbar-container");
   if (navbarContainer) {
     navbarContainer.innerHTML = `
-      <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+      <nav class="navbar navbar-expand bg-secondary navbar-dark fixed-top px-4 py-0" style="z-index: 1000;">
         <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
           <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
         </a>
@@ -43,14 +43,18 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="d-none d-lg-inline-flex">Admin User</span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-              <a href="#" class="dropdown-item">My Profile</a>
-              <a href="#" class="dropdown-item">Settings</a>
               <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
             </div>
           </div>
         </div>
       </nav>
     `;
+
+    // Add padding to the content to prevent it from being hidden under the fixed navbar
+    const content = document.querySelector(".content");
+    if (content) {
+      content.style.paddingTop = "60px"; // Adjust this value based on navbar height
+    }
 
     // Initialize systems
     initializeNotificationSystem();
@@ -87,11 +91,9 @@ function setupLogoutButton() {
         }
       });
       window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
-
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
     }
-
   });
 }
 
@@ -143,7 +145,7 @@ async function loadRecentNotifications() {
           <div class="d-flex align-items-start">
             <div class="me-2">${getNotificationIcon(n.type)}</div>
             <div>
-              <small class="text-truncate d-block" style="max-width: 280px;">${n.message}</small>
+              <small class="text-truncate d-block" style='max-width: 280px;'>${n.message}</small>
               <small class="text-muted">${formatTime(n.sent_time)}</small>
             </div>
           </div>

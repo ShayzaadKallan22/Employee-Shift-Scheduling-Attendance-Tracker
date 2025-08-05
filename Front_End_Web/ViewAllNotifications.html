@@ -40,7 +40,11 @@
         padding: 0;
       }
       .content {
-        margin-left: 220px;
+        margin-left: 260px; /* Maintains 20px gap from sidebar (240px width) */
+      }
+      .content .container-fluid {
+        padding-left: 20px; /* Set left padding to 20px */
+        padding-right: 20px; /* Set right padding to 20px for equal spacing */
       }
       .stats {
         display: flex;
@@ -325,6 +329,10 @@
       @media (max-width: 767.98px) {
         .content {
           margin-left: 0;
+        }
+        .content .container-fluid {
+          padding-left: 15px; /* Reset to default Bootstrap padding on mobile */
+          padding-right: 15px;
         }
         .filter-content {
           flex-direction: column;
