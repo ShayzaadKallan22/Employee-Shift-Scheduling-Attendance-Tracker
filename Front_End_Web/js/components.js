@@ -1,10 +1,10 @@
-//Author: Katlego Mmadi
+// Author: Katlego Mmadi
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
   const navbarContainer = document.getElementById("navbar-container");
   if (navbarContainer) {
     navbarContainer.innerHTML = `
-      <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+      <nav class="navbar navbar-expand bg-secondary navbar-dark fixed-top px-4 py-0" style="z-index: 1000;">
         <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
           <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
         </a>
@@ -43,14 +43,18 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="d-none d-lg-inline-flex">Admin User</span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-              <a href="#" class="dropdown-item">My Profile</a>
-              <a href="#" class="dropdown-item">Settings</a>
               <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
             </div>
           </div>
         </div>
       </nav>
     `;
+
+    // Add padding to the content to prevent it from being hidden under the fixed navbar
+    const content = document.querySelector(".content");
+    if (content) {
+      content.style.paddingTop = "60px"; // Adjust this value based on navbar height
+    }
 
     // Initialize systems
     initializeNotificationSystem();
@@ -59,6 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Create a broadcast channel for real-time updates
+const notificationChannel = new BroadcastChannel('notificationChannel');
+
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (!logoutBtn) return;
@@ -66,18 +73,15 @@ function setupLogoutButton() {
   logoutBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // 1. Get token and clear storage IMMEDIATELY
     const token = localStorage.getItem('token');
     localStorage.removeItem('token');
     localStorage.removeItem('employeeId');
     sessionStorage.clear();
 
-    // 2. Clear any intervals
     if (window.notificationRefreshInterval) {
       clearInterval(window.notificationRefreshInterval);
     }
 
-    // 3. Try to notify server but doesn't block on failure
     try {
       await fetch('/api/logout', {
         method: 'POST',
@@ -86,31 +90,37 @@ function setupLogoutButton() {
           'Content-Type': 'application/json'
         }
       });
+      window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
     }
-
-    // 4. Force reload to clear memory
-    window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
   });
 }
 
-// Notification System 
+// Notification System
 function initializeNotificationSystem() {
   loadRecentNotifications();
   updateNotificationCount();
+
+  // Polling as a fallback (every 30 seconds)
   window.notificationRefreshInterval = setInterval(() => {
     loadRecentNotifications();
     updateNotificationCount();
   }, 30000);
+
+  // Listen for real-time updates from the broadcast channel
+  notificationChannel.onmessage = (event) => {
+    if (event.data.type === 'update') {
+      updateNotificationCount();
+      loadRecentNotifications();
+    }
+  };
 }
 
 function getEmployeeId() {
-  // Try localStorage first
   let id = localStorage.getItem("employeeId");
   if (id) return id;
 
-  // Fallback to cookie
   const match = document.cookie.match(/(?:^|;\s*)employeeId=([^;]*)/);
   return match ? match[1] : null;
 }
@@ -123,7 +133,7 @@ async function loadRecentNotifications() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/count?employeeId=${employeeId}`);
+    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/latest?employeeId=${employeeId}`);
     if (!response.ok) throw new Error('Failed to fetch notifications');
 
     const notifications = await response.json();
@@ -135,7 +145,7 @@ async function loadRecentNotifications() {
           <div class="d-flex align-items-start">
             <div class="me-2">${getNotificationIcon(n.type)}</div>
             <div>
-              <small class="text-truncate d-block" style="max-width: 280px;">${n.message}</small>
+              <small class="text-truncate d-block" style='max-width: 280px;'>${n.message}</small>
               <small class="text-muted">${formatTime(n.sent_time)}</small>
             </div>
           </div>
