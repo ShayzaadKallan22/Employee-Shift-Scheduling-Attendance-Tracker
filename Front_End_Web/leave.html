@@ -50,7 +50,6 @@
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
-
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -79,8 +78,6 @@
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
                             <a href="registration.html" class="dropdown-item ps-5"><i
                                     class="fa fa-user-edit me-2"></i>New</a>
-                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-info-circle me-2"></i>Status</a> -->
                         </div>
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
@@ -160,7 +157,6 @@
                             <span class="d-none d-lg-inline-flex">Admin User</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <!-- <a href="#" class="dropdown-item">My Profile</a> -->
                             <a href="#" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
@@ -169,63 +165,115 @@
             <!-- Navbar End -->
 
             <div class="main-content">
-    <!-- Leave Management Start -->
-    <div class="container-fluid pt-4 px-4">
+                <!-- Leave Management Start -->
+                <div class="container-fluid pt-4 px-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="bg-secondary rounded p-4">
+                                <!-- Vue Widget Container -->
+                                <div id="vue-leave-requests">
+                                    <div class="bg-dark rounded p-4">
+                                        <div class="d-flex align-items-center justify-content-between mb-4">
+                                            <h5 class="mb-0">Leave Requests</h5>
+                                            <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
+                                                Leave</a>
+                                        </div>
 
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="bg-secondary rounded p-4">
-                            <!-- Vue Widget Container -->
-                            <div id="vue-leave-requests">
-                                <div class="bg-dark rounded p-4">
-                                    <div class="d-flex align-items-center justify-content-between mb-4">
-                                        <h5 class="mb-0">Leave Requests</h5>
-                                        <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
-                                            Leave</a>
+                                        <div class="table-responsive">
+                                            <table class="table text-start align-middle table-bordered table-hover mb-0">
+                                                <thead>
+                                                    <tr class="text-white">
+                                                        <th scope="col">Employee</th>
+                                                        <th scope="col">Date Range</th>
+                                                        <th scope="col">Type & Days Remaining</th>
+                                                        <th scope="col">Decision</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Show loading message while data is being fetched -->
+                                                    <tr v-if="leaveRequests.length === 0">
+                                                        <td colspan="4" class="text-center">Loading leave requests...</td>
+                                                    </tr>
+                                                    <!-- Dynamic Rows -->
+                                                    <tr v-for="request in leaveRequests" :key="request.leave_id">
+                                                        <td>
+                                                            <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+                                                                {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
+                                                            </a>
+                                                        </td>
+                                                        <td>{{ formatDate(request.start_date) }} → {{
+                                                            formatDate(request.end_date) }}</td>
+                                                        <td>
+                                                            <span class="badge">{{ request.leave_type }} ({{
+                                                                calculateDaysRemaining(request) }})</span>
+                                                        </td>
+                                                        <td>
+                                                            <button @click="respondToLeave(request.leave_id, 'approved')"
+                                                                class="btn btn-sm btn-success me-1">Approve</button>
+                                                            <button @click="respondToLeave(request.leave_id, 'rejected')"
+                                                                class="btn btn-sm btn-danger">Reject</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
 
-                                    <div class="table-responsive">
-                                        <table class="table text-start align-middle table-bordered table-hover mb-0">
-                                            <thead>
-                                                <tr class="text-white">
-                                                    <th scope="col">Employee</th>
-                                                    <th scope="col">Date Range</th>
-                                                    <th scope="col">Type & Days Remaining</th>
-                                                    <th scope="col">Decision</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Show loading message while data is being fetched -->
-                                                <tr v-if="leaveRequests.length === 0">
-                                                    <td colspan="4" class="text-center">Loading leave requests...</td>
-                                                </tr>
-                                                <!-- Dynamic Rows -->
-                                                <tr v-for="request in leaveRequests" :key="request.leave_id">
-                                                    <td>{{ request.first_name }} {{ request.last_name }} (EMP-{{
-                                                        request.employee_id }})</td>
-                                                    <td>{{ formatDate(request.start_date) }} → {{
-                                                        formatDate(request.end_date) }}</td>
-                                                    <td>
-                                                        <span class="badge">{{ request.leave_type }} ({{
-                                                            calculateDaysRemaining(request) }})</span>
-                                                    </td>
-                                                    <td>
-                                                        <button @click="respondToLeave(request.leave_id, 'approved')"
-                                                            class="btn btn-sm btn-success me-1">Approve</button>
-                                                        <button @click="respondToLeave(request.leave_id, 'rejected')"
-                                                            class="btn btn-sm btn-danger">Reject</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <!-- Employee Leave History Modal -->
+<div class="modal fade" id="employeeLeaveModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" v-if="employeeDetails">
+          Leave History for {{ employeeDetails.first_name }} {{ employeeDetails.last_name }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div v-if="employeeDetails">
+          <div class="table-responsive">
+            <table class="table table-hover text-white">
+              <thead>
+                <tr>
+                  <th>Leave Type</th>
+                  <th>Date Range</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="request in employeeDetails.leaveHistory" :key="request.leave_id">
+                  <td>{{ request.leave_type }}</td>
+                  <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+                  <td>
+                    <span class="badge" :class="{
+                      'bg-success': request.status_ === 'approved',
+                      'bg-warning': request.status_ === 'pending',
+                      'bg-danger': request.status_ === 'rejected'
+                    }">
+                      {{ request.status_ }}
+                    </span>
+                  </td>
+                </tr>
+                <tr v-if="employeeDetails.leaveHistory.length === 0">
+                  <td colspan="3" class="text-center">No leave history found</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            </div> <!-- End of .main-content -->
             <!-- Leave Management End -->
 
             <!-- Footer Start -->
@@ -248,8 +296,6 @@
         <!-- Back to Top -->
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
-    
-
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -266,6 +312,21 @@
     <script src="js/main.js"></script>
 
     <script src="js/vue-leave-management.js"></script>
-</body>
 
+    <script>
+        // Initialize modal when shown
+        document.addEventListener('DOMContentLoaded', function() {
+            const employeeModal = document.getElementById('employeeLeaveModal');
+            if (employeeModal) {
+                const modal = new bootstrap.Modal(employeeModal);
+                
+                // Listen for Vue's showModal event
+                const vueApp = Vue.createApp({});
+                vueApp.config.globalProperties.$showModal = function() {
+                    modal.show();
+                };
+            }
+        });
+    </script>
+</body>
 </html>

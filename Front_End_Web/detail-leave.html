@@ -137,7 +137,7 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0">
+                                <!-- <table class="table table-hover mb-0">
                                     <thead class="text-white">
                                         <tr>
                                             <th>Employee</th>
@@ -200,18 +200,90 @@
                                             </tr>
                                         </template>
                                     </tbody>
-                                </table>
+                                </table> -->
+                                <table class="table table-hover mb-0">
+  <thead class="text-white">
+    <tr>
+      <th>Employee</th>
+      <th>Role</th>
+      <th v-for="type in leaveTypes" :key="type.leave_type_id">{{ type.name_ }}</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-if="loading">
+      <td :colspan="leaveTypes.length + 3" class="text-center">Loading leave data...</td>
+    </tr>
+    <template v-else v-for="employee in employees" :key="employee.employee_id">
+      <tr data-bs-toggle="collapse" 
+          :data-bs-target="'#leaveDetails' + employee.employee_id"
+          style="cursor: pointer;">
+        <td>
+          <div class="d-flex align-items-center">
+            <img src="img/user.jpg" class="rounded-circle me-2" alt="" 
+                 style="width: 30px; height: 30px;">
+            <span>{{ employee.first_name }} {{ employee.last_name }} (EMP-{{ employee.employee_id }})</span>
+          </div>
+        </td>
+        <td>{{ employee.role_title }}</td>
+        <td v-for="type in leaveTypes" :key="type.leave_type_id">
+          <span :class="{
+            'text-danger': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 3,
+            'text-warning': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 7
+          }">
+            {{ getRemainingDays(employee, type.leave_type_id) }}
+          </span>
+        </td>
+        <td>
+          <span class="badge" :class="{
+            'bg-success': employee.status_ === 'Working',
+            'bg-warning': employee.status_ === 'On Leave',
+            'bg-secondary': employee.status_ === 'Not Working'
+          }">
+            {{ employee.status_ }}
+          </span>
+        </td>
+      </tr>
+      <tr class="collapse fade bg-secondary" :id="'leaveDetails' + employee.employee_id">
+        <td :colspan="leaveTypes.length + 3">
+          <div class="p-3" style="max-height: 200px; overflow-y: auto;">
+            <h6 class="mb-3">Recent Leave Requests</h6>
+            <ul class="list-group list-group-flush" 
+                v-if="employee.leave_requests && employee.leave_requests.length">
+              <li v-for="request in employee.leave_requests" :key="request.leave_id"
+                  class="list-group-item bg-dark text-white d-flex justify-content-between">
+                <span>
+                  {{ getLeaveTypeName(request.leave_type_id) }}: 
+                  {{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
+                  ({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
+                </span>
+                <span class="badge" :class="{
+                  'bg-success': request.status_ === 'approved',
+                  'bg-warning': request.status_ === 'pending',
+                  'bg-danger': request.status_ === 'rejected'
+                }">
+                  {{ request.status_ }}
+                </span>
+              </li>
+            </ul>
+            <div v-else class="text-muted">No recent leave requests</div>
+          </div>
+        </td>
+      </tr>
+    </template>
+  </tbody>
+</table>
                             </div>
 
 
                             <!-- Summary Cards -->
                             <div class="row g-4 mt-4 mb-4">
-                                <div class="col-sm-6 col-xl-3">
+                                <!-- <div class="col-sm-6 col-xl-3">
                                     <div class="bg-dark rounded p-4 text-center">
                                         <h6 class="mb-0">Total Active Employees</h6>
                                         <h3 class="text-primary mt-2">{{ stats.totalEmployees }}</h3>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="col-sm-6 col-xl-3">
                                     <div class="bg-dark rounded p-4 text-center">
                                         <h6 class="mb-0">On Leave Today</h6>
@@ -224,12 +296,12 @@
                                         <h3 class="text-danger mt-2">{{ stats.pendingRequests }}</h3>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-xl-3">
+                                <!-- <div class="col-sm-6 col-xl-3">
                                     <div class="bg-dark rounded p-4 text-center">
                                         <h6 class="mb-0">Leave This Month</h6>
                                         <h3 class="text-success mt-2">{{ stats.leaveThisMonth }}</h3>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
 

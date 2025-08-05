@@ -266,3 +266,10 @@ app.use('/api', forgotPassRoute); //Added by Cletus.
 app.use('/api', notifyRoute); //Added by Cletus.
 
 app.use('/api/payroll', payrollsRoute); //Added by Cletus.
+
+//Added By Yatin for messages:
+
+const messageRoutes = require('./messageRoutes');
+app.use('/api/messages', messageRoutes);
+
+//End of Yatin's Message code
