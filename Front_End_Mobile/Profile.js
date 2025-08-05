@@ -7,8 +7,10 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, SafeAreaVie
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomNav from './BottomNav';
+import config from './config';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = config.API_URL;
 
 const ProfileScreen = () => {
 
@@ -26,7 +28,7 @@ const ProfileScreen = () => {
     }
     //const id = employeeId.replace('EMP-','');
    
-       const res = await fetch(`${API_URL}/profile/create/${employee_id}`);
+       const res = await fetch(`${API_URL}/api/profile/create/${employee_id}`);
        if(!res.ok){
         const text = await res.text();
         console.error(`Server error: ${res.status}`, text);
@@ -58,7 +60,7 @@ const ProfileScreen = () => {
     const employee_id = profileData.employeeId.replace('EMP-', '');
 
     try{
-      const res = await fetch(`${API_URL}/profile/update/${employee_id}`, {
+      const res = await fetch(`${API_URL}/api/profile/update/${employee_id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(profileData),
@@ -177,34 +179,7 @@ if(loading){
       </View>
 
       </View>
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('BurgerMenu')}
-          style={styles.navButton} >
-          <Icon name="menu-outline" size={28} color='#ffffff'/>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('ShiftSchedule')}
-          style={styles.navButton} >
-          <Icon name="calendar-outline" size={28} color='#ffffff'/>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('ClockIn')}
-          style={styles.navButton} >
-          <Icon name="home" size={28} color='#ffffff'/>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('Notifications')}
-          style={styles.navButton} >
-          <Icon name="notifications-outline" size={28} color='#ffffff'/>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('Profile')}
-          style={styles.navButton} >
-          <Icon name="person-outline" size={28} color='#ffffff'/>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
   </SafeAreaView>
 );
 };
@@ -308,19 +283,7 @@ initialsText: {
     fontWeight: 'bold',
     fontSize: 16,
   },
-  bottomNav: {
-   flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#444',
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  
 });
 
 export default ProfileScreen;

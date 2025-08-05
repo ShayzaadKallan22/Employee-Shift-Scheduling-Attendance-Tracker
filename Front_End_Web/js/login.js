@@ -46,7 +46,7 @@ document.getElementById('login-form').addEventListener('submit', async function 
     localStorage.setItem('employeeId', user.id);
     console.log("User ID:", user.id, "Type:", user.type_);
 
-    alert(message || 'Login successful');
+    //alert(message || 'Login successful');
     window.location.href = 'index.html'; // Redirect to index.html 
   } catch (err) {
     console.error("Network Error Details:", {

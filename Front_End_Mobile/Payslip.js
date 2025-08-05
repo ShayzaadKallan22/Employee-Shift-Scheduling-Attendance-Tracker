@@ -13,12 +13,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+//import * as MediaLibrary from 'expo-media-library';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //import FileViewer from 'react-native-file-viewer';
 import { Calendar } from 'react-native-calendars';
 import dayjs from 'dayjs';
+import BottomNav from './BottomNav';
+import config from './config';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = config.API_URL;
 
 const Payslip = () => {
   const navigation = useNavigation();
@@ -62,7 +65,7 @@ const Payslip = () => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/payroll/${id}`);
+      const res = await axios.get(`${API_URL}/api/payroll/${id}`);
      if (res.data && Array.isArray(res.data)) {
       //Filter payslips for the selected date
       const payslipForDate = res.data.find(p =>
@@ -102,7 +105,7 @@ const Payslip = () => {
   if (!employeeId) return alert('Employee not found.');
 
   try {
-    const url = `${API_URL}/payroll/${employeeId}/pdf/${payrollId}`;
+    const url = `${API_URL}/api/payroll/${employeeId}/pdf/${payrollId}`;
     const fileUri = FileSystem.documentDirectory + `payslip-${payrollId}.pdf`;
 
     //Download the file using Expo FileSystem
@@ -264,24 +267,8 @@ const Payslip = () => {
   </ScrollView>
 </View>
 
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('BurgerMenu')} style={styles.navButton}>
-          <Icon name="menu-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ShiftSchedule')} style={styles.navButton}>
-          <Icon name="calendar-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ClockIn')} style={styles.navButton}>
-          <Icon name="home" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.navButton}>
-          <Icon name="notifications-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.navButton}>
-          <Icon name="person-outline" size={26} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+ <BottomNav />
+</SafeAreaView>
   );
 };
 
@@ -372,19 +359,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     marginLeft: 10,
   },
-  bottomNav: {
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    paddingVertical: 12,
-    borderTopWidth: 1, 
-    borderColor: '#444', 
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10, 
-    alignItems: 'center', 
-    justifyContent: 'center',
-  },
+  
 });
 
 export default Payslip;

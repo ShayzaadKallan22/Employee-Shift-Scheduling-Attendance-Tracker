@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 const express = require('express');
@@ -13,5 +14,9 @@ router.post('/respond', controller.respondToSwap);
 router.get('/shiftID', controller.getShiftID);
 router.get('/my-requests/:employee_id', SwapController.getSwapRequests);
 router.get('/colleague-requests/:employee_id', SwapController.getColleagueRequests);
+router.get('/employee-shift-dates/:employee_id', controller.getEmpShiftDates);
+router.get('/colleague-shift-dates/:employee_id', controller.getColleagueShiftDates);
+
+
 
 module.exports = router;

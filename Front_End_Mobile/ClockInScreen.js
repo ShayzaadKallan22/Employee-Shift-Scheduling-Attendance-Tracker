@@ -2,50 +2,95 @@
  * @author MOYO CT, 221039267
  * @version mobile_app
  */
-
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Image,} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import BottomNav from './BottomNav';
+import config from './config';
 
-const API_URL = 'http://10.254.224.142:3000/api';
+const API_URL = config.API_URL;
 
 const ClockInScreen = () => {
   const navigation = useNavigation();
   const [shifts, setShifts] = useState([]);
-  const [item, setItem] = useState('');
+  const [attendanceStatus, setAttendanceStatus] = useState(null);
+  const [lastClockIn, setLastClockIn] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(()=>{
-    //Fetch the upcoming shifts.
-    const fetchShifts = async () =>{
-      try{
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
         const employeeId = await AsyncStorage.getItem('employee_id');
-        if(!employeeId) return;
-        //fetch the api response.
-        const res = await axios.get(`${API_URL}/shifts/upcoming/${employeeId}`);
-        setShifts(res.data);
-      }catch(error){
-        console.error('Error fetching shifts:', error);
+        if (!employeeId) return;
+        
+        //Fetch upcoming shifts
+        const shiftsRes = await axios.get(`${API_URL}/api/shifts/upcoming/${employeeId}`);
+        setShifts(shiftsRes.data);
+        
+        //Fetch attendance status
+        const statusRes = await axios.get(`${API_URL}/api/profile/create/${employeeId}`);
+        setAttendanceStatus(statusRes.data.status);
+        setLastClockIn(shiftsRes.data.start_time);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchShifts();
+    
+    fetchData();
   }, []);
-  
+
+  //Navigate to Scan Screen
   const handleClockIn = async () => {
-    //Navigate to the scan screen.
     navigation.replace('ScanScreen');
   };
 
-  const handleLogout= async () => {
-      //Handle logout
+  //Clear tokens and sessions from async storage.
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear();
       navigation.reset({
         index: 0,
-        routes:'Login' ,
+        routes: [{ name: 'Login' }],
       });
- 
-  }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
+  const renderStatusCard = () => {
+    if (!attendanceStatus) return null;
+    //Configure user status. 
+    const statusConfig = {
+      'Working ': { color: '#4CAF50', icon: 'checkmark-circle', message: 'You are currently clocked in.' },
+      'Not Working': { color: '#FF9800', icon: 'time-outline', message: 'You are currently clocked out.' },
+      'Late': { color: '#FF5722', icon: 'alert-circle', message: 'You were late to your last shift.' },
+      'On Leave': { color: '#2196F3', icon: 'airplane-outline', message: 'You are currently on leave.' },
+      'default': { color: '#9E9E9E', icon: 'help-circle', message: 'Attendance status unknown.' }
+    };
+    
+    const config = statusConfig[attendanceStatus] || statusConfig.default;
+    
+    return (
+      <View style={[styles.statusCard, { backgroundColor: '#2c2c2c', borderLeftWidth: 5, borderLeftColor: config.color }]}>
+        <View style={styles.statusHeader}>
+          <Icon name={config.icon} size={24} color={config.color} />
+          <Text style={[styles.statusTitle, { color: config.color }]}>{attendanceStatus}</Text>
+        </View>
+        <Text style={styles.statusMessage}>{config.message}</Text>
+        {lastClockIn && (
+          <Text style={styles.statusTime}>
+            Last action: {new Date(lastClockIn).toLocaleString()}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.topBar}>
@@ -55,74 +100,55 @@ const ClockInScreen = () => {
         <Image source={require('./assets/AzaniaNLWhite.png')} style={styles.logo} resizeMode="contain" />
       </View>
 
-      
       <ScrollView contentContainerStyle={styles.content}>
+        {/*Attendance Status Card */}
+        {!loading && renderStatusCard()}
+
         <Text style={styles.sectionTitle}>LOG ATTENDANCE</Text>
         <TouchableOpacity style={styles.clockInButton} onPress={handleClockIn}>
           <Text style={styles.clockInText}>CLOCK-IN</Text>
           <Icon name="qr-code-outline" size={24} color="#ffffff" />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>UPCOMING SHIFT</Text>
+        <Text style={styles.sectionTitle}>SHIFTS</Text>
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={styles.tableHeaderText}>Date</Text>
             <Text style={styles.tableHeaderText}>Time</Text>
+            <Text style={styles.tableHeaderText}>Status</Text>
           </View>
           {shifts.length > 0 ? (
             shifts.map((shift, index) => (
-             <View key={index} style={styles.tableRow}>
-               <Text style={styles.tableCell}>{new Date(shift.date_).toLocaleDateString()}</Text>
-               <Text style={styles.tableCell}>{shift.start_time?.split(':').slice(0, 2).join(':')}</Text>
-             </View>
+              <View key={index} style={[
+                styles.tableRow,
+                index % 2 === 0 ? styles.evenRow : styles.oddRow
+              ]}>
+                <Text style={styles.tableCell}>{new Date(shift.date_).toLocaleDateString()}</Text>
+                <Text style={styles.tableCell}>{shift.start_time?.split(':').slice(0, 2).join(':')}</Text>
+                <Text style={[styles.tableCell, styles.statusCell]}>
+                  <Icon 
+                    name={shift.status_ === 'scheduled' ? 'time-outline' : 'checkmark-done-outline'} 
+                    size={16} 
+                    color={shift.status_ === 'scheduled' ? '#FF9800' : '#4CAF50'} 
+                  />
+                  {shift.status_ === 'scheduled' ? ' Upcoming' : ' Completed'}
+                </Text>
+              </View>
             ))
           ) : (
             <View style={styles.tableRow}>
               <Text style={styles.tableCell}>No upcoming shifts</Text>
+              <Text style={styles.tableCell}>-</Text>
               <Text style={styles.tableCell}>-</Text>
             </View>
           )}
         </View>
       </ScrollView>
 
-     
-<View style={styles.bottomNav}>
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('BurgerMenu')}
-    style={styles.navButton} >
-    <Icon name="menu-outline" size={28} color='#ffffff'/>
-  </TouchableOpacity>
-  
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('ShiftSchedule')}
-    style={styles.navButton} >
-    <Icon name="calendar-outline" size={28} color='#ffffff'/>
-  </TouchableOpacity>
-  
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('ClockIn')}
-    style={styles.navButton} >
-    <Icon name="home" size={28} color='#ffffff'/>
-  </TouchableOpacity>
-  
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('Notifications')}
-    style={styles.navButton} >
-    <Icon name="notifications-outline" size={28} color='#ffffff'/>
-  </TouchableOpacity>
-  
-  <TouchableOpacity 
-    onPress={() => navigation.navigate('Profile')}
-    style={styles.navButton} >
-    <Icon name="person-outline" size={28} color='#ffffff'/>
-  </TouchableOpacity>
-</View>
+      <BottomNav />
     </View>
   );
 };
-
-export default ClockInScreen;
-
 
 const styles = StyleSheet.create({
   screen: {
@@ -133,62 +159,88 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 0,
-    marginHorizontal: 20,
+    padding: 20,
+    paddingTop: 50,
   },
   logo: {
     width: 200,
     height: 100,
     alignSelf: 'center',
-    marginTop: 50,
-    right:80,
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-    width: 300,
-    height: 200,
-    borderRadius: 8,
-    marginTop: 100,
-    marginHorizontal: 10,
+    position: 'absolute',
+    left: '50%',
+    marginLeft: -100,
   },
   content: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  statusCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statusHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
-    marginTop: 60,
+    marginBottom: 8,
+  },
+  statusTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  statusMessage: {
+    color: '#ffffff',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  statusTime: {
+    color: '#aaaaaa',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   sectionTitle: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
     marginVertical: 10,
     color: '#ffffff',
+    letterSpacing: 0.5,
   },
   clockInButton: {
     flexDirection: 'row',
-    backgroundColor: '#007bff', 
+    backgroundColor: '#007bff',
     padding: 20,
-    borderRadius: 15,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: 200,
-    marginVertical: 20,
+    width: '100%',
+    marginVertical: 10,
+    shadowColor: '#007bff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
   clockInText: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginRight: 5,
-    alignItems: 'center',
     color: '#ffffff',
   },
   table: {
-    width: '90%',
-    borderRadius: 15,
+    width: '100%',
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#2c2c2c',
+    marginBottom: 20,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#007bff',
-    padding: 10,
+    padding: 15,
   },
   tableHeaderText: {
     flex: 1,
@@ -198,25 +250,25 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
+    padding: 15,
+  },
+  evenRow: {
+    backgroundColor: '#2c2c2c',
+  },
+  oddRow: {
     backgroundColor: '#3e3e3e',
-    padding: 10,
   },
   tableCell: {
     flex: 1,
     textAlign: 'center',
     color: '#ffffff',
   },
-  bottomNav: {
+  statusCell: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#444',
-    backgroundColor: '#1e1e1e',
-  },
-  navButton: {
-    padding: 10,  
     alignItems: 'center',
     justifyContent: 'center',
-  }
+  },
+  
 });
+
+export default ClockInScreen;

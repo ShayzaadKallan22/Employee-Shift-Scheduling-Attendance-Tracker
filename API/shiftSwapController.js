@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 
@@ -116,16 +117,17 @@ exports.getSwapRequests = async (req, res) => {
   try {
     const [rows] = await db.execute(
       `SELECT 
-         swap_id AS id,
-         ts.status_ AS status,
-         t.date_ AS assignedDate,
-         CONCAT(e.first_name, ' ', e.last_name) AS colleague
-       FROM t_shift_swap ts
-       JOIN t_employee e ON ts.approving_employee_id = e.employee_id
-       JOIN t_shift t ON ts.original_shift_id = t.shift_id
-       WHERE ts.requesting_employee_id = ?
-       ORDER BY  t.date_  DESC`,
-      [employee_id]
+        swap_id AS id,
+        ts.status_ AS status,
+        s1.date_ AS assignedDate,
+        s2.date_ AS swapDate,
+        CONCAT(e.first_name, ' ', e.last_name) AS colleague
+     FROM t_shift_swap ts
+     JOIN t_employee e ON ts.approving_employee_id = e.employee_id
+     JOIN t_shift s1 ON ts.original_shift_id = s1.shift_id
+     JOIN t_shift s2 ON ts.requested_shift_id = s2.shift_id
+     WHERE ts.requesting_employee_id = ?
+     ORDER BY s1.date_ DESC`,[employee_id]
     );
 
     res.status(200).json(rows);
@@ -145,18 +147,21 @@ exports.getColleagueRequests = async (req, res) => {
 
   try {
     const [rows] = await db.execute(
-      `SELECT 
-         swap_id AS id,
-         ts.status_ AS status,
-         t.date_ AS swapDate,
-         CONCAT(e.first_name, ' ', e.last_name) AS colleague
-       FROM t_shift_swap ts
-       JOIN t_shift t ON ts.requested_shift_id = t.shift_id
-       JOIN t_employee e ON ts.requesting_employee_id = e.employee_id
-       WHERE ts.approving_employee_id = ?
-       ORDER BY t.date_  DESC`,
-      [employee_id]
+     `SELECT 
+       swap_id AS id,
+       ts.status_ AS status,
+       s1.date_ AS assignedDate,
+       s2.date_ AS swapDate,
+       CONCAT(e.first_name, ' ', e.last_name) AS colleague
+     FROM t_shift_swap ts
+     JOIN t_employee e ON ts.requesting_employee_id = e.employee_id
+     JOIN t_shift s1 ON ts.original_shift_id = s1.shift_id
+     JOIN t_shift s2 ON ts.requested_shift_id = s2.shift_id
+     WHERE ts.approving_employee_id = ?
+     ORDER BY s2.date_ DESC`,[employee_id]
     );
+    
+    console.log(rows);
 
     res.status(200).json(rows);
   } catch (error) {
@@ -165,6 +170,59 @@ exports.getColleagueRequests = async (req, res) => {
   }
 };
 
+//get own Shift dates.
+exports.getEmpShiftDates = async (req,res) =>{
+
+  const {employee_id} = req.params;
+
+  if(!employee_id){
+    return res.status(400).json({message: 'Employee ID is required, could not be found.'});
+  }
+
+  try {
+    const[rows] = await db.execute(
+      `SELECT DISTINCT DATE(date_) AS date_
+       FROM t_shift
+       WHERE employee_id = ?
+       AND date_ >= CURDATE()
+       ORDER BY date_`, [employee_id]
+    );
+    const dateStrings = rows.map(row => row.date_.toLocaleDateString('en-CA'));
+    console.log(dateStrings);
+
+    res.status(200).json(dateStrings);
+  }catch(error){
+    console.error('Error fetching employee shift dates:', error);
+    res.status(500).json({message: 'Server error'});
+  }
+};
+
+
+//Get available shift dates for a selected colleague.
+exports.getColleagueShiftDates = async (req, res) => {
+  const {employee_id} = req.params;
+
+  if(!employee_id){
+    return res.status(400).json({message: 'Employee ID is required.'});
+  }
+
+  try{
+    const [rows] = await db.execute(
+       `SELECT DISTINCT DATE(date_) AS date_
+        FROM t_shift
+        WHERE employee_id = ?
+        AND date_ >= CURDATE()
+        ORDER BY date_`, [employee_id]     
+    );
+    const dateStrings = rows.map(row => row.date_.toLocaleDateString('en-CA'));
+    console.log('Colleague:', dateStrings);
+
+    res.status(200).json(dateStrings);
+  }catch(error){
+    console.error('Error fetching colleague shift dates:', error);
+    res.status(500).json({message: 'Server error.'});
+  }
+};
 //Approve or decline a shift swap
 exports.respondToSwap = async (req, res) => {
   const { swap_id, action } = req.body;

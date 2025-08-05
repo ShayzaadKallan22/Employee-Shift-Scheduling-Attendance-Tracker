@@ -41,7 +41,7 @@ cron.schedule('* * * * * * *', async () => {
     for (const session of expiredSessions) {
       //Generate proof QR for auto completed sessions
       const proofData = `OVERTIME-ATTENDANCE-${uuidv4()}`;
-      const proofExpiration = new Date(Date.now() + 1 * 60 * 1000); //15 minutes expiry (1 min test)
+      const proofExpiration = new Date(Date.now() + 0.3 * 60 * 1000); //15 minutes expiry (1 min test)
 
       //Inserting the proof QR code for overtime attendance 
       await connection.query(
@@ -104,11 +104,17 @@ cron.schedule('* * * * * * *', async () => {
         if(newShiftStatus === "missed"){
           const formattedDate = new Date(shift.date_).toLocaleDateString('en-ZA');
           await connection.query(
-            `INSERT INTO t_notification 
-             (employee_id, message, sent_time, notification_type_id)
-             VALUES (?, ?,NOW(), ?)`, 
-            [shift.employee_id, `${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}`, 4]
-          );
+          `INSERT INTO t_notification 
+          (employee_id, message, sent_time, notification_type_id)
+          SELECT 
+            e.employee_id,
+            ?,
+            NOW(),
+            ?
+          FROM t_employee e
+          WHERE e.type_ = 'manager'`, 
+          [`${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}`, 4]
+        );
         }
       }
     }
@@ -138,7 +144,7 @@ exports.generateQR = async (req, res) => {
     const qrData = uuidv4();
     
     //Set QR code expiration to 15 minutes (Testing purpose 1 minute)
-    const qrExpiration = new Date(Date.now() + 1 * 60 * 1000);
+    const qrExpiration = new Date(Date.now() + 0.3 * 60 * 1000);
     
     //Set overtime session expiration to manager specified duration
     const overtimeExpiration = new Date(Date.now() + duration * 60 * 1000);
@@ -370,7 +376,7 @@ exports.endOvertime = async (req, res) => {
     //Generate proof QR code
     const proofData = `OVERTIME-ATTENDANCE-${uuidv4()}`;
     const proofImage = await QRCode.toDataURL(proofData);
-    const proofExpiration = new Date(Date.now() + 1 * 60 * 1000); // 1 minute for testing
+    const proofExpiration = new Date(Date.now() + 0.3 * 60 * 1000); // 1 minute for testing
 
     //Save proof QR to database
     const [qrResult] = await connection.query(

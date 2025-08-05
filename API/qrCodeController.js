@@ -1,5 +1,6 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
 
 
@@ -89,6 +90,13 @@ exports.scanQR = async (req, res) => {
           VALUES (?, ?, NOW(), ?, ?)`,
           [employee_id, 'Your clock in for today has been approved.', 'unread', 4]
       );
+      
+      //Update status if employee clocked in successfully.
+      await db.execute(
+        `UPDATE t_employee SET status_ = ?
+         WHERE employee_id = ?`, ['Working', employee_id]
+      );
+      
     } else if (qr.purpose === 'attendanceNormal' || qr.purpose === 'attendance') {
 
       //Proof of employee attendance(employee clock-out)
@@ -106,7 +114,12 @@ exports.scanQR = async (req, res) => {
          WHERE attendance_id = ?`,
         ['present',attendance[0].attendance_id]
       );
-
+      //Update employee status after clocking out.
+      await db.execute(
+        `UPDATE t_employee SET status_ = ?
+         WHERE employee_id = ?`, ['Not Working', employee_id]
+      );
+      //Send notification if clock out was accepted.
        await db.execute(
          `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
           VALUES (?, ?, NOW(), ?, ?)`,

@@ -8,8 +8,9 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } fr
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from './config';
 
-const API_URL = 'http://192.168.1.187:3000/api';
+const API_URL = config.API_URL;
 
 const BurgerMenuScreen = () => {
   const navigation = useNavigation();
@@ -30,7 +31,7 @@ const BurgerMenuScreen = () => {
         throw new Error('Employee ID not found.');
       }
 
-      const res = await fetch(`${API_URL}/menu/respond/${employee_id}`);
+      const res = await fetch(`${API_URL}/api/menu/respond/${employee_id}`);
       if (!res.ok) {
         const text = await res.text();
         console.error(`Server error: ${res.status}`, text);
@@ -74,8 +75,8 @@ const BurgerMenuScreen = () => {
       </View>
 
       <View style={styles.userCard}>
-        <Text style={styles.userName}>{menuData?.name || 'Employee'}</Text>
-        <Text style={styles.userRole}>{menuData?.role || 'Role'}</Text>
+        <Text style={styles.userName}>{menuData.name }</Text>
+        <Text style={styles.userRole}>{menuData.role}</Text>
       </View>
 
       <View style={styles.menuContainer}>
@@ -96,7 +97,7 @@ const BurgerMenuScreen = () => {
                       navigation.navigate('Leave Requests');
                       break;
                     case 'Shift Swap':
-                      navigation.navigate('Shift Swap');
+                      navigation.navigate('Shift');
                       break;
                     case 'Payslip':
                       navigation.navigate('Payslip');

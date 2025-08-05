@@ -1,7 +1,7 @@
 /**
  * @author MOYO CT, 221039267
+ * @version API_mobile
  */
-
 
 const db = require('./db');
 //Fetch the employee's notifications
