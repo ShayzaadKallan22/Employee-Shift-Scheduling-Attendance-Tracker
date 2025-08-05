@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 leaveTableData: [],
                 swapsTableData: [],
                 payrollTotal: 'R0.00',
-                apiBaseUrl: 'http://localhost:3000/api/reports' //base API URL
+                apiBaseUrl: 'http://localhost:3000/api/reports', //base API URL
+
+                storageKey: 'lastReportData'
             };
         },
         async created() {
@@ -36,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+    this.loadReportFromStorage();
             // Set default payroll period to the most recent one
             // if (this.payrollPeriods.length > 0) {
             //     this.selectedPayrollPeriod = this.payrollPeriods[0].period_id;
@@ -91,6 +94,57 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 return new Date(datetimeString).toLocaleDateString(undefined, options);
             },
+
+            saveReportToStorage() {
+    if (this.reportData) {
+      const reportState = {
+        reportType: this.reportType,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        employeeId: this.employeeId,
+        shiftType: this.shiftType,
+        reportData: this.reportData,
+        payrollTableData: this.payrollTableData,
+        attendanceTableData: this.attendanceTableData,
+        leaveTableData: this.leaveTableData,
+        swapsTableData: this.swapsTableData,
+        payrollTotal: this.payrollTotal
+      };
+      localStorage.setItem(this.storageKey, JSON.stringify(reportState));
+    }
+  },
+
+  loadReportFromStorage() {
+    const savedReport = localStorage.getItem(this.storageKey);
+    if (savedReport) {
+      try {
+        const reportState = JSON.parse(savedReport);
+        
+        // Restore filter values
+        this.reportType = reportState.reportType;
+        this.startDate = reportState.startDate;
+        this.endDate = reportState.endDate;
+        this.employeeId = reportState.employeeId;
+        this.shiftType = reportState.shiftType || 'all';
+        
+        // Restore report data
+        this.reportData = reportState.reportData;
+        this.payrollTableData = reportState.payrollTableData || [];
+        this.attendanceTableData = reportState.attendanceTableData || [];
+        this.leaveTableData = reportState.leaveTableData || [];
+        this.swapsTableData = reportState.swapsTableData || [];
+        this.payrollTotal = reportState.payrollTotal || 'R0.00';
+        
+        // Initialize charts after data is loaded
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+      } catch (e) {
+        console.error('Failed to load saved report:', e);
+        localStorage.removeItem(this.storageKey);
+      }
+    }
+  },
 
             async generateReport() {
                 this.isLoading = true;
@@ -161,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.$nextTick(() => {
                         this.initCharts();
                     });
+                    this.saveReportToStorage();
                 } catch (error) {
                     console.error('Error generating report:', error);
                     alert(`Failed to generate report: ${error.message}`);

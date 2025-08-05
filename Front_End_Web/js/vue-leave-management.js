@@ -1,18 +1,25 @@
-// leave-management.js
 document.addEventListener('DOMContentLoaded', () => {
   const { createApp } = Vue;
 
   createApp({
     data() {
       return {
-        leaveRequests: [] //--> populated from API
+        leaveRequests: [],
+        employeeDetails: null,
+        employeeModal: null // We'll store the Bootstrap modal instance here
       };
     },
     mounted() {
       this.fetchLeaveRequests();
+      // Initialize modal after Vue has mounted the DOM
+      this.$nextTick(() => {
+        const modalElement = document.getElementById('employeeLeaveModal');
+        if (modalElement) {
+          this.employeeModal = new bootstrap.Modal(modalElement);
+        }
+      });
     },
     methods: {
-      //fetch all leave requests
       async fetchLeaveRequests() {
         try {
           const response = await fetch('http://localhost:3000/api/leave/all');
@@ -21,7 +28,33 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('Failed to fetch leave requests:', err);
         }
       },
-      // Approve/Reject a request
+      
+      async fetchEmployeeLeaveHistory(employeeId) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/leave/my/${employeeId}`);
+          return await response.json();
+        } catch (err) {
+          console.error('Failed to fetch employee leave history:', err);
+          return [];
+        }
+      },
+      
+      async showEmployeeLeaveHistory(employee) {
+        try {
+          this.employeeDetails = {
+            ...employee,
+            leaveHistory: await this.fetchEmployeeLeaveHistory(employee.employee_id)
+          };
+          
+          // Show the modal
+          if (this.employeeModal) {
+            this.employeeModal.show();
+          }
+        } catch (err) {
+          console.error('Error showing employee leave history:', err);
+        }
+      },
+
       async respondToLeave(leaveId, action) {
         try {
           const response = await fetch('http://localhost:3000/api/leave/respond', {
@@ -32,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (response.ok) {
             alert(`Leave request ${action}!`);
-            this.fetchLeaveRequests(); // Refresh the list
+            this.fetchLeaveRequests();
           } else {
             alert('Failed to update leave request.');
           }
@@ -40,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('Error:', err);
         }
       },
-      //Helper: Format date as "DD-MM-YYYY"
+      
       formatDate(dateString) {
         if (!dateString || dateString.startsWith('0000-00-00')) {
           return "None";
@@ -48,8 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB');
       },
-
-      //Calculate remaining leave days
 
       calculateDaysRemaining(request) {
         const maxDays = request.max_days_per_year || 0;
