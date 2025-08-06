@@ -1837,7 +1837,7 @@ progress {
     --bs-table-hover-bg: rgba(0,0,0,0.075);
     width: 100%;
     margin-bottom: 1rem;
-    color: #6C7293;
+    color: #ffffff;
     vertical-align: top;
     border-color: #000
 }
@@ -2069,7 +2069,7 @@ progress {
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
-    color: #6C7293;
+    color: #ffffff;
     background-color: #000;
     background-clip: padding-box;
     border: 1px solid #000;
@@ -2105,7 +2105,7 @@ progress {
 }
 
 .form-control::placeholder {
-    color: #6c757d;
+    color: #ffffff;
     opacity: 1
 }
 
@@ -2250,7 +2250,7 @@ textarea.form-control-lg {
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
-    color: #6C7293;
+    color: #ffffff;
     background-color: #000;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
@@ -2601,7 +2601,7 @@ textarea.form-control-lg {
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
-    color: #6C7293;
+    color: #000000;
     text-align: center;
     white-space: nowrap;
     background-color: #e9ecef;
@@ -7762,7 +7762,7 @@ textarea.form-control-lg {
 }
 
 .text-light {
-    color: #6C7293 !important
+    color: #ffffff !important
 }
 
 .text-dark {
@@ -7778,7 +7778,7 @@ textarea.form-control-lg {
 }
 
 .text-muted {
-    color: #6c757d !important
+    color: #ffffff !important
 }
 
 .text-black-50 {

@@ -164,7 +164,61 @@ router.get('/leave', async (req, res) => {
     }
 });
 
-// Shift Swaps Report - Fixed?
+// // Shift Swaps Report - Fixed?
+// router.get('/swaps', async (req, res) => {
+//     try {
+//         const { startDate, endDate, employeeId } = req.query;
+        
+//         if (!startDate || !endDate) {
+//             return res.status(400).json({ error: 'Start and end dates are required' });
+//         }
+        
+//         let query = `
+//             SELECT 
+//                 ss.swap_id,
+//                 ss.status_,
+//                 ss.request_date_time,
+//                 ss.approval_date_time,
+//                 e1.employee_id as original_employee_id,
+//                 CONCAT(e1.first_name, ' ', e1.last_name) as original_employee_name,
+//                 e2.employee_id as requesting_employee_id,
+//                 CONCAT(e2.first_name, ' ', e2.last_name) as requesting_employee_name,
+//                 s1.shift_id as original_shift_id,
+//                 s1.start_time as original_start_time,
+//                 s1.end_time as original_end_time,
+//                 s1.date_ as original_date,
+//                 s2.shift_id as requested_shift_id,
+//                 s2.start_time as requested_start_time,
+//                 s2.end_time as requested_end_time,
+//                 s2.date_ as requested_date,
+//                 e3.employee_id as approving_employee_id,
+//                 CONCAT(e3.first_name, ' ', e3.last_name) as approving_employee_name
+//             FROM t_shift_swap ss
+//             JOIN t_employee e1 ON ss.requesting_employee_id = e1.employee_id
+//             JOIN t_shift s1 ON ss.original_shift_id = s1.shift_id
+//             JOIN t_shift s2 ON ss.requested_shift_id = s2.shift_id
+//             JOIN t_employee e2 ON s2.employee_id = e2.employee_id
+//             LEFT JOIN t_employee e3 ON ss.approving_employee_id = e3.employee_id
+//             WHERE DATE(ss.request_date_time) BETWEEN ? AND ?
+//         `;
+        
+//         const params = [startDate, endDate];
+        
+//         if (employeeId && employeeId !== 'all') {
+//             query += ' AND (ss.requesting_employee_id = ? OR s2.employee_id = ?)';
+//             params.push(employeeId, employeeId);
+//         }
+        
+//         query += ' ORDER BY ss.request_date_time DESC';
+        
+//         const [results] = await db.query(query, params);
+//         res.json(results);
+//     } catch (error) {
+//         handleDbError(res, error, 'Error generating swaps report:');
+//     }
+// });
+
+// Shift Swaps Report - Fixed
 router.get('/swaps', async (req, res) => {
     try {
         const { startDate, endDate, employeeId } = req.query;
@@ -181,8 +235,8 @@ router.get('/swaps', async (req, res) => {
                 ss.approval_date_time,
                 e1.employee_id as original_employee_id,
                 CONCAT(e1.first_name, ' ', e1.last_name) as original_employee_name,
-                e2.employee_id as requesting_employee_id,
-                CONCAT(e2.first_name, ' ', e2.last_name) as requesting_employee_name,
+                e2.employee_id as taking_employee_id,
+                CONCAT(e2.first_name, ' ', e2.last_name) as taking_employee_name,
                 s1.shift_id as original_shift_id,
                 s1.start_time as original_start_time,
                 s1.end_time as original_end_time,
@@ -194,8 +248,8 @@ router.get('/swaps', async (req, res) => {
                 e3.employee_id as approving_employee_id,
                 CONCAT(e3.first_name, ' ', e3.last_name) as approving_employee_name
             FROM t_shift_swap ss
-            JOIN t_employee e1 ON ss.requesting_employee_id = e1.employee_id
             JOIN t_shift s1 ON ss.original_shift_id = s1.shift_id
+            JOIN t_employee e1 ON s1.employee_id = e1.employee_id
             JOIN t_shift s2 ON ss.requested_shift_id = s2.shift_id
             JOIN t_employee e2 ON s2.employee_id = e2.employee_id
             LEFT JOIN t_employee e3 ON ss.approving_employee_id = e3.employee_id
@@ -205,7 +259,7 @@ router.get('/swaps', async (req, res) => {
         const params = [startDate, endDate];
         
         if (employeeId && employeeId !== 'all') {
-            query += ' AND (ss.requesting_employee_id = ? OR s2.employee_id = ?)';
+            query += ' AND (s1.employee_id = ? OR s2.employee_id = ?)';
             params.push(employeeId, employeeId);
         }
         

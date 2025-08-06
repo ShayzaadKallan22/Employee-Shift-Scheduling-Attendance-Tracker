@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 leaveTableData: [],
                 swapsTableData: [],
                 payrollTotal: 'R0.00',
-                apiBaseUrl: 'http://localhost:3000/api/reports' //base API URL
+                apiBaseUrl: 'http://localhost:3000/api/reports', //base API URL
+
+                storageKey: 'lastReportData'
             };
         },
         async created() {
@@ -36,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+    this.loadReportFromStorage();
             // Set default payroll period to the most recent one
             // if (this.payrollPeriods.length > 0) {
             //     this.selectedPayrollPeriod = this.payrollPeriods[0].period_id;
@@ -91,6 +94,57 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 return new Date(datetimeString).toLocaleDateString(undefined, options);
             },
+
+            saveReportToStorage() {
+    if (this.reportData) {
+      const reportState = {
+        reportType: this.reportType,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        employeeId: this.employeeId,
+        shiftType: this.shiftType,
+        reportData: this.reportData,
+        payrollTableData: this.payrollTableData,
+        attendanceTableData: this.attendanceTableData,
+        leaveTableData: this.leaveTableData,
+        swapsTableData: this.swapsTableData,
+        payrollTotal: this.payrollTotal
+      };
+      localStorage.setItem(this.storageKey, JSON.stringify(reportState));
+    }
+  },
+
+  loadReportFromStorage() {
+    const savedReport = localStorage.getItem(this.storageKey);
+    if (savedReport) {
+      try {
+        const reportState = JSON.parse(savedReport);
+        
+        // Restore filter values
+        this.reportType = reportState.reportType;
+        this.startDate = reportState.startDate;
+        this.endDate = reportState.endDate;
+        this.employeeId = reportState.employeeId;
+        this.shiftType = reportState.shiftType || 'all';
+        
+        // Restore report data
+        this.reportData = reportState.reportData;
+        this.payrollTableData = reportState.payrollTableData || [];
+        this.attendanceTableData = reportState.attendanceTableData || [];
+        this.leaveTableData = reportState.leaveTableData || [];
+        this.swapsTableData = reportState.swapsTableData || [];
+        this.payrollTotal = reportState.payrollTotal || 'R0.00';
+        
+        // Initialize charts after data is loaded
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+      } catch (e) {
+        console.error('Failed to load saved report:', e);
+        localStorage.removeItem(this.storageKey);
+      }
+    }
+  },
 
             async generateReport() {
                 this.isLoading = true;
@@ -161,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.$nextTick(() => {
                         this.initCharts();
                     });
+                    this.saveReportToStorage();
                 } catch (error) {
                     console.error('Error generating report:', error);
                     alert(`Failed to generate report: ${error.message}`);
@@ -190,28 +245,49 @@ document.addEventListener('DOMContentLoaded', function () {
                     sum + (item.base_hours * item.base_hourly_rate) + (item.overtime_hours * item.overtime_hourly_rate), 0).toFixed(2)}`;
             },
 
+            // processSwapsData(data) {
+            //     this.swapsTableData = data.map(item => {
+            //         const requestDate = new Date(item.request_date_time);
+            //         const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
+
+            //         return {
+            //             originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
+            //             swapEmployee: `${item.requesting_employee_name} (EMP-${item.requesting_employee_id})`,
+            //             originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
+            //             originalDate: this.formatDate(item.original_date),
+            //             swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
+            //             swapDate: this.formatDate(item.requested_date),
+            //             requestDate: this.formatDateTime(item.request_date_time),
+            //             approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
+            //             status: item.status_,
+            //             daysToApproval: approvalDate ?
+            //                 Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
+            //             approvedBy: item.approving_employee_name || 'N/A'
+            //         };
+            //     }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+            // },
+
             processSwapsData(data) {
-                this.swapsTableData = data.map(item => {
-                    const requestDate = new Date(item.request_date_time);
-                    const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
+    this.swapsTableData = data.map(item => {
+        const requestDate = new Date(item.request_date_time);
+        const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
 
-                    return {
-                        originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
-                        swapEmployee: `${item.requesting_employee_name} (EMP-${item.requesting_employee_id})`,
-                        originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
-                        originalDate: this.formatDate(item.original_date),
-                        swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
-                        swapDate: this.formatDate(item.requested_date),
-                        requestDate: this.formatDateTime(item.request_date_time),
-                        approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
-                        status: item.status_,
-                        daysToApproval: approvalDate ?
-                            Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
-                        approvedBy: item.approving_employee_name || 'N/A'
-                    };
-                }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
-            },
-
+        return {
+            originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
+            swapEmployee: `${item.taking_employee_name} (EMP-${item.taking_employee_id})`,
+            originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
+            originalDate: this.formatDate(item.original_date),
+            swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
+            swapDate: this.formatDate(item.requested_date),
+            requestDate: this.formatDateTime(item.request_date_time),
+            approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
+            status: item.status_,
+            daysToApproval: approvalDate ?
+                Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
+            approvedBy: item.approving_employee_name || 'N/A'
+        };
+    }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+},
             processAttendanceData(data) {
     // Group attendance by employee
     const employeeAttendance = {};
@@ -742,7 +818,10 @@ leaveTypeCtx.closest('.bg-secondary').appendChild(leaveInsight);
     this.reportData.forEach(record => {
         swapsByStatus[record.status_] = (swapsByStatus[record.status_] || 0) + 1;
         
-        const empKey = `${record.original_employee_name} ↔ ${record.requesting_employee_name}`;
+        const originalEmp = record.original_employee_name.split(' ')[0]; // First name only
+        const takingEmp = record.taking_employee_name.split(' ')[0]; // First name only
+        // const empKey = `${record.original_employee_name} ↔ ${record.requesting_employee_name}`;
+        const empKey = `${originalEmp} ↔ ${takingEmp}`;
         swapsByEmployee[empKey] = (swapsByEmployee[empKey] || 0) + 1;
         
         const swapDate = new Date(record.request_date_time);

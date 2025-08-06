@@ -47,6 +47,26 @@ document.addEventListener('DOMContentLoaded', () => {
           this.loading = false;
         }
       },
+
+      // async fetchLeaveData() {
+      //   try {
+      //     const [empResponse, typesResponse] = await Promise.all([
+      //       fetch('http://localhost:3000/api/leave/employee-summary'),
+      //       fetch('http://localhost:3000/api/leave/types')
+      //     ]);
+
+      //     if (!empResponse.ok) throw new Error('Failed to fetch employee data');
+      //     if (!typesResponse.ok) throw new Error('Failed to fetch leave types');
+
+      //     this.employees = await empResponse.json();
+      //     this.leaveTypes = await typesResponse.json();
+      //   } catch (err) {
+      //     console.error('Error fetching leave data:', err);
+      //     this.error = err.message;
+      //   } finally {
+      //     this.loading = false;
+      //   }
+      // },
       async fetchStats() {
         try {
           const response = await fetch('http://localhost:3000/api/leave/stats');
@@ -131,21 +151,56 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       },
-      getRemainingDays(employee, typeId) {
-        const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
-        if (!type) return 'N/A';
+      // getRemainingDays(employee, typeId) {
+      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
+      //   if (!type) return 'N/A';
 
-        const used = employee.leave_used?.find(u => u.leave_type_id === typeId)?.days || 0;
-        return `${type.max_days_per_year - used}/${type.max_days_per_year}`;
-      },
-      getLeaveTypeName(typeId) {
-        const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
-        return type ? type.name_ : 'Unknown';
-      },
+      //   const used = employee.leave_used?.find(u => u.leave_type_id === typeId)?.days || 0;
+      //   return `${type.max_days_per_year - used}/${type.max_days_per_year}`;
+      // },
+      // getLeaveTypeName(typeId) {
+      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
+      //   return type ? type.name_ : 'Unknown';
+      // },
+      
+      getRemainingDays(employee, typeId) {
+  if (!employee.leave_balances) return 'N/A';
+  
+  const balance = employee.leave_balances.find(b => b.leave_type_id == typeId);
+  if (!balance) return 'N/A';
+  
+  const remaining = balance.max_days - balance.used_days;
+  return `${remaining}/${balance.max_days}`;
+},
+
+getLeaveTypeName(typeId) {
+  if (!this.leaveTypes.length) return 'Loading...';
+  const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
+  return type ? type.name_ : 'Unknown';
+},
       formatDate(dateString) {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-GB');
       }
+
+      // getRemainingDays(employee, typeId) {
+      //   if (!employee.leave_balances) return 'N/A';
+        
+      //   const balance = employee.leave_balances.find(b => b.leave_type_id === typeId);
+      //   if (!balance) return 'N/A';
+        
+      //   return `${balance.remaining_days}/${balance.max_days}`;
+      // },
+
+      // getLeaveTypeName(typeId) {
+      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
+      //   return type ? type.name_ : 'Unknown';
+      // },
+
+      // formatDate(dateString) {
+      //   if (!dateString) return 'N/A';
+      //   return new Date(dateString).toLocaleDateString('en-GB');
+      // }
     }
   }).mount('#vue-detailed-leave');
 });
