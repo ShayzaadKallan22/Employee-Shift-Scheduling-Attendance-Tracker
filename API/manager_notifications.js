@@ -1,3 +1,4 @@
+// routes/manager_notifications.js
 const express = require('express');
 const router = express.Router();
 const pool = require('./db');
@@ -34,17 +35,22 @@ function validateManager(req, res, next) {
 // Apply validation to all routes
 router.use(validateManager);
 
-// Fetch all notifications
+// Fetch all notifications including messages
 router.get('/', async (req, res) => {
   try {
     const { type } = req.query;
+    
+    // Base query for notifications (now includes sender info)
     let query = `
       SELECT 
         n.notification_id,
         n.message,
         n.sent_time,
         n.read_status,
-        nt._name AS type
+        nt._name AS type,
+        'notification' AS source,
+        '' AS sender_name,  -- Empty for notifications
+        0 AS sender_id     -- 0 for notifications
       FROM t_notification n
       JOIN t_notification_type nt 
         ON n.notification_type_id = nt.notification_type_id
@@ -52,23 +58,64 @@ router.get('/', async (req, res) => {
     `;
     const params = [req.employeeId];
 
-    if (type) {
+    if (type && type !== 'message') {
       query += ` AND nt._name = ?`;
       params.push(type);
     }
 
-    query += ` ORDER BY n.sent_time DESC`;
+    // Get messages if no specific type is selected or if 'message' is selected
+    let messageQuery = '';
+    if (!type || type === 'message') {
+      messageQuery = `
+        UNION ALL
+        SELECT 
+          m.message_id AS notification_id,
+          m.content AS message,
+          m.sent_time,
+          m.read_status,
+          'message' AS type,
+          'message' AS source,
+          CONCAT(e.first_name, ' ', e.last_name) AS sender_name,
+          m.sender_id AS sender_id
+        FROM t_message m
+        JOIN t_employee e ON m.sender_id = e.employee_id
+        WHERE m.receiver_id = ?
+      `;
+      params.push(req.employeeId);
+      
+      if (type === 'message') {
+        messageQuery += ` AND (m.read_status = 'unread' OR ? = 'all')`;
+        params.push('all');
+      } else {
+        messageQuery += ` AND m.read_status = 'unread'`;
+      }
+    }
+
+    query += messageQuery;
+    query += ` ORDER BY sent_time DESC`;
 
     const [notifications] = await pool.query(query, params);
-    console.log('📦 Notifications for manager', req.employeeId, 'fetched:', notifications.length);
-    res.json(notifications);
+    console.log('📦 Combined notifications and messages for manager', req.employeeId, 'fetched:', notifications.length);
+    
+    // Format messages with sender names
+    const formattedNotifications = notifications.map(n => {
+      if (n.type === 'message') {
+        return {
+          ...n,
+          message: n.sender_name ? `${n.sender_name}: ${n.message}` : n.message
+        };
+      }
+      return n;
+    });
+
+    res.json(formattedNotifications);
   } catch (err) {
-    console.error('🛑 Notification fetch error for manager', req.employeeId, ':', err);
-    res.status(500).json({ error: 'Failed to load notifications' });
+    console.error('🛑 Notification/message fetch error for manager', req.employeeId, ':', err);
+    res.status(500).json({ error: 'Failed to load notifications and messages' });
   }
 });
 
-// Fetch unread notification count
+// Fetch unread notification count (excluding messages)
 router.get('/unread/count', async (req, res) => {
   try {
     const [result] = await pool.query(`
@@ -84,7 +131,7 @@ router.get('/unread/count', async (req, res) => {
   }
 });
 
-// Fetch latest unread notifications
+// Fetch latest unread notifications (excluding messages)
 router.get('/unread/latest', async (req, res) => {
   try {
     const [notifications] = await pool.query(`
@@ -93,11 +140,12 @@ router.get('/unread/latest', async (req, res) => {
         n.message,
         n.sent_time,
         n.read_status,
-        nt._name AS type
+        nt._name AS type,
+        'notification' AS source
       FROM t_notification n
       JOIN t_notification_type nt 
         ON n.notification_type_id = nt.notification_type_id
-      WHERE n.employee_id = ?
+      WHERE n.employee_id = ? AND n.read_status = 'unread'
       ORDER BY n.sent_time DESC
       LIMIT 2
     `, [req.employeeId]);
@@ -133,7 +181,7 @@ router.patch('/:notification_id/:read_status', async (req, res) => {
   }
 });
 
-// Mark all notifications as read
+// Mark all notifications as read (excluding messages)
 router.patch('/mark-all-read', async (req, res) => {
   const { notificationIds } = req.body;
   console.log('Processing mark all as read for employeeId:', req.employeeId, 'notificationIds:', notificationIds);
@@ -155,4 +203,4 @@ router.patch('/mark-all-read', async (req, res) => {
   }
 });
 
-module.exports = router
+module.exports = router;
