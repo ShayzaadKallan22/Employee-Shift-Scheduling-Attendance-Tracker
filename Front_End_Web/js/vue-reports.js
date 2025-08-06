@@ -245,28 +245,49 @@ document.addEventListener('DOMContentLoaded', function () {
                     sum + (item.base_hours * item.base_hourly_rate) + (item.overtime_hours * item.overtime_hourly_rate), 0).toFixed(2)}`;
             },
 
+            // processSwapsData(data) {
+            //     this.swapsTableData = data.map(item => {
+            //         const requestDate = new Date(item.request_date_time);
+            //         const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
+
+            //         return {
+            //             originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
+            //             swapEmployee: `${item.requesting_employee_name} (EMP-${item.requesting_employee_id})`,
+            //             originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
+            //             originalDate: this.formatDate(item.original_date),
+            //             swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
+            //             swapDate: this.formatDate(item.requested_date),
+            //             requestDate: this.formatDateTime(item.request_date_time),
+            //             approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
+            //             status: item.status_,
+            //             daysToApproval: approvalDate ?
+            //                 Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
+            //             approvedBy: item.approving_employee_name || 'N/A'
+            //         };
+            //     }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+            // },
+
             processSwapsData(data) {
-                this.swapsTableData = data.map(item => {
-                    const requestDate = new Date(item.request_date_time);
-                    const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
+    this.swapsTableData = data.map(item => {
+        const requestDate = new Date(item.request_date_time);
+        const approvalDate = item.approval_date_time ? new Date(item.approval_date_time) : null;
 
-                    return {
-                        originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
-                        swapEmployee: `${item.requesting_employee_name} (EMP-${item.requesting_employee_id})`,
-                        originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
-                        originalDate: this.formatDate(item.original_date),
-                        swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
-                        swapDate: this.formatDate(item.requested_date),
-                        requestDate: this.formatDateTime(item.request_date_time),
-                        approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
-                        status: item.status_,
-                        daysToApproval: approvalDate ?
-                            Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
-                        approvedBy: item.approving_employee_name || 'N/A'
-                    };
-                }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
-            },
-
+        return {
+            originalEmployee: `${item.original_employee_name} (EMP-${item.original_employee_id})`,
+            swapEmployee: `${item.taking_employee_name} (EMP-${item.taking_employee_id})`,
+            originalShift: `${this.formatTime(item.original_start_time)} - ${this.formatTime(item.original_end_time)}`,
+            originalDate: this.formatDate(item.original_date),
+            swapShift: `${this.formatTime(item.requested_start_time)} - ${this.formatTime(item.requested_end_time)}`,
+            swapDate: this.formatDate(item.requested_date),
+            requestDate: this.formatDateTime(item.request_date_time),
+            approvalDate: approvalDate ? this.formatDateTime(item.approval_date_time) : 'N/A',
+            status: item.status_,
+            daysToApproval: approvalDate ?
+                Math.round((approvalDate - requestDate) / (1000 * 60 * 60 * 24)) : 'N/A',
+            approvedBy: item.approving_employee_name || 'N/A'
+        };
+    }).sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+},
             processAttendanceData(data) {
     // Group attendance by employee
     const employeeAttendance = {};
@@ -797,7 +818,10 @@ leaveTypeCtx.closest('.bg-secondary').appendChild(leaveInsight);
     this.reportData.forEach(record => {
         swapsByStatus[record.status_] = (swapsByStatus[record.status_] || 0) + 1;
         
-        const empKey = `${record.original_employee_name} ↔ ${record.requesting_employee_name}`;
+        const originalEmp = record.original_employee_name.split(' ')[0]; // First name only
+        const takingEmp = record.taking_employee_name.split(' ')[0]; // First name only
+        // const empKey = `${record.original_employee_name} ↔ ${record.requesting_employee_name}`;
+        const empKey = `${originalEmp} ↔ ${takingEmp}`;
         swapsByEmployee[empKey] = (swapsByEmployee[empKey] || 0) + 1;
         
         const swapDate = new Date(record.request_date_time);

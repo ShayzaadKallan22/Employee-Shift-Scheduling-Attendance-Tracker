@@ -190,31 +190,33 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <!-- Show loading message while data is being fetched -->
-                                                    <tr v-if="leaveRequests.length === 0">
-                                                        <td colspan="4" class="text-center">Loading leave requests...</td>
-                                                    </tr>
-                                                    <!-- Dynamic Rows -->
-                                                    <tr v-for="request in leaveRequests" :key="request.leave_id">
-                                                        <td>
-                                                            <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
-                                                                {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
-                                                            </a>
-                                                        </td>
-                                                        <td>{{ formatDate(request.start_date) }} → {{
-                                                            formatDate(request.end_date) }}</td>
-                                                        <td>
-                                                            <span class="badge">{{ request.leave_type }} ({{
-                                                                calculateDaysRemaining(request) }})</span>
-                                                        </td>
-                                                        <td>
-                                                            <button @click="respondToLeave(request.leave_id, 'approved')"
-                                                                class="btn btn-sm btn-success me-1">Approve</button>
-                                                            <button @click="respondToLeave(request.leave_id, 'rejected')"
-                                                                class="btn btn-sm btn-danger">Reject</button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
+  <!--show loading message while data is being fetched -->
+  <tr v-if="isLoading">
+    <td colspan="4" class="text-center">Loading leave requests...</td>
+  </tr>
+  <!--show empty state when no requests exist -->
+  <tr v-else-if="leaveRequests.length === 0">
+    <td colspan="4" class="text-center">No pending leave requests</td>
+  </tr>
+  <!--dynamic Rows -->
+  <tr v-for="request in leaveRequests" :key="request.leave_id">
+    <td>
+      <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+        {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
+      </a>
+    </td>
+    <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+    <td>
+      <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
+    </td>
+    <td>
+      <button @click="respondToLeave(request.leave_id, 'approved')"
+              class="btn btn-sm btn-success me-1">Approve</button>
+      <button @click="respondToLeave(request.leave_id, 'rejected')"
+              class="btn btn-sm btn-danger">Reject</button>
+    </td>
+  </tr>
+</tbody>
                                             </table>
                                         </div>
                                     </div>
