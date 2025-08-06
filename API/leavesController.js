@@ -5,7 +5,20 @@
 
 
 const db = require('./db');
+const multer = require('multer');
+const path = require('path');
 
+//Configure file upload.
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'), //Directory to save uploaded files.
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+exports.uploadFile = upload.single('sick_note');
 //Fetch an employee's remaining leave days.
 exports.getRemainingLeaveDays = async (req, res) => {
     const { employee_id, leave_type_id } = req.params;
@@ -53,25 +66,25 @@ exports.getRemainingLeaveDays = async (req, res) => {
 
 //handle employee leave requests.
 exports.requestLeave = async (req, res) => {
-    const { employee_id, leave_type_id, start_date, end_date } = req.body;
-
-    if (!employee_id || !leave_type_id || !start_date || !end_date) {
-        return res.status(400).json({ message: 'Missing required fields' });
-    }
-
     try {
-        //Convert and sanitize dates
+        const { employee_id, leave_type_id, start_date, end_date } = req.body;
+        //Extract the uploaded file if any.
+        //This is for sick leave where a sick note is required.
+        const file = req.file;
+
+        if (!employee_id || !leave_type_id || !start_date || !end_date) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
         const start = new Date(start_date);
         const end = new Date(end_date);
         start.setHours(0, 0, 0, 0);
         end.setHours(0, 0, 0, 0);
-
-        const daysRequested = Math.ceil((end-start)/ (1000 * 60 * 60 * 24)) + 1;
-        if (daysRequested <= 0) {
+        const daysRequested = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        if (daysRequested < 1 || start > end) {
             return res.status(400).json({ message: 'Invalid date range' });
         }
-
-        //Check if there already exist a leave from the days requested..
+        //Check if the employee has any existing approved or pending leaves that conflict with the requested dates.
         const [existingLeaves] = await db.execute(
             `SELECT * FROM t_leave 
              WHERE employee_id = ? 
@@ -82,87 +95,73 @@ exports.requestLeave = async (req, res) => {
                  (? BETWEEN start_date AND end_date) OR
                  (? BETWEEN start_date AND end_date)
              )`,
-            [
-                employee_id, 
-                start_date, end_date,
-                start_date, end_date,
-                start_date,
-                end_date
-            ]
+            [employee_id, start_date, end_date, start_date, end_date, start_date, end_date]
         );
 
+        //If there are existing leaves that conflict with the requested dates, return an error.
+        //This prevents double booking of leave days.
         if (existingLeaves.length > 0) {
             return res.status(400).json({ 
-                message: 'You already have an approved or pending leave of this type for the selected dates',
+                message: 'You already have an approved or pending leave for the selected dates',
                 conflictingLeaves: existingLeaves
             });
         }
 
-        //Leave type max balances.
-        const leaveTypeMax = {
-            1: 20,  //Annual
-            2: 30,  //Sick
-            3: 15   //Family
-        };
+        //Check the leave type and calculate the remaining days.
+        const leaveTypeMax = { 1: 20, 2: 30, 3: 15 };
+        const typeId = parseInt(leave_type_id);
+        const maxBalance = leaveTypeMax[typeId];
+        if (!maxBalance) return res.status(400).json({ message: 'Invalid leave type ID' });
 
-        const leaveTypeIdNum = parseInt(leave_type_id);
-        const maxBalance = leaveTypeMax[leaveTypeIdNum];
-        
-        if (!maxBalance) {
-            return res.status(400).json({ message: 'Invalid leave type ID' });
-        }
-
-        let status_ = 'pending';
-        let usedDays = 0;
-        let remaining = maxBalance;
-
-        //Auto approve sick leave.
-        if (leaveTypeIdNum === 2) {
-            console.log('Auto-approving sick leave');
-            status_ = 'approved';
-        } else {
-            const [rows] = await db.execute(
-                `SELECT COALESCE(SUM(DATEDIFF(end_date, start_date) + 1), 0) AS used_days
-                 FROM t_leave
-                 WHERE employee_id = ? AND leave_type_id = ? AND status_ = 'approved'`, 
-                [employee_id, leaveTypeIdNum]
-            );
-
-            usedDays = rows[0].used_days;
-            remaining = maxBalance - usedDays;
-
-            if (remaining >= (maxBalance / 2) && remaining >= daysRequested) {
-                status_ = 'approved';
-            }
-        }
-
-        //Insert the new leave request
-        const [insertResult] = await db.execute(
-            `INSERT INTO t_leave (start_date, end_date, status_, employee_id, leave_type_id, used_days, remaining_days)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [start_date, end_date, status_, employee_id, leaveTypeIdNum, usedDays, remaining]
+        //Calculate the used days for the leave type.
+        //This is the total number of days already used for the leave type.
+        const [rows] = await db.execute(
+            `SELECT COALESCE(SUM(DATEDIFF(end_date, start_date) + 1), 0) AS used_days
+             FROM t_leave
+             WHERE employee_id = ? AND leave_type_id = ? AND status_ = 'approved'`,
+            [employee_id, typeId]
         );
 
-        //Notify user after leave has been approved or rejected.
+        const usedDays = rows[0].used_days || 0;
+        const remaining = maxBalance - usedDays;
+        let status_ = 'pending';   //Inialiaze status to pending.
+
+        //If the requested days exceed the remaining balance for sick leave, a sick note is required.
+        let sickNoteFile = null;
+
+        if (typeId === 2) {
+            if (daysRequested > remaining && !file) {
+                return res.status(400).json({ message: 'A PDF sick note is required for sick leave beyond your balance.' });
+            }
+            sickNoteFile = file ? file.filename : null;
+            //If a sick note is provided, it will be saved in the uploads directory.
+        } else if (remaining >= daysRequested) {
+            status_ = 'approved';
+        }
+
+        //Insert the leave request into the database.
+        //If the status is approved, update the employee's status to "On Leave".
+        const [insertResult] = await db.execute(
+            `INSERT INTO t_leave (start_date, end_date, status_, employee_id, leave_type_id, used_days, remaining_days, sick_note)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [start_date, end_date, status_, employee_id, typeId, usedDays, remaining, sickNoteFile]
+        );
+
+        //Insert a notification for the employee about the leave request.
+        //This will notify the employee about the status of their leave request.
         await db.execute(
             `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
-             VALUES (?, ?, NOW(), ?, ?)`, 
+             VALUES (?, ?, NOW(), ?, ?)`,
             [employee_id, `Your leave request has been ${status_} for ${daysRequested} days.`, 'unread', 1]
         );
 
+        //If the leave is approved, update the employee's status to "On Leave".
+        //This is to reflect that the employee is currently on leave.
         if (status_ === 'approved') {
-            await db.execute(
-                `UPDATE t_employee SET status_ = ? 
-                 WHERE employee_id = ?`, 
-                ['On Leave', employee_id]
-            );
+            await db.execute(`UPDATE t_employee SET status_ = ? WHERE employee_id = ?`, ['On Leave', employee_id]);
         }
 
-        res.status(200).json({ 
-            message: 'Leave request submitted', 
-            leave_id: insertResult.insertId, 
-            status_: status_
-        });
+        res.status(200).json({ message: 'Leave request submitted', leave_id: insertResult.insertId, status_ });
 
     } catch (err) {
         console.error(err);
@@ -170,6 +169,8 @@ exports.requestLeave = async (req, res) => {
     }
 };
 
+//Cancel a leave request.
+//This allows an employee to cancel their pending leave request.
 exports.cancelLeave = async (req, res) => {
     const {leave_id} = req.params;
 

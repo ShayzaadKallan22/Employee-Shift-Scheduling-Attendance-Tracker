@@ -62,6 +62,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true })); //For form submissions
 app.use(express.json()); //For API JSON payloads
 
+app.use('/uploads', express.static('uploads')); //Added by Cletus.
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
 // Middleware
