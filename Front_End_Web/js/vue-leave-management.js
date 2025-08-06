@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         leaveRequests: [],
         employeeDetails: null,
-        employeeModal: null // We'll store the Bootstrap modal instance here
+        employeeModal: null, // We'll store the Bootstrap modal instance here
+        isLoading: true
       };
     },
     mounted() {
@@ -20,14 +21,26 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     },
     methods: {
+      // async fetchLeaveRequests() {
+      //   try {
+      //     const response = await fetch('http://localhost:3000/api/leave/all');
+      //     this.leaveRequests = await response.json();
+      //   } catch (err) {
+      //     console.error('Failed to fetch leave requests:', err);
+      //   }
+      // },
       async fetchLeaveRequests() {
-        try {
-          const response = await fetch('http://localhost:3000/api/leave/all');
-          this.leaveRequests = await response.json();
-        } catch (err) {
-          console.error('Failed to fetch leave requests:', err);
-        }
-      },
+  this.isLoading = true;
+  try {
+    const response = await fetch('http://localhost:3000/api/leave/all');
+    this.leaveRequests = await response.json();
+  } catch (err) {
+    console.error('Failed to fetch leave requests:', err);
+    this.leaveRequests = []; // Ensure it's empty on error
+  } finally {
+    this.isLoading = false;
+  }
+},
       
       async fetchEmployeeLeaveHistory(employeeId) {
         try {
@@ -82,12 +95,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toLocaleDateString('en-GB');
       },
 
+      // calculateDaysRemaining(request) {
+      //   const maxDays = request.max_days_per_year || 0;
+      //   const daysRequested = request.days_requested || 0;
+      //   const remaining = maxDays - daysRequested;
+      //   return `${remaining}/${maxDays}`;
+      // }
       calculateDaysRemaining(request) {
-        const maxDays = request.max_days_per_year || 0;
-        const daysRequested = request.days_requested || 0;
-        const remaining = maxDays - daysRequested;
-        return `${remaining}/${maxDays}`;
-      }
+  const maxDays = request.max_days_per_year || 0;
+  const daysRequested = request.days_requested || 
+    (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1;
+  
+  // Only deduct days if the request is approved
+  const daysToDeduct = request.status_ === 'approved' ? daysRequested : 0;
+  const remaining = maxDays - daysToDeduct;
+  
+  return `${remaining}/${maxDays}`;
+}
     }
   }).mount('#vue-leave-requests');
 });
