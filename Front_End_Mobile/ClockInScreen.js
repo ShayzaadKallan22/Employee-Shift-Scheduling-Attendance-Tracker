@@ -165,10 +165,10 @@ const styles = StyleSheet.create({
   logo: {
     width: 200,
     height: 100,
-    alignSelf: 'center',
     position: 'absolute',
-    left: '50%',
-    marginLeft: -100,
+    top: 20, 
+    left: '55%',
+    transform: [{ translateX: -100 }],
   },
   content: {
     padding: 20,
