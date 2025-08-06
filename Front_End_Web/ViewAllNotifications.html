@@ -340,7 +340,6 @@
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
-
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -369,12 +368,11 @@
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
                             <a href="registration.html" class="dropdown-item ps-5"><i
                                     class="fa fa-user-edit me-2"></i>New</a>
-                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-info-circle me-2"></i>Status</a> -->
                         </div>
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="messages.html" class="nav-item nav-link"><i class="fa fa-envelope me-2"></i>Messages</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -454,6 +452,7 @@
                         <option value="shift_swap">Shift Swaps</option>
                         <option value="payroll">Payroll</option>
                         <option value="system">System</option>
+                        <option value="message">Messages</option>
                       </select>
                     </div>
                   </div>
@@ -513,23 +512,27 @@
                     if (lastFetched.value) {
                       url.searchParams.append('since', lastFetched.value.toISOString());
                     }
-                    console.log('Fetching notifications for employeeId:', props.managerId, 'since:', lastFetched.value);
+                    
+                    console.log('Fetching notifications and messages for employeeId:', props.managerId);
                     const res = await fetch(url, {
                       credentials: 'include'
                     });
+                    
                     console.log('Response status:', res.status);
                     if (!res.ok) {
                       const errorData = await res.json();
                       throw new Error(`HTTP error! status: ${res.status}, message: ${errorData.error || 'Unknown error'}`);
                     }
+                    
                     const data = await res.json();
-                    console.log('Fetched notifications:', data);
+                    console.log('Fetched notifications and messages:', data);
 
                     // Merge new notifications with existing ones
                     const currentNotifications = notifications.value.reduce((map, n) => {
                       map[n.notification_id] = n;
                       return map;
                     }, {});
+                    
                     const updatedNotifications = data.map(n => ({
                       ...n,
                       isDisappearing: (currentNotifications[n.notification_id]?.isDisappearing || false)
@@ -580,8 +583,14 @@
                 const toggleRead = async (n) => {
                   const notificationId = n.notification_id;
                   const newStatus = n.read_status === 'read' ? 'unread' : 'read';
-                  console.log('Sending PATCH request for notification:', notificationId, 'to status:', newStatus, 'employeeId:', props.managerId);
-                  const endpoint = `http://localhost:3000/api/manager-notifications/${notificationId}/${newStatus}`;
+                  console.log('Updating read status for notification:', notificationId, 'to:', newStatus, 'employeeId:', props.managerId);
+                  
+                  // Determine if this is a message or notification
+                  const isMessage = n.source === 'message';
+                  const endpoint = isMessage 
+                    ? `http://localhost:3000/api/notifications-messages/${notificationId}/${newStatus}`
+                    : `http://localhost:3000/api/manager-notifications/${notificationId}/${newStatus}`;
+                  
                   try {
                     const res = await fetch(endpoint, {
                       method: 'PATCH',
@@ -589,14 +598,17 @@
                       credentials: 'include',
                       body: JSON.stringify({ employeeId: props.managerId })
                     });
+                    
                     console.log('PATCH response status:', res.status);
                     if (!res.ok) {
                       const text = await res.text();
                       console.error('Raw response:', text);
                       throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
                     }
+                    
                     const data = await res.json();
                     console.log('Response data:', data);
+                    
                     // Update the notification in the local state
                     notifications.value = notifications.value.map(item => {
                       if (item.notification_id === notificationId) {
@@ -608,11 +620,13 @@
                       }
                       return item;
                     });
+                    
                     if (newStatus === 'read') {
                       setTimeout(() => {
                         notifications.value = notifications.value.filter(item => item.notification_id !== notificationId);
                       }, 300); // Match transition duration
                     }
+                    
                     console.log(`Notification ${notificationId} marked as ${newStatus}`);
                     error.value = null;
                   } catch (err) {
@@ -627,35 +641,50 @@
                     console.log('No unread notifications to mark as read');
                     return;
                   }
-                  const unreadIds = unreadNotifications.map(n => n.notification_id);
-                  console.log('Sending PATCH request for mark all as read, employeeId:', props.managerId, 'notificationIds:', unreadIds);
+                  
+                  // Separate messages and notifications
+                  const unreadMessages = unreadNotifications.filter(n => n.source === 'message');
+                  const unreadRegular = unreadNotifications.filter(n => n.source !== 'message');
+                  
                   try {
-                    const res = await fetch(`http://localhost:3000/api/manager-notifications/mark-all-read`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ employeeId: props.managerId, notificationIds: unreadIds })
-                    });
-                    console.log('PATCH response status:', res.status);
-                    if (!res.ok) {
-                      const text = await res.text();
-                      console.error('Raw response:', text);
-                      throw new Error(`Failed to mark all notifications as read: ${res.status}, message: ${text}`);
+                    // Mark regular notifications as read
+                    if (unreadRegular.length) {
+                      const unreadIds = unreadRegular.map(n => n.notification_id);
+                      await fetch(`http://localhost:3000/api/manager-notifications/mark-all-read`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ employeeId: props.managerId, notificationIds: unreadIds })
+                      });
                     }
+                    
+                    // Mark messages as read
+                    if (unreadMessages.length) {
+                      const messageIds = unreadMessages.map(n => n.notification_id);
+                      await fetch(`http://localhost:3000/api/notifications-messages/mark-all-read`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ employeeId: props.managerId, messageIds })
+                      });
+                    }
+                    
                     // Update local state
                     notifications.value = notifications.value.map(n => {
-                      if (unreadIds.includes(n.notification_id)) {
+                      if (unreadNotifications.some(un => un.notification_id === n.notification_id)) {
                         return { ...n, read_status: 'read', isDisappearing: true };
                       }
                       return n;
                     });
+                    
                     setTimeout(() => {
                       notifications.value = notifications.value.filter(n => n.read_status !== 'read' || !n.isDisappearing);
                     }, 300); // Match transition duration
+                    
                     console.log('All notifications marked as read');
                     error.value = null;
                   } catch (err) {
-                    error.value = `Failed to mark all notifications as read: ${err.message}`;
+                    error.value = `Failed to mark all as read: ${err.message}`;
                     console.error('Mark all as read error:', err);
                   }
                 };
@@ -665,16 +694,20 @@
                   payroll: '💰',
                   shift_swap: '🔄',
                   system: '⚙️',
+                  message: '✉️',
                   default: '🔔'
                 })[type] || '🔔';
 
                 const getAction = (n) => ({
                   leave_request: { text: 'Review Leave', link: 'leave.html' },
-                  shift_swap: { text: 'Manage Shift', link: 'view-shifts.html' }
+                  shift_swap: { text: 'Manage Shift', link: 'view-shifts.html' },
+                  message: { text: 'View Message', link: `message-employee.html?open_chat={{employee.employee_id}}}` }
                 })[n.type] || null;
 
-                const formatCategory = (type) =>
-                  type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const formatCategory = (type) => {
+                  if (type === 'message') return 'Message';
+                  return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                };
 
                 const formatTime = (timeString) => {
                   const date = new Date(timeString.replace(' ', 'T'));

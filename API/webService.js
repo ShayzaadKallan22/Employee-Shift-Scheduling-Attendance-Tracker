@@ -32,6 +32,7 @@ const { register, login, logout } = require('./authControllerMan');
 const managerNotificationRoutes = require('./manager_notifications'); 
 const statusRoutes = require('./statusRoutes');
 const webforgotPassRoute = require('./webForgotPassRoute');
+const messagesRouter = require('./messages');
 const path = require('path');
 
 
@@ -180,6 +181,7 @@ app.post('/api/login', login);
 app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/web', webforgotPassRoute);
+app.use('/api/notifications-messages', messagesRouter);
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {

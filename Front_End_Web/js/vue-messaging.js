@@ -18,10 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     last_name: ''
                 },
                 pollingInterval: null,
-                lastPollTime: null
+                lastPollTime: null,
+                initialEmployeeId: null
             };
         },
         mounted() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const employeeId = urlParams.get('open_chat');
+            if (employeeId) this.initialEmployeeId = employeeId;
+
             this.fetchEmployees();
             this.startPolling();
         },
@@ -40,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.employees = await response.json();
                     this.filteredEmployees = [...this.employees];
                     await this.fetchLastMessages();
+                    if (this.initialEmployeeId) {
+                        const employee = this.employees.find(e => e.employee_id == this.initialEmployeeId);
+                        if (employee) this.selectEmployee(employee);
+                        this.initialEmployeeId = null; // Reset after opening chat
+                    }
                 } catch (err) {
                     console.error('Error fetching employees:', err);
                     this.error = err.message;

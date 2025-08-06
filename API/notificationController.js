@@ -1,4 +1,4 @@
-//Author: Katlego Mmadi
+// Author: Katlego Mmadi
 const pool = require('./db');
 
 const validateManager = (req, res, next) => {
@@ -25,8 +25,9 @@ const validateManager = (req, res, next) => {
 
 const getNotifications = async (req, res) => {
   try {
-    const { type } = req.query;
-    let query = `
+    const { type, since } = req.query;
+    // Fetch notifications
+    let notificationQuery = `
       SELECT 
         n.notification_id,
         n.message,
@@ -38,15 +39,55 @@ const getNotifications = async (req, res) => {
         ON n.notification_type_id = nt.notification_type_id
       WHERE n.employee_id = ?
     `;
-    const params = [req.employeeId];
-    if (type) {
-      query += ` AND nt._name = ?`;
-      params.push(type);
+    const notificationParams = [req.employeeId];
+
+    if (type && type !== 'message') {
+      notificationQuery += ` AND nt._name = ?`;
+      notificationParams.push(type);
     }
-    query += ` ORDER BY n.sent_time DESC`;
-    const [notifications] = await pool.query(query, params);
-    console.log('📦 Notifications for manager', req.employeeId, 'fetched:', notifications.length);
-    res.json(notifications);
+    if (since) {
+      notificationQuery += ` AND n.sent_time > ?`;
+      notificationParams.push(since);
+    }
+
+    notificationQuery += ` ORDER BY n.sent_time DESC`;
+    const [notifications] = await pool.query(notificationQuery, notificationParams);
+
+    // Fetch all messages (read and unread)
+    let messageQuery = `
+      SELECT 
+        m.message_id AS notification_id,
+        m.content AS message,
+        m.sent_time,
+        m.read_status,
+        'message' AS type,
+        m.sender_id,
+        CONCAT(e.first_name, ' ', e.last_name) AS sender_name
+      FROM t_message m
+      JOIN t_employee e ON m.sender_id = e.employee_id
+      WHERE m.receiver_id = ?
+    `;
+    const messageParams = [req.employeeId];
+
+    if (type && type !== 'all' && type !== 'message') {
+      messageQuery = `SELECT 1 WHERE 0`; // Return empty result for non-message types
+    }
+    if (since) {
+      messageQuery += ` AND m.sent_time > ?`;
+      messageParams.push(since);
+    }
+
+    messageQuery += ` ORDER BY m.sent_time DESC`;
+    const [messages] = await pool.query(messageQuery, messageParams);
+
+    // Combine notifications and messages
+    const combined = [
+      ...notifications,
+      ...messages
+    ].sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
+
+    console.log('📦 Notifications and messages for manager', req.employeeId, 'fetched:', combined.length, combined);
+    res.json(combined);
   } catch (err) {
     console.error('🛑 Notification fetch error for manager', req.employeeId, ':', err);
     res.status(500).json({ error: 'Failed to load notifications' });
@@ -55,15 +96,23 @@ const getNotifications = async (req, res) => {
 
 const getUnreadCount = async (req, res) => {
   try {
-    const [result] = await pool.query(`
-      SELECT COUNT(*) AS unreadCount
-      FROM t_notification
-      WHERE read_status = 'unread' AND employee_id = ?
-    `, [req.employeeId]);
-    console.log('📦 Unread notification count for manager', req.employeeId, ':', result[0].unreadCount);
-    res.json(result[0]);
+    const [notificationResult] = await pool.query(
+      `SELECT COUNT(*) AS unreadCount
+       FROM t_notification
+       WHERE read_status = 'unread' AND employee_id = ?`,
+      [req.employeeId]
+    );
+    const [messageResult] = await pool.query(
+      `SELECT COUNT(*) AS unreadCount
+       FROM t_message
+       WHERE read_status = 'unread' AND receiver_id = ?`,
+      [req.employeeId]
+    );
+    const totalUnread = notificationResult[0].unreadCount + messageResult[0].unreadCount;
+    console.log('📦 Unread notification and message count for manager', req.employeeId, ':', totalUnread);
+    res.json({ unreadCount: totalUnread });
   } catch (err) {
-    console.error('🛑 Failed to count unread notifications for manager', req.employeeId, ':', err);
+    console.error('🛑 Failed to count unread notifications and messages for manager', req.employeeId, ':', err);
     res.status(500).json({ error: 'Failed to count unread notifications' });
   }
 };
@@ -80,79 +129,114 @@ const getLatestUnread = async (req, res) => {
       FROM t_notification n
       JOIN t_notification_type nt 
         ON n.notification_type_id = nt.notification_type_id
-      WHERE n.employee_id = ?
+      WHERE n.employee_id = ? AND n.read_status = 'unread'
       ORDER BY n.sent_time DESC
       LIMIT 2
     `, [req.employeeId]);
-    res.json(notifications);
+    const [messages] = await pool.query(`
+      SELECT 
+        m.message_id AS notification_id,
+        m.content AS message,
+        m.sent_time,
+        m.read_status,
+        'message' AS type,
+        m.sender_id,
+        CONCAT(e.first_name, ' ', e.last_name) AS sender_name
+      FROM t_message m
+      JOIN t_employee e ON m.sender_id = e.employee_id
+      WHERE m.receiver_id = ? AND m.read_status = 'unread'
+      ORDER BY m.sent_time DESC
+      LIMIT 2
+    `, [req.employeeId]);
+    const combined = [...notifications, ...messages]
+      .sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time))
+      .slice(0, 2);
+    res.json(combined);
   } catch (err) {
-    console.error('Failed to fetch latest notifications:', err);
+    console.error('Failed to fetch latest notifications and messages:', err);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 };
 
 const toggleReadStatus = async (req, res) => {
   const { notification_id, read_status } = req.params;
-  console.log(`Processing PATCH for notification ${notification_id} to ${read_status}, employeeId: ${req.employeeId}`);
+  const { type } = req.body;
+  console.log(`Processing PATCH for ${type || 'notification'} ${notification_id} to ${read_status}, employeeId: ${req.employeeId}`);
   if (!['read', 'unread'].includes(read_status)) {
     console.log('Invalid read_status:', read_status);
     return res.status(400).json({ error: 'Invalid read_status' });
   }
   try {
-    const [existing] = await pool.query(
-      'SELECT * FROM t_notification WHERE notification_id = ? AND employee_id = ?',
-      [notification_id, req.employeeId]
-    );
-    console.log('Existing notification:', existing);
-    const [result] = await pool.query(
-      'UPDATE t_notification SET read_status = ? WHERE notification_id = ? AND employee_id = ?',
-      [read_status, notification_id, req.employeeId]
-    );
-    console.log('Query result:', result);
-    if (result.affectedRows === 0) {
-      console.log('No rows affected, notification_id:', notification_id, 'employeeId:', req.employeeId);
-      return res.status(404).json({ error: 'Notification not found or not authorized' });
+    let result;
+    if (type === 'message') {
+      [result] = await pool.query(
+        'UPDATE t_message SET read_status = ? WHERE message_id = ? AND receiver_id = ?',
+        [read_status, notification_id, req.employeeId]
+      );
+    } else {
+      [result] = await pool.query(
+        'UPDATE t_notification SET read_status = ? WHERE notification_id = ? AND employee_id = ?',
+        [read_status, notification_id, req.employeeId]
+      );
     }
-    console.log(`Notification ${notification_id} marked as ${read_status}`);
+    if (result.affectedRows === 0) {
+      console.log('No rows affected, notification_id/message_id:', notification_id, 'employeeId:', req.employeeId);
+      return res.status(404).json({ error: 'Notification or message not found or not authorized' });
+    }
+    console.log(`${type || 'Notification'} ${notification_id} marked as ${read_status}`);
     res.json({ success: true });
   } catch (err) {
-    console.error('🛑 Error updating notification status:', err);
-    res.status(500).json({ error: 'Failed to update notification status' });
+    console.error('🛑 Error updating notification/message status:', err);
+    res.status(500).json({ error: 'Failed to update notification/message status' });
   }
 };
 
 const markAllAsRead = async (req, res) => {
   try {
-      const { employeeId, notificationIds } = req.body;
-
-      if (!employeeId || !notificationIds || !Array.isArray(notificationIds)) {
-        return res.status(400).json({ error: 'employeeId and notificationIds array are required' });
-      }
-
-      // Verify the employeeId matches the session user (for security)
-      if (!req.session.user || req.session.user.id !== employeeId) {
-        return res.status(403).json({ error: 'Unauthorized' });
-      }
-
-      // Update notifications in the database
-      const placeholders = notificationIds.map(() => '?').join(',');
-      const query = `UPDATE t_notifications SET read_status = 'read' WHERE notification_id IN (${placeholders}) AND employee_id = ?`;
-      const values = [...notificationIds, employeeId];
-
-      const [result] = await pool.query(query, values);
-
-      if (result.affectedRows === 0) {
-        console.warn('No notifications updated for employeeId:', employeeId);
-        return res.status(404).json({ error: 'No matching notifications found' });
-      }
-
-      console.log(`Marked ${result.affectedRows} notifications as read for employeeId: ${employeeId}`);
-      return res.status(200).json({ success: true, message: 'All notifications marked as read' });
-    } catch (err) {
-      console.error('Mark all as read error:', err);
-      return res.status(500).json({ error: 'Server error' });
+    const { employeeId, notificationIds } = req.body;
+    if (!employeeId || !notificationIds || !Array.isArray(notificationIds)) {
+      return res.status(400).json({ error: 'employeeId and notificationIds array are required' });
     }
-  };
+    // Separate notifications and messages
+    const notificationIdsList = notificationIds
+      .filter(n => n.type !== 'message')
+      .map(n => n.id);
+    const messageIdsList = notificationIds
+      .filter(n => n.type === 'message')
+      .map(n => n.id);
+    
+    let totalAffectedRows = 0;
+
+    // Update notifications
+    if (notificationIdsList.length > 0) {
+      const placeholders = notificationIdsList.map(() => '?').join(',');
+      const query = `UPDATE t_notification SET read_status = 'read' WHERE notification_id IN (${placeholders}) AND employee_id = ?`;
+      const values = [...notificationIdsList, employeeId];
+      const [result] = await pool.query(query, values);
+      totalAffectedRows += result.affectedRows;
+    }
+
+    // Update messages
+    if (messageIdsList.length > 0) {
+      const placeholders = messageIdsList.map(() => '?').join(',');
+      const query = `UPDATE t_message SET read_status = 'read' WHERE message_id IN (${placeholders}) AND receiver_id = ?`;
+      const values = [...messageIdsList, employeeId];
+      const [result] = await pool.query(query, values);
+      totalAffectedRows += result.affectedRows;
+    }
+
+    if (totalAffectedRows === 0) {
+      console.warn('No notifications or messages updated for employeeId:', employeeId);
+      return res.status(404).json({ error: 'No matching notifications or messages found' });
+    }
+
+    console.log(`Marked ${totalAffectedRows} notifications/messages as read for employeeId: ${employeeId}`);
+    return res.status(200).json({ success: true, message: 'All notifications and messages marked as read', affectedRows: totalAffectedRows });
+  } catch (err) {
+    console.error('Mark all as read error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
 
 module.exports = {
   validateManager,
