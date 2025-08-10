@@ -1,77 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Azania - Employee Status</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      content="Employee Management, Status, Staff Management"
+      name="keywords"
+    />
+    <meta content="Employee status tracking system" name="description" />
+    <link href="img/favicon.ico" rel="icon" />
 
-<head>
-    <meta charset="utf-8">
-    <title>Azania - View Shifts</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Employee Management, Shift Management, Scheduling" name="keywords">
-    <meta content="Employee shift viewing and management system" name="description">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+    <!-- Icon Fonts -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet"> 
-    
-    <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Libraries -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link
+      href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css"
+      rel="stylesheet"
+    />
 
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
-
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Template Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
-
-    <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-   
-    <!-- Vue CDN -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <style>
-        /* Hover effect for employee cards */
-        .hover-effect:hover {
-        background-color: rgba(108, 117, 125, 0.5) !important; /* Slightly lighter than bg-secondary */
-        transform: translateY(-2px);
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Hover effect for shift cards */
-        .shift-card:hover {
-        transform: translateY(-3px);
-        transition: all 0.2s ease;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        border-color: #6c757d !important;
-        }
-
-        /* Make sure the accordion button doesn't have weird focus styles */
-        .accordion-button:focus {
-        box-shadow: none;
-        border-color: transparent;
-        }
-</style>
-</head>
-
-<body>
-    
-         <div class="container-fluid position-relative d-flex p-0">
-        <!-- Spinner Start -->
-        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-        <!-- Spinner End -->
-<!-- Sidebar Start -->
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <style>
+    #employeeSearch {
+      color: #fff;
+      background-color: #2a3038 !important;
+      border-color: #3a424b !important;
+    }
+    #employeeSearch:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      border-color: #4e5d6c;
+    }
+    #searchButton {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    #searchButton:hover {
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+  </style>
+  <body>
+    <div class="container-fluid position-relative d-flex p-0">
+      <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
@@ -93,7 +84,7 @@
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link"><i
                             class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="view-shifts.html" class="nav-item nav-link active"><i class="fa fa-calendar me-2"></i>View
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
                         Shifts</a>
                     <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
                     <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
@@ -108,7 +99,7 @@
                                     class="fa fa-info-circle me-2"></i>Status</a> -->
                         </div>
                     </div>
-                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+                    <a href="status.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
@@ -116,201 +107,46 @@
         </div>
         <!-- Sidebar End -->
 
+      <!-- Content Start -->
+      <div class="content">
+        <!-- Navbar Start -->
+        <div id="navbar-container"></div>
+        <!-- Navbar End -->
 
-        <!-- Content Start -->
-        <div class="content">
-           <!-- Navbar Start -->
-            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-                </a>
-                <a href="#" class="sidebar-toggler flex-shrink-0">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <div class="navbar-nav align-items-center ms-auto">
-                    <div class="nav-item dropdown">
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">New employee registered</h6>
-                                        <small>15 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">Overtime request submitted</h6>
-                                        <small>25 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa fa-bell me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Notifications</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Leave request approved</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">New shift scheduled</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Payroll processed</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Admin User</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <!-- <a href="#" class="dropdown-item">My Profile</a> -->
-                            <a href="#" class="dropdown-item">Log Out</a>
-                        </div>
-                    </div>
+        <!-- Employee Status Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="bg-secondary rounded p-4">
+                <h4 class="mb-4">
+                  <i class="fa fa-info-circle me-2"></i>Employee Status
+                </h4>
+               
+                <div id="employee-status-app">
+                  <employee-status-panel></employee-status-panel>
                 </div>
-            </nav>
-            <!-- Navbar End -->
-
-        <!-- View Shifts Start -->
-        <div id="empCards">
-            <div class="container-fluid pt-4 px-4">
-                <div class="row g-4">
-                    <div class="col-12">
-                        <!-- Filter/Search/Calendar Row -->
-                        <div class="bg-secondary rounded p-4 mb-4">
-                        <h4 class="mb-4"><i class="fa fa-sign-out-alt me-2"></i>Shifts</h4>
-                        <div class="d-flex justify-content-center">
-                            <div class="row g-3" style="max-width: 1200px; width: 100%;">
-                                <div class="col-md-4">
-                                    <select v-model="selectedFilter" class="form-select bg-dark border-0">
-                                        <option value="">All Shifts</option>
-                                        <option value="Previous Shift">Previous Shifts</option>
-                                        <option value="Today's Shifts">Today's Shifts</option>
-                                        <option value="Next Shift">Next Shifts</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <input type="text" v-model="searchQuery" class="form-control bg-dark border-0" placeholder="Search by name/role">
-                                        <button class="btn btn-primary">
-                                            <i class="fa fa-search"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <input type="text" id="weekendDatePicker" class="form-control bg-dark border-0" placeholder="Select weekend date" readonly>
-                                        <button class="btn btn-primary" @click="openDatePicker">
-                                            <i class="fa fa-calendar"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <button @click="clearFilters" class="btn btn-danger" style="height: 100%; width: 100%;">
-                                        <i class="fa fa-times"></i>
-                                        <span class="d-none d-md-inline"> Clear Filters</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                        <div class="accordion" id="employeeAccordion">
-                            <div class="accordion-item bg-secondary rounded mb-4 border-0" v-for="(employee, index) in groupedShifts" :key="employee.employee_name">
-                                <h2 class="accordion-header" :id="'heading' + index">
-                                <button class="accordion-button collapsed bg-secondary rounded p-4 hover-effect" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
-                                            <span class="text-white fw-bold">{{employee.employee_name.charAt(0)}}</span>
-                                        </div>
-                                        <div>
-                                            <h5 class="mb-1">{{employee.employee_name}}</h5>
-                                            <p class="text-muted mb-0">{{employee.role_title}}</p>
-                                        </div>
-                                    </div>
-                                </button>
-                                </h2>
-                                <div :id="'collapse' + index" class="accordion-collapse collapse" :aria-labelledby="'heading' + index" data-bs-parent="#employeeAccordion">
-                                <div class="accordion-body pt-0">
-                                    <div class="row g-3">
-                                    <div class="col-md-6 col-lg-4" v-for="shift in employee.shifts" :key="shift.shift_id">
-                                        <div class="bg-dark rounded-4 p-3 h-100 border border-secondary shift-card">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div class="d-flex align-items-center text-light fw-medium">
-                                                <!-- <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5h16V4H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/>
-                                                </svg> -->
-                                                    {{formatShiftDateWithDay(shift.date_)}}
-                                                </div>
-                                               <span class="badge rounded-pill d-inline-flex justify-content-center align-items-center" 
-                                                    style="width: 100px" :class="{
-                                                    'bg-success': shift.status_ === 'completed',
-                                                    'bg-warning': shift.status_ === 'scheduled',
-                                                    'bg-danger': shift.status_ === 'missed' || shift.status_ === 'cancelled',
-                                                    'bg-info': shift.status_ === 'in progress' || shift.status_ === 'pending'
-                                                    }">
-                                                {{shift.status_.charAt(0).toUpperCase() + shift.status_.slice(1).toLowerCase()}}
-                                                </span>
-                                            </div>
-                                            <div class="d-flex align-items-center text-muted">
-                                                <!-- <svg class="me-2" width="16" height="18" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-                                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-                                                </svg> -->
-                                                <span>{{shift.start_time}} → {{shift.end_time}}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                                </div>
-                                </div>
-                            </div>
-                            </div>
-                        <!-- Employee Cards End-->
-                    </div>
-                </div>
+              </div>
             </div>
-            <!-- View Shifts End -->
+          </div>
         </div>
-        <!-- Content End -->
+        <!-- Employee Status End -->
 
         <!-- Footer Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="bg-secondary rounded-top p-4">
-                    <div class="row">
-                        <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">Azania</a>, All Rights Reserved. 
-                        </div>
-                        <div class="col-12 col-sm-6 text-center text-sm-end">
-                            Designed By <a href="#">Code Connoisseurs</a>
-                        </div>
-                    </div>
-                </div>
+        <div class="container-fluid pt-4 px-4">
+          <div class="bg-secondary rounded-top p-4">
+            <div class="row">
+              <div class="col-12 col-sm-6 text-center text-sm-start">
+                &copy; <a href="#">Azania</a>, All Rights Reserved.
+              </div>
+              <div class="col-12 col-sm-6 text-center text-sm-end">
+                Designed By <a href="#">Code Connoisseurs</a>
+              </div>
             </div>
+          </div>
+        </div>
         <!-- Footer End -->
-
-        <!-- Back to Top -->
-        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+      </div>
+      <!-- Content End -->
     </div>
 
     <!-- JavaScript Libraries -->
@@ -324,14 +160,246 @@
     <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-    <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/session.js"></script>
 
-     <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+      const { createApp, ref, computed, onMounted } = Vue;
 
-    <script src="js/shifts.js"></script>
-    </div>
-</body>
+      createApp({
+        components: {
+          "employee-status-panel": {
+            template: `
+        <div>
+          <!-- Status Cards -->
+          <div class="row mb-4">
+            <div class="col-md-4" v-for="(count, label) in statusCounts" :key="label">
+              <div class="bg-dark rounded p-3 text-center">
+                <h5 class="mb-0">{{ label }}</h5>
+                <h2 :class="statusColors[label] + ' mt-2'">
+                  {{ count }}
+                  <br />
+                  <small class="text-muted">{{ getPercentage(count) }}% of total</small>
+                </h2>
+              </div>
+            </div>
+          </div>
 
+          <!-- Pie Chart -->
+          <div class="rounded p-4 mb-4" style="background:rgba(0,123,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(0,123,255,0.2);border-radius:.5rem;">
+            <h5 class="mb-3 text-light">Employee Status Ratio</h5>
+            <div style="position:relative;height:300px;width:100%">
+              <canvas id="statusPieChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="mb-4">
+            <div class="row g-2">
+              <div class="col-md-8">
+                <div class="input-group">
+                  <input v-model="searchTerm" @keyup.enter="filterEmployees" type="text" class="form-control bg-dark border-secondary" placeholder="Search employees by name..." />
+                  <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="input-group">
+                  <select v-model="selectedRole" class="form-select bg-dark border-secondary text-white">
+                    <option value="">All Roles</option>
+                    <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
+                  </select>
+                  <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employee List -->
+          <div class="bg-dark rounded p-4">
+            <div class="list-group list-group-flush">
+              <div v-if="filteredEmployees.length === 0" class="alert alert-info">No employees match your search criteria.</div>
+              <div v-for="emp in filteredEmployees" :key="emp.id" class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <div class="position-relative me-3">
+                    <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 30px; height: 30px" />
+                    <div :class="'bg-' + statusBadgeColor(emp.status) + ' rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1'"></div>
+                  </div>
+                  <div>
+                    <h6 class="mb-0">{{ emp.name }}</h6>
+                    <small class="text-muted">{{ emp.role }}</small>
+                  </div>
+                </div>
+                <span :class="'badge ' + statusBadgeClass(emp.status)">{{ emp.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+            setup() {
+              const employees = ref([]);
+              const roles = ref([]);
+              const searchTerm = ref("");
+              const selectedRole = ref("");
+
+              const statusCounts = ref({
+                Working: 0,
+                "Not Working": 0,
+                "On Leave": 0,
+              });
+
+              const statusColors = {
+                Working: "text-success",
+                "Not Working": "text-danger",
+                "On Leave": "text-warning",
+              };
+
+              const fetchEmployees = async () => {
+                const res = await fetch("http://ifmprojv1-production.up.railway.app/api/status/employees");
+                const data = await res.json();
+                employees.value = data;
+                updateStatusCounts();
+                initPieChart();
+              };
+
+              const fetchRoles = async () => {
+                const res = await fetch("/api/status/roles");
+                const data = await res.json();
+                roles.value = data.map((r) => r.title);
+              };
+
+              const updateStatusCounts = () => {
+                const total = employees.value.length;
+                statusCounts.value.Working = employees.value.filter(
+                  (e) => e.status === "Working"
+                ).length;
+                statusCounts.value["Not Working"] = employees.value.filter(
+                  (e) => e.status === "Not Working"
+                ).length;
+                statusCounts.value["On Leave"] = employees.value.filter(
+                  (e) => e.status === "On Leave"
+                ).length;
+              };
+
+              const getPercentage = (count) => {
+                const total = employees.value.length;
+                return total ? Math.round((count / total) * 100) : 0;
+              };
+
+              const statusBadgeColor = (status) => {
+                return status === "Working"
+                  ? "success"
+                  : status === "On Leave"
+                  ? "warning"
+                  : "danger";
+              };
+
+              const statusBadgeClass = (status) => {
+                return status === "Working"
+                  ? "bg-success"
+                  : status === "On Leave"
+                  ? "bg-warning text-dark"
+                  : "bg-danger";
+              };
+
+              const filteredEmployees = computed(() => {
+                return employees.value.filter((emp) => {
+                  const matchesName = emp.name
+                    .toLowerCase()
+                    .includes(searchTerm.value.toLowerCase());
+                  const matchesRole = selectedRole.value
+                    ? emp.role === selectedRole.value
+                    : true;
+                  return matchesName && matchesRole;
+                });
+              });
+
+              const filterEmployees = () => {
+                // Vue handles filtering reactively
+              };
+
+              const initPieChart = () => {
+                const ctx = document
+                  .getElementById("statusPieChart")
+                  .getContext("2d");
+                if (window.employeePieChart) window.employeePieChart.destroy();
+                window.employeePieChart = new Chart(ctx, {
+                  type: "pie",
+                  data: {
+                    labels: ["Working", "Not Working", "On Leave"],
+                    datasets: [
+                      {
+                        data: [
+                          statusCounts.value.Working,
+                          statusCounts.value["Not Working"],
+                          statusCounts.value["On Leave"],
+                        ],
+                        backgroundColor: [
+                          "rgba(0,200,83,0.8)",
+                          "rgba(244,67,54,0.8)",
+                          "rgba(255,152,0,0.8)",
+                        ],
+                        borderColor: [
+                          "rgba(0,200,83,1)",
+                          "rgba(244,67,54,1)",
+                          "rgba(255,152,0,1)",
+                        ],
+                        borderWidth: 1,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          color: "#fff",
+                          font: { size: 14 },
+                        },
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => {
+                            const label = context.label || "";
+                            const value = context.raw || 0;
+                            const total = employees.value.length;
+                            const percentage = Math.round(
+                              (value / total) * 100
+                            );
+                            return `${label}: ${value} (${percentage}%)`;
+                          },
+                        },
+                      },
+                    },
+                  },
+                });
+              };
+
+              onMounted(() => {
+                fetchEmployees();
+                fetchRoles();
+              });
+
+              return {
+                employees,
+                roles,
+                searchTerm,
+                selectedRole,
+                statusCounts,
+                statusColors,
+                filteredEmployees,
+                getPercentage,
+                statusBadgeColor,
+                statusBadgeClass,
+                filterEmployees,
+              };
+            },
+          },
+        },
+      }).mount("#employee-status-app");
+    </script>
+  </body>
 </html>
