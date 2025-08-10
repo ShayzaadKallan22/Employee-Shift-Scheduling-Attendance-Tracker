@@ -198,9 +198,9 @@ exports.getAllLeaveRequests = async (req, res) => {
             SELECT l.leave_id, l.start_date, l.end_date, l.status_,
                    e.first_name, e.last_name, e.employee_id,
                    t.name_ AS leave_type
-            FROM T_Leave l
-            JOIN T_Employee e ON l.employee_id = e.employee_id
-            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            FROM t_leave l
+            JOIN t_employee e ON l.employee_id = e.employee_id
+            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
             WHERE l.status_ = 'pending' AND
               t.name_ IN ('Annual Leave', 'Family leave')
             ORDER BY l.created_at DESC
@@ -224,7 +224,7 @@ exports.respondToLeave = async (req, res) => {
     try {
         //Check current status
         const [[leave]] = await db.query(
-            `SELECT status_, employee_id FROM T_Leave WHERE leave_id = ?`, [leave_id]
+            `SELECT status_, employee_id FROM t_leave WHERE leave_id = ?`, [leave_id]
         );
 
         if(!leave) {
@@ -235,7 +235,7 @@ exports.respondToLeave = async (req, res) => {
         }
         //Update leave status
         await db.execute(
-            `UPDATE T_Leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
+            `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
             [action, leave_id]
         );
 
@@ -257,12 +257,12 @@ exports.respondToLeave = async (req, res) => {
             const [[leaveInfo]] = await db.query(`
                 SELECT employee_id, leave_type_id, 
                    DATEDIFF(end_date, start_date) + 1 AS days_requested
-                FROM T_Leave
+                FROM t_leave
                 WHERE leave_id = ?`, [leave_id]);
             //get days used so far.
             const [rows] = await db.execute(`
                 SELECT COALESCE(SUM(DATEDIFF(end_date, start_date) + 1), 0) AS used_so_far
-                FROM T_Leave
+                FROM t_leave
                 WHERE employee_id = ? 
                   AND leave_type_id = ?
                   AND status_ = 'approved'
@@ -275,7 +275,7 @@ exports.respondToLeave = async (req, res) => {
             const totalUsed = usedSoFar + leaveInfo.days_Requested
             const remaining = maxBalance - totalUsed;
             await db.execute(
-                `UPDATE T_Leave SET used_days = ?, remaining_days = ?
+                `UPDATE t_leave SET used_days = ?, remaining_days = ?
                  WHERE leave_id = ?`,
                 [totalUsed, remaining, leave_id]
             );
@@ -296,8 +296,8 @@ exports.getMyLeaveRequests = async (req, res) => {
         const [rows] = await db.query(`
             SELECT l.leave_id, l.start_date, l.end_date, l.status_,
                    t.name_ AS leave_type
-            FROM T_Leave l
-            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            FROM t_leave l
+            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
             WHERE l.employee_id = ?
             ORDER BY l.created_at DESC
         `, [employee_id]);

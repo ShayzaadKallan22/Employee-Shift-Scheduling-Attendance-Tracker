@@ -23,15 +23,15 @@ router.get('/employee-summary', async (req, res) => {
                    'leave_type_id', l.leave_type_id
                  )
                )
-               FROM T_Leave l
+               FROM t_leave l
                WHERE l.employee_id = e.employee_id
                ORDER BY l.start_date DESC
                LIMIT 3
              ) as leave_requests
-      FROM T_Employee e
-      JOIN T_Role r ON e.role_id = r.role_id
-      LEFT JOIN T_Leave l ON e.employee_id = l.employee_id AND l.status_ = 'approved'
-      LEFT JOIN T_Leave_Type lt ON l.leave_type_id = lt.leave_type_id
+      FROM t_employee e
+      JOIN t_role r ON e.role_id = r.role_id
+      LEFT JOIN t_leave l ON e.employee_id = l.employee_id AND l.status_ = 'approved'
+      LEFT JOIN t_leave_type lt ON l.leave_type_id = lt.leave_type_id
       GROUP BY e.employee_id
     `);
     res.json(employees);
@@ -43,7 +43,7 @@ router.get('/employee-summary', async (req, res) => {
 
 router.get('/types', async (req, res) => {
   try {
-    const [types] = await db.query('SELECT * FROM T_Leave_Type');
+    const [types] = await db.query('SELECT * FROM t_leave_type');
     res.json(types);
   } catch (err) {
     console.error(err);
@@ -54,28 +54,28 @@ router.get('/types', async (req, res) => {
 // Get leave statistics
 router.get('/stats', async (req, res) => {
   try {
-    const [totalEmployees] = await db.query('SELECT COUNT(*) AS count FROM T_Employee WHERE status_ = "Working"');
+    const [totalEmployees] = await db.query('SELECT COUNT(*) AS count FROM t_employee WHERE status_ = "Working"');
 
     // const [onLeaveToday] = await db.query(`
     //   SELECT COUNT(DISTINCT l.employee_id) AS count 
-    //   FROM T_Leave l 
+    //   FROM t_leave l 
     //   WHERE CURDATE() BETWEEN l.start_date AND l.end_date 
     //   AND l.status_ = 'approved'
     // `);
 
     const [onLeaveToday] = await db.query(`
       SELECT COUNT(DISTINCT e.employee_id) AS count 
-      FROM T_Employee e
+      FROM t_employee e
       WHERE e.status_ = 'On Leave'
     `);
     const [pendingRequests] = await db.query(`
       SELECT COUNT(*) AS count 
-      FROM T_Leave 
+      FROM t_leave 
       WHERE status_ = 'pending'
     `);
     const [leaveThisMonth] = await db.query(`
       SELECT COUNT(DISTINCT employee_id) AS count 
-      FROM T_Leave 
+      FROM t_leave 
       WHERE MONTH(start_date) = MONTH(CURDATE()) 
       AND YEAR(start_date) = YEAR(CURDATE())
     `);
@@ -99,8 +99,8 @@ router.get('/chart-data', async (req, res) => {
       SELECT 
         t.name_ AS leave_type,
         SUM(DATEDIFF(l.end_date, l.start_date) + 1) AS total_days
-      FROM T_Leave l
-      JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+      FROM t_leave l
+      JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
       WHERE l.status_ = 'approved'
       GROUP BY t.name_
     `);

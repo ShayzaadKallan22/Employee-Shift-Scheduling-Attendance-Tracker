@@ -11,7 +11,7 @@ exports.requestLeave = async (req, res) => {
 
     try {
         const [result] = await db.execute(
-            `INSERT INTO T_Leave (start_date, end_date, status_, employee_id, leave_type_id)
+            `INSERT INTO t_leave (start_date, end_date, status_, employee_id, leave_type_id)
              VALUES (?, ?, 'pending', ?, ?)`,
             [start_date, end_date, employee_id, leave_type_id]
         );
@@ -38,9 +38,9 @@ exports.getAllLeaveRequests = async (req, res) => {
         t.name_ AS leave_type, 
         t.max_days_per_year,
         DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested
-    FROM T_Leave l
-    JOIN T_Employee e ON l.employee_id = e.employee_id
-    JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+    FROM t_leave l
+    JOIN t_employee e ON l.employee_id = e.employee_id
+    JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
     WHERE l.status_ = 'pending'  -- Only pending requests
     ORDER BY l.created_at DESC
 `);
@@ -69,9 +69,9 @@ exports.respondToLeave = async (req, res) => {
                 e.first_name,
                 e.last_name,
                 t.name_ as leave_type_name
-            FROM T_Leave l
-            JOIN T_Employee e ON l.employee_id = e.employee_id
-            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            FROM t_leave l
+            JOIN t_employee e ON l.employee_id = e.employee_id
+            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
             WHERE l.leave_id = ?
         `, [leave_id]);
 
@@ -81,14 +81,14 @@ exports.respondToLeave = async (req, res) => {
 
         //Update leave status
         await db.execute(
-            `UPDATE T_Leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
+            `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
             [action, leave_id]
         );
 
         //If approved, update employee status to On Leave and schedule status reset
         if (action === 'approved') {
             await db.execute(
-                `UPDATE T_Employee SET status_ = 'On Leave' WHERE employee_id = ?`,
+                `UPDATE t_employee SET status_ = 'On Leave' WHERE employee_id = ?`,
                 [leaveInfo.employee_id]
             );
 
@@ -103,7 +103,7 @@ exports.respondToLeave = async (req, res) => {
                 setTimeout(async () => {
                     try {
                         await db.execute(
-                            `UPDATE T_Employee SET status_ = 'Not Working' WHERE employee_id = ? AND status_ = 'On Leave'`,
+                            `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ? AND status_ = 'On Leave'`,
                             [leaveInfo.employee_id]
                         );
                     } catch (err) {
@@ -113,7 +113,7 @@ exports.respondToLeave = async (req, res) => {
             } else {
                 //if leave has already ended, set status to not working immediately
                 await db.execute(
-                    `UPDATE T_Employee SET status_ = 'Not Working' WHERE employee_id = ?`,
+                    `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ?`,
                     [leaveInfo.employee_id]
                 );
             }
@@ -126,7 +126,7 @@ exports.respondToLeave = async (req, res) => {
 
         //Insert notification with CURRENT_TIMESTAMP for sent_time (datetime)
         await db.execute(
-            `INSERT INTO T_Notification (employee_id, message, notification_type_id, sent_time, read_status)
+            `INSERT INTO t_notification (employee_id, message, notification_type_id, sent_time, read_status)
              VALUES (?, ?, 1, CURRENT_TIMESTAMP, 'unread')`,
             [leaveInfo.employee_id, message]
         );
@@ -138,9 +138,9 @@ exports.respondToLeave = async (req, res) => {
 
             //update the leave record with used days
             await db.execute(
-                `UPDATE T_Leave 
+                `UPDATE t_leave 
                  SET used_days = ?, 
-                     remaining_days = (SELECT max_days_per_year FROM T_Leave_Type WHERE leave_type_id = ?) - ?
+                     remaining_days = (SELECT max_days_per_year FROM t_leave_type WHERE leave_type_id = ?) - ?
                  WHERE leave_id = ?`,
                 [daysRequested, leaveInfo.leave_type_id, daysRequested, leave_id]
             );
@@ -162,8 +162,8 @@ exports.getMyLeaveRequests = async (req, res) => {
         const [rows] = await db.query(`
             SELECT l.leave_id, l.start_date, l.end_date, l.status_,
                    t.name_ AS leave_type
-            FROM T_Leave l
-            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            FROM t_leave l
+            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
             WHERE l.employee_id = ?
             ORDER BY l.created_at DESC
         `, [employee_id]);
