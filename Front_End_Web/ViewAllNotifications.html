@@ -500,7 +500,7 @@
                   try {
                     isLoading.value = true;
                     console.log('Fetching notifications for employeeId:', props.managerId);
-                    const res = await fetch(`http://localhost:3000/api/manager-notifications?employeeId=${props.managerId}`, {
+                    const res = await fetch(`http://ifmprojv1-production.up.railway.app/api/manager-notifications?employeeId=${props.managerId}`, {
                       credentials: 'include'
                     });
                     console.log('Response status:', res.status);
@@ -541,7 +541,7 @@
 
                 const toggleRead = async (n) => {
                 console.log('Sending PATCH request for notification:', n.notification_id, 'employeeId:', props.managerId);
-                const endpoint = `http://localhost:3000/api/manager-notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
+                const endpoint = `http://ifmprojv1-production.up.railway.app/api/manager-notifications/${n.notification_id}/${n.read_status === 'read' ? 'unread' : 'read'}`;
                 try {
                   const res = await fetch(endpoint, {
                   method: 'PATCH',
@@ -582,7 +582,7 @@
                   const unreadIds = unreadNotifications.map(n => n.notification_id);
                   console.log('Sending PATCH request for mark all as read, employeeId:', props.managerId, 'notificationIds:', unreadIds);
                   try {
-                    const res = await fetch(`http://localhost:3000/api/manager-notifications/mark-all-read`, {
+                    const res = await fetch(`http://ifmprojv1-production.up.railway.app/api/manager-notifications/mark-all-read`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',
