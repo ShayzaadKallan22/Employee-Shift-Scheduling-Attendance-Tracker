@@ -102,7 +102,7 @@ cron.schedule('*/5 * * * * *', async () => {
   //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
-    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
+    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAS
 
     const now = new Date(Date.now() + (2 * 60 * 60 * 1000)); // SAST adjustment
     const currentTime = now.toTimeString().slice(0, 8);
