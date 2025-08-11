@@ -99,20 +99,17 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to generate proof QR codes at shift end times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
-    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
+    await connection.query("SET time_zone = '+02:00'"); // Force SAST timezone
+
+    // Get current time in SAST (UTC+2)
     const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 8); //HH:MM:SS format
-    const currentDate = now.toLocaleDateString('en-ZA', 
-    {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    }); //Get todays date in format YYYY/MM/DD
+    const saNow = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+    const currentDate = saNow.toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentTime = saNow.toTimeString().slice(0, 8); // HH:MM:SS
     
-    //Find shifts that are ending now
+    // Find shifts ending now (using SAST times)
     const [endingShifts] = await connection.query(
       `SELECT shift_id, employee_id, end_time 
        FROM t_shift 
@@ -123,9 +120,7 @@ cron.schedule('*/5 * * * * *', async () => {
       [currentDate, currentTime]
     ); 
     
-    //Only generate ONE proof QR if there are shifts ending now and no active proof QR exists
     if (endingShifts.length > 0) {
-      //Check if there's already an active proof QR for today
       const [existingProof] = await connection.query(
         `SELECT qr_id FROM t_qr_code 
          WHERE purpose = 'attendanceNormal' 
@@ -134,23 +129,16 @@ cron.schedule('*/5 * * * * *', async () => {
          AND expiration_time > NOW()`
       );
 
-      //No proof QR code exists in the db for today (GOOD)
       if(existingProof.length === 0) {
-
-        //Generate a single proof QR that all employees can use
-        const proofData = `SHIFT-PROOF-${currentDate}-${uuidv4()}`;
-        proofExpiration.setHours(proofExpiration.getHours() + 2); // +2 hours     
-        proofExpiration.setMinutes(proofExpiration.getMinutes() + 1); // +1 minute
+        // Create expiration time (15 minutes from now in SAST)
+        const proofExpiration = new Date(saNow.getTime() + (15 * 60 * 1000));
         
-        //Save proof QR 
         await connection.query(
           `INSERT INTO t_qr_code 
-           (code_value, generation_time, expiration_time, purpose, status_, generated_by) 
-           VALUES (?, NOW(), ?, 'attendanceNormal', 'active', ?)`,
-          [proofData, proofExpiration, null]
+           (code_value, generation_time, expiration_time, purpose, status_) 
+           VALUES (?, NOW(), ?, 'attendanceNormal', 'active')`,
+          [`SHIFT-PROOF-${currentDate}-${uuidv4()}`, proofExpiration]
         );
-        
-        //console.log(`Generated shared proof QR for ${endingShifts.length} shifts ending at ${currentTime}`);
       }
     }
     
