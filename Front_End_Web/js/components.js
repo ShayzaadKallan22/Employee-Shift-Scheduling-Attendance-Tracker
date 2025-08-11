@@ -1,11 +1,13 @@
-//Author: Katlego Mmadi
+
+// Author: Katlego Mmadi / Yatin Fakir
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
   const navbarContainer = document.getElementById("navbar-container");
   if (navbarContainer) {
     navbarContainer.innerHTML = `
-    <div class="navbar-wrapper">
-      <nav class="navbar navbar-expand bg-secondary navbar-dark px-4 py-0">
+
+      <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+
         <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
           <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
         </a>
@@ -15,15 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="navbar-nav align-items-center ms-auto">
           <!-- Notification dropdown -->
           <div class="nav-item dropdown">
-            <a href="ViewAllNotifications.html" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
               <i class="fa fa-bell me-lg-2"></i>
               <span class="d-none d-lg-inline-flex">Notifications</span>
               <span id="notificationCount" class="badge bg-danger ms-1" style="font-size: 0.75rem; display: none;">0</span>
             </a>
-            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0 p-0" style="width: 350px;">
-              <div class="px-3 py-2 border-bottom">
-                <h6 class="mb-0">Recent Notifications</h6>
-              </div>
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0" style="width: 350px;">
               <div id="recent-notifications" class="overflow-auto" style="max-height: 400px;">
                 <div class="text-center py-3">
                   <div class="spinner-border text-primary" role="status">
@@ -31,13 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
                   </div>
                 </div>
               </div>
-              <div class="px-3 py-2 border-top">
-                <a href="ViewAllNotifications.html" class="btn btn-primary btn-sm w-100">View All Notifications</a>
-              </div>
+              <hr class="dropdown-divider m-0">
+              <a href="ViewAllNotifications.html" class="dropdown-item text-center">See all notifications</a>
             </div>
-          </div>
-          
-          <!-- User dropdown with fixed logout -->
+          </div>     
+
+          <!-- User dropdown -->
+
           <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
               <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px" />
@@ -123,7 +122,7 @@ async function loadRecentNotifications() {
     
     const notifications = await response.json();
     const container = document.getElementById('recent-notifications');
-    
+
     container.innerHTML = notifications.length ? 
       notifications.map(n => `
         <a href="#" class="dropdown-item ${n.read_status === 'unread' ? 'bg-dark' : ''}">
@@ -169,17 +168,6 @@ async function updateNotificationCount() {
 }
 
 // Utility functions
-function getNotificationIcon(type) {
-  const icons = {
-    leave_request: '📅',
-    payroll: '💰',
-    shift_swap: '🔄',
-    system: '⚙️',
-    default: '🔔'
-  };
-  return icons[type] || icons.default;
-}
-
 function formatTime(timeString) {
   return timeString ? new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 }

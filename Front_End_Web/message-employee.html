@@ -115,32 +115,42 @@
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
+
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
                     </div>
                     <div class="ms-3">
-                        <h6 class="mb-0">Manager</h6>
+                        <h6 class="mb-0">Employee Manager Demo</h6>
                         <span>Admin</span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+                    <a href="index.html" class="nav-item nav-link"><i
+                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
+                        Shifts</a>
                     <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
                     <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="fa fa-user-plus me-2"></i>Registration</a>
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
-                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
-                            <a href="status.html" class="dropdown-item ps-5"><i class="fa fa-info-circle me-2"></i>Status</a>
+                            <a href="registration.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-user-edit me-2"></i>New</a>
+                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-info-circle me-2"></i>Status</a> -->
                         </div>
                     </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-info-circle me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-                    <a href="contact-employee.html" class="nav-item nav-link"><i class="fa fa-address-book me-2"></i>Contact Employee</a>
+                    <a href="message-employee.html" class="nav-item nav-link active"><i class="fa fa-comments me-2"></i>Messages</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -221,7 +231,7 @@
                                         <input type="text" class="form-control bg-dark border-0" 
                                             placeholder="Search employees..." v-model="searchQuery"
                                             @input="filterEmployees">
-                                        <button class="btn btn-primary">
+                                        <button class="btn btn-info">
                                             <i class="fa fa-search"></i>
                                         </button>
                                     </div>
@@ -264,7 +274,7 @@
                                                         <small v-else>No messages yet</small>
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-primary me-2" @click="selectEmployee(employee)">
+                                                        <button class="btn btn-sm btn-info me-2" @click="selectEmployee(employee)">
                                                             <i class="fa fa-comment me-1"></i> Message
                                                         </button>
                                                     </td>
@@ -351,5 +361,32 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+
+    
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="js/vue-messaging.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const app = MessageApp.createApp().mount('#vue-messaging');
+    
+    // Check for employee ID in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const employeeId = urlParams.get('employeeId');
+    
+    // Wait for employees to load then select if ID exists
+    const checkAndSelect = () => {
+        if (employeeId && app.employees.length) {
+            const employee = app.employees.find(e => e.employee_id == employeeId);
+            if (employee) {
+                app.selectEmployee(employee);
+            }
+        } else if (app.employees.length === 0) {
+            setTimeout(checkAndSelect, 100);
+        }
+    };
+    
+    checkAndSelect();
+});
+</script>
 </body>
 </html>

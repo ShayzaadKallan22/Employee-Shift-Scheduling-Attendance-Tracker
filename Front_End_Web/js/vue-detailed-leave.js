@@ -26,12 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
       async fetchLeaveData() {
         try {
           console.log("Fetching leave data...");
+          this.loading = true;
+          this.error = null;
 
-          const empResponse = await fetch('http://localhost:3000/api/leave/employee-summary');
-          if (!empResponse.ok) throw new Error('Failed to fetch employee data');
+          const [empResponse, typesResponse] = await Promise.all([
+            fetch('http://localhost:3000/api/leave/employee-summary'),
+            fetch('http://localhost:3000/api/leave/types')
+          ]);
 
-          const typesResponse = await fetch('http://localhost:3000/api/leave/types');
-          if (!typesResponse.ok) throw new Error('Failed to fetch leave types');
+          if (!empResponse.ok) {
+            const errorData = await empResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to fetch employee data');
+          }
+
+          if (!typesResponse.ok) {
+            const errorData = await typesResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to fetch leave types');
+          }
 
           this.employees = await empResponse.json();
           this.leaveTypes = await typesResponse.json();
@@ -40,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             employees: this.employees,
             leaveTypes: this.leaveTypes
           });
+
         } catch (err) {
           console.error('Error fetching leave data:', err);
           this.error = err.message;
@@ -47,26 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
           this.loading = false;
         }
       },
-
-      // async fetchLeaveData() {
-      //   try {
-      //     const [empResponse, typesResponse] = await Promise.all([
-      //       fetch('http://localhost:3000/api/leave/employee-summary'),
-      //       fetch('http://localhost:3000/api/leave/types')
-      //     ]);
-
-      //     if (!empResponse.ok) throw new Error('Failed to fetch employee data');
-      //     if (!typesResponse.ok) throw new Error('Failed to fetch leave types');
-
-      //     this.employees = await empResponse.json();
-      //     this.leaveTypes = await typesResponse.json();
-      //   } catch (err) {
-      //     console.error('Error fetching leave data:', err);
-      //     this.error = err.message;
-      //   } finally {
-      //     this.loading = false;
-      //   }
-      // },
+      
       async fetchStats() {
         try {
           const response = await fetch('http://localhost:3000/api/leave/stats');
@@ -151,56 +144,59 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       },
-      // getRemainingDays(employee, typeId) {
-      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
-      //   if (!type) return 'N/A';
-
-      //   const used = employee.leave_used?.find(u => u.leave_type_id === typeId)?.days || 0;
-      //   return `${type.max_days_per_year - used}/${type.max_days_per_year}`;
-      // },
-      // getLeaveTypeName(typeId) {
-      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
-      //   return type ? type.name_ : 'Unknown';
-      // },
       
       getRemainingDays(employee, typeId) {
-  if (!employee.leave_balances) return 'N/A';
-  
-  const balance = employee.leave_balances.find(b => b.leave_type_id == typeId);
-  if (!balance) return 'N/A';
-  
-  const remaining = balance.max_days - balance.used_days;
-  return `${remaining}/${balance.max_days}`;
-},
+        if (!employee.leave_balances) return 'N/A';
+        
+        const balance = employee.leave_balances.find(b => b.leave_type_id == typeId);
+        if (!balance) return 'N/A';
+        
+        const remaining = balance.max_days - balance.used_days;
+        return `${remaining}/${balance.max_days}`;
+      },
 
-getLeaveTypeName(typeId) {
-  if (!this.leaveTypes.length) return 'Loading...';
-  const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
-  return type ? type.name_ : 'Unknown';
-},
+      getLeaveTypeName(typeId, request, employee) {
+        if (!this.leaveTypes.length) return 'Loading...';
+        const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
+        let typeName = type ? type.name_ : 'Unknown';
+        
+        // Always show clickable PDF icon for sick leave
+        if (typeId == 2) {
+          const hasNote = request.sick_note;
+          const iconStyle = hasNote ? 
+            'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
+            'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
+          typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
+                        ${iconStyle}
+                        onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
+        }
+        
+        return typeName;
+      },
+
       formatDate(dateString) {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-GB');
-      }
+      },
 
-      // getRemainingDays(employee, typeId) {
-      //   if (!employee.leave_balances) return 'N/A';
-        
-      //   const balance = employee.leave_balances.find(b => b.leave_type_id === typeId);
-      //   if (!balance) return 'N/A';
-        
-      //   return `${balance.remaining_days}/${balance.max_days}`;
-      // },
-
-      // getLeaveTypeName(typeId) {
-      //   const type = this.leaveTypes.find(t => t.leave_type_id === typeId);
-      //   return type ? type.name_ : 'Unknown';
-      // },
-
-      // formatDate(dateString) {
-      //   if (!dateString) return 'N/A';
-      //   return new Date(dateString).toLocaleDateString('en-GB');
-      // }
+      hasSickNote(employee) {
+        return employee.leave_requests?.some(
+          req => req.leave_type_id == 2 && req.sick_note
+        );
+      },
+      
+      getSickNote(employee) {
+        const sickLeave = employee.leave_requests?.find(
+          req => req.leave_type_id == 2
+        );
+        return sickLeave?.sick_note || '';
+      },
+      
+      getSickLeaveRequest(employee) {
+        return employee.leave_requests?.find(
+          req => req.leave_type_id == 2 // Sick leave type ID
+        );
+      },
     }
   }).mount('#vue-detailed-leave');
 });

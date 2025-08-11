@@ -223,14 +223,29 @@
           </div>
         </td>
         <td>{{ employee.role_title }}</td>
-        <td v-for="type in leaveTypes" :key="type.leave_type_id">
+        <!-- <td v-for="type in leaveTypes" :key="type.leave_type_id">
           <span :class="{
             'text-danger': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 3,
             'text-warning': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 7
           }">
             {{ getRemainingDays(employee, type.leave_type_id) }}
           </span>
-        </td>
+        </td> -->
+        <td v-for="type in leaveTypes" :key="type.leave_type_id">
+  <template v-if="type.leave_type_id == 2"> <!-- Sick Leave -->
+    {{ getRemainingDays(employee, type.leave_type_id) }}
+    <i v-if="hasSickNote(employee)" 
+       class="fas fa-file-pdf ms-2 text-danger cursor-pointer"
+       @click="viewSickNote(getSickNote(employee), employee)"
+       title="View sick note"></i>
+    <i v-else
+       class="fas fa-file-pdf ms-2 text-secondary cursor-not-allowed"
+       title="No sick note attached"></i>
+  </template>
+  <template v-else>
+    {{ getRemainingDays(employee, type.leave_type_id) }}
+  </template>
+</td>
         <td>
           <span class="badge" :class="{
             'bg-success': employee.status_ === 'Working',
@@ -249,11 +264,14 @@
                 v-if="employee.leave_requests && employee.leave_requests.length">
               <li v-for="request in employee.leave_requests" :key="request.leave_id"
                   class="list-group-item bg-dark text-white d-flex justify-content-between">
-                <span>
-                  {{ getLeaveTypeName(request.leave_type_id) }}: 
+                <!-- <span>
+                  {{ getLeaveTypeName(request.leave_type_id, request) }}: 
                   {{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
                   ({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
-                </span>
+                </span> -->
+                <span v-html="getLeaveTypeName(request.leave_type_id, request, employee)"></span>: 
+{{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
+({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
                 <span class="badge" :class="{
                   'bg-success': request.status_ === 'approved',
                   'bg-warning': request.status_ === 'pending',
