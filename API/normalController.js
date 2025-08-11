@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 //Cron job to generate normal QR codes at shift start times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
+  // await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
   try {
     await connection.beginTransaction();
 
@@ -64,8 +64,8 @@ cron.schedule('*/5 * * * * *', async () => {
 
                     //Generate new QR code
                     const qrData = `NORMAL-SHIFT-${uuidv4()}`;
-                    const expiration = new Date();
-                    expiration.setMinutes(expiration.getMinutes() + 1); //15 minutes to clock in (1 min test)
+                    const now = new Date();
+                    const expiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
 
                     //Place generation time in db for qr code
                     const generationDateTime = `${formattedDate} ${formattedTime}`; 
@@ -96,7 +96,7 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to generate proof QR codes at shift end times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  await connection.query("SET time_zone = '+02:00'");
+  // await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
     
@@ -136,7 +136,8 @@ cron.schedule('*/5 * * * * *', async () => {
 
         //Generate a single proof QR that all employees can use
         const proofData = `SHIFT-PROOF-${currentDate}-${uuidv4()}`;
-        const proofExpiration = new Date(Date.now() + 1 * 60 * 1000); //1 min for testing (change to 15 mins)
+        const now = new Date();
+        const proofExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
         
         //Save proof QR 
         await connection.query(
@@ -162,7 +163,6 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to expire QR codes that have passed their expiration time
 cron.schedule('*/5 * * * * *', async () => {  
   const connection = await pool.getConnection();
-  await connection.query("SET time_zone = '+02:00'"); 
   try {
     await connection.beginTransaction();
 
