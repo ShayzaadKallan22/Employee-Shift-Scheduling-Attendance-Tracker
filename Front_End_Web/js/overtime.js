@@ -1,6 +1,6 @@
 //AUTHOR - SHAYZAAD
 const { createApp } = Vue;
-const API_BASE = 'http://localhost:3000/api/overtime';
+const API_BASE = 'https://ifmprojv1-production.up.railway.app/api/overtime';
 
 createApp({
   data() {

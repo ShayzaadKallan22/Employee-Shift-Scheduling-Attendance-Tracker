@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 leaveTableData: [],
                 swapsTableData: [],
                 payrollTotal: 'R0.00',
-                apiBaseUrl: 'http://localhost:3000/api/reports', //base API URL
+                apiBaseUrl: 'https://ifmprojv1-production.up.railway.app/api/reports', //base API URL
 
                 storageKey: 'lastReportData'
             };
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             async fetchEmployees() {
                 try {
                     // const response = await fetch('/api/reports/employees');
-                    const response = await fetch('http://localhost:3000/api/employees');
+                    const response = await fetch('https://ifmprojv1-production.up.railway.app/api/employees');
                     if (!response.ok) throw new Error('Failed to fetch employees');
                     this.employees = await response.json();
                 } catch (error) {

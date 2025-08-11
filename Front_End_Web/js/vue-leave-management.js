@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     methods: {
       // async fetchLeaveRequests() {
       //   try {
-      //     const response = await fetch('http://localhost:3000/api/leave/all');
+      //     const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/all');
       //     this.leaveRequests = await response.json();
       //   } catch (err) {
       //     console.error('Failed to fetch leave requests:', err);
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       async fetchLeaveRequests() {
   this.isLoading = true;
   try {
-    const response = await fetch('http://localhost:3000/api/leave/all');
+    const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/all');
     this.leaveRequests = await response.json();
   } catch (err) {
     console.error('Failed to fetch leave requests:', err);
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       async fetchEmployeeLeaveHistory(employeeId) {
         try {
-          const response = await fetch(`http://localhost:3000/api/leave/my/${employeeId}`);
+          const response = await fetch(`https://ifmprojv1-production.up.railway.app/api/leave/my/${employeeId}`);
           return await response.json();
         } catch (err) {
           console.error('Failed to fetch employee leave history:', err);
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       async respondToLeave(leaveId, action) {
         try {
-          const response = await fetch('http://localhost:3000/api/leave/respond', {
+          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/respond', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ leave_id: leaveId, action })

@@ -43,7 +43,7 @@ const app = {
                 async fetchEmployees() {
                     try {
                         this.loading = true;
-                        const response = await fetch('http://localhost:3000/api/employees');
+                        const response = await fetch('https://ifmprojv1-production.up.railway.app/api/employees');
                         if (!response.ok) throw new Error('Failed to fetch employees');
 
                         this.employees = await response.json();
@@ -60,7 +60,7 @@ const app = {
                     try {
                         for (const employee of this.employees) {
                             const response = await fetch(
-                                `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
+                                `https://ifmprojv1-production.up.railway.app/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
                             );
                             if (response.ok) {
                                 const [lastMessage] = await response.json();
@@ -104,7 +104,7 @@ const app = {
                     if (!this.selectedEmployee) return;
                     
                     const response = await fetch(
-                        `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${this.selectedEmployee.employee_id}`
+                        `https://ifmprojv1-production.up.railway.app/api/messages/conversation/${this.currentUser.employee_id}/${this.selectedEmployee.employee_id}`
                     );
                     if (!response.ok) throw new Error('Failed to fetch messages');
 
@@ -118,7 +118,7 @@ const app = {
                         .map(m => m.message_id);
 
                     if (unreadIds.length > 0) {
-                        await fetch('http://localhost:3000/api/messages/mark-read', {
+                        await fetch('https://ifmprojv1-production.up.railway.app/api/messages/mark-read', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ message_ids: unreadIds })
@@ -157,7 +157,7 @@ const app = {
                     this.scrollToBottom();
 
                     try {
-                        const response = await fetch('http://localhost:3000/api/messages/send', {
+                        const response = await fetch('https://ifmprojv1-production.up.railway.app/api/messages/send', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(messageData)

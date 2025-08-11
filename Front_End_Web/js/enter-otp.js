@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log("Submitting OTP:", { email, code }); // Debug log
 
   try {
-    const response = await fetch('http://localhost:3000/api/web/verify-otp', {
+    const response = await fetch('https://ifmprojv1-production.up.railway.app/api/web/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code }),

@@ -1,7 +1,7 @@
 //AUTHOR - SHAYZAAD
 
 const { createApp } = Vue;
-const API_BASE = 'http://localhost:3000/api/normal-qr';
+const API_BASE = 'https://ifmprojv1-production.up.railway.app/api/normal-qr';
 
 createApp({
   data() {

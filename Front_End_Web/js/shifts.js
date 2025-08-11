@@ -26,7 +26,7 @@ createApp({
         //Fetch all the employee shifts
         async fetchAllShifts(){
             try {
-                 const response = await fetch('http://localhost:3000/shifts/all');
+                 const response = await fetch('https://ifmprojv1-production.up.railway.app/shifts/all');
                  this.shifts = await response.json();
                  this.filteredShifts = [...this.shifts]; //Copy to filtered array (shallow copy)
             } catch (err) {

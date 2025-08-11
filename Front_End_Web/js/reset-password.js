@@ -11,7 +11,7 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
   }
 
   try {
-    const res = await axios.post('http://localhost:3000/api/web/reset-password', {
+    const res = await axios.post('https://ifmprojv1-production.up.railway.app/api/web/reset-password', {
       email,
       newPassword
     }, {

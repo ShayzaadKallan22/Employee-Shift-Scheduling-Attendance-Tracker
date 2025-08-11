@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering...';
             
             // Send data to API
-            const response = await fetch('http://localhost:3000/auth/register', {
+            const response = await fetch('https://ifmprojv1-production.up.railway.app/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

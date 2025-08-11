@@ -507,7 +507,7 @@
 
                 const fetchNotifications = async () => {
                   try {
-                    const url = new URL(`http://localhost:3000/api/manager-notifications`);
+                    const url = new URL(`http://ifmprojv1-production.up.railway.app/api/manager-notifications`);
                     url.searchParams.append('employeeId', props.managerId);
                     if (lastFetched.value) {
                       url.searchParams.append('since', lastFetched.value.toISOString());
@@ -588,8 +588,8 @@
                   // Determine if this is a message or notification
                   const isMessage = n.source === 'message';
                   const endpoint = isMessage 
-                    ? `http://localhost:3000/api/notifications-messages/${notificationId}/${newStatus}`
-                    : `http://localhost:3000/api/manager-notifications/${notificationId}/${newStatus}`;
+                    ? `http://ifmprojv1-production.up.railway.app/api/notifications-messages/${notificationId}/${newStatus}`
+                    : `http://ifmprojv1-production.up.railway.app/api/manager-notifications/${notificationId}/${newStatus}`;
                   
                   try {
                     const res = await fetch(endpoint, {
@@ -650,7 +650,7 @@
                     // Mark regular notifications as read
                     if (unreadRegular.length) {
                       const unreadIds = unreadRegular.map(n => n.notification_id);
-                      await fetch(`http://localhost:3000/api/manager-notifications/mark-all-read`, {
+                      await fetch(`https://ifmprojv1-production.up.railway.app/api/manager-notifications/mark-all-read`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -661,7 +661,7 @@
                     // Mark messages as read
                     if (unreadMessages.length) {
                       const messageIds = unreadMessages.map(n => n.notification_id);
-                      await fetch(`http://localhost:3000/api/notifications-messages/mark-all-read`, {
+                      await fetch(`https://ifmprojv1-production.up.railway.app/api/notifications-messages/mark-all-read`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',

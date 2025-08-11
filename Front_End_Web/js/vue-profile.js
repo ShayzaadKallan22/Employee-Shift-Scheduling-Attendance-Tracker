@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         methods: {
             async fetchManagerProfile() {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/manager/profile/${this.managerId}`);
+                    const response = await fetch(`https://ifmprojv1-production.up.railway.app/api/manager/profile/${this.managerId}`);
                     if (!response.ok) throw new Error('Failed to fetch profile');
                     
                     this.manager = await response.json();

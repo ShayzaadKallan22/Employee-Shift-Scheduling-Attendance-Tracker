@@ -8,7 +8,7 @@ document.getElementById('email-submit-form').addEventListener('submit', async (e
   console.log('Email entered:', email); // Debug
 
   try {
-    const response = await fetch('http://localhost:3000/api/web/forgot-password', {
+    const response = await fetch('https://ifmprojv1-production.up.railway.app/api/web/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
