@@ -42,7 +42,7 @@ cron.schedule('*/5 * * * * *', async () => {
         //Check each shift to see if it should start now
         for(const shift of dateTime) {
             //Get the start date of each shift from the db
-            const dbDate = new Date(shift.date_).toLocaleDateString('en-ZA'); 
+            const dbDate = new Date(shift.date_).toISOString().split('T')[0]; 
 
             //Get the start time of each shift from the db
             const shiftStartTime = shift.start_time;
