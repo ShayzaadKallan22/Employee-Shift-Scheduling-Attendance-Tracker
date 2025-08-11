@@ -102,7 +102,7 @@ const tableNameMap = {
 
 
 // Folder where your code lives (adjust if needed)
-const rootDir = path.resolve(__dirname, './js'); // e.g. './src' or './'
+const rootDir = path.resolve(__dirname, './API'); // e.g. './src' or './'
 
 // File extensions to process
 const fileExtensions = ['.js'];
