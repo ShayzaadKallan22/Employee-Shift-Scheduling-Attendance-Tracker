@@ -6,7 +6,7 @@ const pool = require('./db');
 const { v4: uuidv4 } = require('uuid');
 
 //Run every second to check expirations
-cron.schedule('* * * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
