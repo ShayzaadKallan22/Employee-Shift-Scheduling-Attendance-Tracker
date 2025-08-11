@@ -105,10 +105,19 @@ const ClockInScreen = () => {
         {!loading && renderStatusCard()}
 
         <Text style={styles.sectionTitle}>LOG ATTENDANCE</Text>
-        <TouchableOpacity style={styles.clockInButton} onPress={handleClockIn}>
-          <Text style={styles.clockInText}>CLOCK-IN</Text>
-          <Icon name="qr-code-outline" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        <TouchableOpacity 
+         style={[
+          styles.clockInButton, 
+          attendanceStatus === 'On Leave' && styles.disabledButton
+        ]} 
+        onPress={handleClockIn}
+        disabled={attendanceStatus === 'On Leave'}
+       >
+       <Text style={styles.clockInText}>
+         {attendanceStatus === 'Working ' ? 'CLOCK-OUT' : 'CLOCK-IN'}
+       </Text>
+       <Icon name="qr-code-outline" size={24} color="#ffffff" />
+       </TouchableOpacity>
 
         <Text style={styles.sectionTitle}>SHIFTS</Text>
         <View style={styles.table}>
@@ -268,7 +277,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
+  disabledButton: {
+    backgroundColor: '#9E9E9E',
+    shadowColor: '#9E9E9E',
+    opacity: 0.7,
+},
 });
 
 export default ClockInScreen;
