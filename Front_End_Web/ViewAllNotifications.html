@@ -507,7 +507,7 @@
 
                 const fetchNotifications = async () => {
                   try {
-                    const url = new URL(`http://ifmprojv1-production.up.railway.app/api/manager-notifications`);
+                    const url = new URL(`https://ifmprojv1-production.up.railway.app/api/manager-notifications`);
                     url.searchParams.append('employeeId', props.managerId);
                     if (lastFetched.value) {
                       url.searchParams.append('since', lastFetched.value.toISOString());
@@ -588,8 +588,8 @@
                   // Determine if this is a message or notification
                   const isMessage = n.source === 'message';
                   const endpoint = isMessage 
-                    ? `http://ifmprojv1-production.up.railway.app/api/notifications-messages/${notificationId}/${newStatus}`
-                    : `http://ifmprojv1-production.up.railway.app/api/manager-notifications/${notificationId}/${newStatus}`;
+                    ? `https://ifmprojv1-production.up.railway.app/api/notifications-messages/${notificationId}/${newStatus}`
+                    : `https://ifmprojv1-production.up.railway.app/api/manager-notifications/${notificationId}/${newStatus}`;
                   
                   try {
                     const res = await fetch(endpoint, {
