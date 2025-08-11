@@ -45,7 +45,7 @@ cron.schedule('*/5 * * * * *', async () => {
 
       //Current time in UTC (Railway's default)
       const now = new Date();
-      const proofExpiration = new Date(now.getTime() + (135 * 60 * 1000)); //135 minutes in milliseconds
+      const proofExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
 
       //Inserting the proof QR code for overtime attendance 
       await connection.query(
@@ -148,7 +148,8 @@ exports.generateQR = async (req, res) => {
     const qrData = uuidv4();
     
     //Set QR code expiration to 15 minutes (Testing purpose 1 minute)
-    const qrExpiration = new Date(Date.now() + 0.3 * 60 * 1000);
+    const now = new Date();
+    const qrExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
     
     //Set overtime session expiration to manager specified duration
     const overtimeExpiration = new Date(Date.now() + duration * 60 * 1000);
@@ -380,7 +381,8 @@ exports.endOvertime = async (req, res) => {
     //Generate proof QR code
     const proofData = `OVERTIME-ATTENDANCE-${uuidv4()}`;
     const proofImage = await QRCode.toDataURL(proofData);
-    const proofExpiration = new Date(Date.now() + 0.3 * 60 * 1000); // 1 minute for testing
+    const now = new Date();
+    const proofExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
 
     //Save proof QR to database
     const [qrResult] = await connection.query(
