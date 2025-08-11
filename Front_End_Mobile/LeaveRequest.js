@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView,SafeAreaView, Modal, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView,SafeAreaView, Modal, RefreshControl } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -37,45 +37,126 @@ const LeaveRequest = () => {
     Sick: { remaining: null, max: 30, used: null },
     Family: { remaining: null, max: 15, used: null }
   });
-  
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [expandedLeaveTypes, setExpandedLeaveTypes] = useState({});
+  const [uploadingNote, setUploadingNote] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+
+//   const handleApiError = (error, navigation) => {
+//   console.error('API Error:', error);
+//   if (error.response?.status === 403) {
+//     Alert.alert(
+//       'Session Expired', 
+//       'Your session has expired. Please login again.',
+//       [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+//     );
+//   } else {
+//     Alert.alert(
+//       'Error',
+//       error.response?.data?.message || 'An error occurred'
+//     );
+//   }
+// };
+
   useEffect(() => {
-    const fetchRemainingDays = async () => {
-        if (!leaveType) return;
+  const fetchRemainingDays = async () => {
+    if (!leaveType) return;
+    
+    try {
+      const employeeId = await AsyncStorage.getItem('employee_id');
+      if (!employeeId) {
+        console.log('No employee ID found');
+        return;
+      }
+
+      console.log('Employee ID:', employeeId); // Debug log
+      const numericId = employeeId.replace('EMP-', '');
+      console.log('Numeric ID:', numericId); // Debug log
+
+      const leaveTypeMap = {
+        'Annual': 1,
+        'Sick': 2,
+        'Family': 3
+      };
+      
+      for (const [type, id] of Object.entries(leaveTypeMap)) {
+        console.log(`Fetching ${type} leave (ID: ${id})`); //Debug log
         
         try {
-            //Fetch employee ID from AyncStorage.
-            const employeeId = await AsyncStorage.getItem('employee_id');
-            if (!employeeId) return;
-
-            //Get the numeric value of the employee ID.
-            const numericId = employeeId.replace('EMP-', '');
-            //Leave type by ID.
-            const leaveTypeMap = {
-                'Annual': 1,
-                'Sick': 2,
-                'Family': 3
-            };
-           //Fetch all leave types balances
-            for (const [type, id] of Object.entries(leaveTypeMap)) {
-                const response = await axios.get(
-                    `${API_URL}/api/leaves/remaining/${numericId}/${id}`
-                );
-                setLeaveBalances(prev => ({
-                    ...prev,
-                    [type]: {
-                        remaining: response.data.remainingDays,
-                        max: response.data.maxBalance,
-                        used: response.data.usedDays
-                    }
-                }));
-            }
+          const response = await axios.get(
+            `${API_URL}/api/leaves/remaining/${employeeId}/${id}`,
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+          
+          console.log(`${type} leave response:`, response.data); //Debug log
+          
+          if (response.data) {
+            setLeaveBalances(prev => ({
+              ...prev,
+              [type]: {
+                remaining: response.data.remainingDays || null,
+                max: response.data.maxBalance || prev[type].max,
+                used: response.data.usedDays || null
+              }
+            }));
+          }
         } catch (error) {
-            console.error('Error fetching remaining leave days:', error);
+          console.error(`Error fetching ${type} leave:`, error);
+          if (error.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Status code:', error.response.status);
+          }
         }
-    };
+      }
+    } catch (error) {
+      console.error('General error in fetchRemainingDays:', error);
+    }
+  };
 
-    fetchRemainingDays();
+  fetchRemainingDays();
 }, [leaveType]);
+
+  //Fetch leave balances for each type
+const LeaveTypes = React.useMemo(() => [
+  { 
+    label: 'Annual', 
+    value: 'Annual', 
+    remaining: leaveBalances.Annual?.remaining, 
+    max: leaveBalances.Annual?.max ?? 20 
+  },
+  { 
+    label: 'Sick', 
+    value: 'Sick', 
+    remaining: leaveBalances.Sick?.remaining, 
+    max: leaveBalances.Sick?.max ?? 30 
+  },
+  { 
+    label: 'Family', 
+    value: 'Family', 
+    remaining: leaveBalances.Family?.remaining, 
+    max: leaveBalances.Family?.max ?? 15 
+  }
+], [leaveBalances]);
+
+
+  useEffect(() => {
+  fetchLeaveHistory();
+  //fetchRemainingDays();
+  }, []);
+
+  //Add pull-to-refresh functionality
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchLeaveHistory();
+      await fetchRemainingDays();
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   //Check if a date is a Friday, Saturday, Sunday, or Monday (0 = Sunday, 1 = Monday, etc.)
   const isValidWorkDay = (date) => {
@@ -170,12 +251,12 @@ const LeaveRequest = () => {
 
       const leaveTypeId = Number(leaveTypeMap[leaveType]);
       //Replace the EMP with an empty character if the employee id comes with the EMP.
-      const numericId = employeeId.replace('EMP-', '');
+      //const numericId = employeeId.replace('EMP-', '');
       
       //Send request to the API to handle.
       const formData = new FormData();
-      formData.append('employee_id', parseInt(numericId, 10));
-      formData.append('leave_type_id', parseInt(leaveTypeId, 10));
+      formData.append('employee_id', employeeId);
+      formData.append('leave_type_id', leaveTypeId.toString());
       formData.append('start_date', startDate);
       formData.append('end_date', endDate);
 
@@ -186,9 +267,18 @@ const LeaveRequest = () => {
           type: 'application/pdf'
         });
       }
+      
+      //Debugging: Log FormData entries
+      console.log('FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
 
       const response = await axios.post(`${API_URL}/api/leaves/request`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 
+          'Content-Type': 'multipart/form-data'
+          //'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
+        },
       });
 
       console.log('Full response:', response.data);
@@ -221,7 +311,62 @@ const LeaveRequest = () => {
     }
   };
 
-  //Rest of your component code remains the same...
+  //Handle uploading sick note.
+  const handleUploadSickNote = async (leaveId) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        //Check file size (5MB limit)
+        if (result.assets[0].size > 5 * 1024 * 1024) {
+          Alert.alert('File too large', 'Sick note must be less than 5MB');
+          return;
+        }
+
+        setUploadingNote(true);
+        
+        const formData = new FormData();
+        formData.append('sick_note', {
+          uri: result.assets[0].uri,
+          name: result.assets[0].name,
+          type: 'application/pdf'
+        });
+
+        const response = await axios.post(
+          `${API_URL}/api/leaves/${leaveId}/upload-sick-note`, 
+          formData, 
+          { 
+            headers: { 
+              'Content-Type': 'multipart/form-data'
+              //'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
+            } 
+          }
+        );
+
+        if (response.data.success) {
+          Alert.alert('Success', 'Sick note uploaded successfully');
+          //Refresh the leave history
+          await fetchLeaveHistory();
+        } else {
+          Alert.alert('Error', response.data.message || 'Failed to upload sick note');
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading sick note:', error);
+      Alert.alert(
+        'Error', 
+        error.response?.data?.message || 
+        'Failed to upload sick note. Please try again.'
+      );
+    } finally {
+      setUploadingNote(false);
+    }
+  };
+
+  //Handle cancelling a leave request
   const handleCancelRequest = (id) => {
     setTempRequest(pendingRequests.find(req => req.id === id));
     setShowModal(true);
@@ -232,7 +377,14 @@ const LeaveRequest = () => {
 
     try {
       //Cancel leave request.
-      await axios.delete(`${API_URL}/api/leaves/cancel/${tempRequest.id}`);
+      await axios.delete(`${API_URL}/api/leaves/cancel/${tempRequest.id}`,
+       {
+        headers: {
+          //'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+      );
     
       setPendingRequests(pendingRequests.filter(req => req.id !== tempRequest.id));
       setShowModal(false);
@@ -254,6 +406,153 @@ const LeaveRequest = () => {
     { label: 'Family', value: 'Family', remaining: leaveBalances.Family.remaining, max: leaveBalances.Family.max }
   ];
 
+  const toggleLeaveType = (leaveType) => {
+    setExpandedLeaveTypes(prev => ({
+        ...prev,
+        [leaveType]: !prev[leaveType]
+    }));
+  };
+
+  const fetchLeaveHistory = async () => {
+  try {
+    const employeeId = await AsyncStorage.getItem('employee_id');
+    if (!employeeId) return;
+    
+    //const numericId = employeeId.replace('EMP-', '');
+    const token = await AsyncStorage.getItem('token');
+    
+    const response = await axios.get(
+      `${API_URL}/api/leaves/history/${employeeId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+          //'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    //Debug the response
+    console.log('Leave History Response:', response.data);
+    
+    if (response.data && Array.isArray(response.data)) {
+      setLeaveHistory(response.data);
+    } else {
+      console.warn('Unexpected leave history data format:', response.data);
+      setLeaveHistory([]);
+    }
+  } catch (error) {
+    console.error('Error fetching leave history:', error);
+    Alert.alert(
+      'Error', 
+      error.response?.data?.message || 'Failed to load leave history'
+    );
+    setLeaveHistory([]);
+  }
+};
+
+  const renderLeaveHistory = () => {
+  if (!leaveHistory || leaveHistory.length === 0) {
+    return (
+      <View style={styles.historyContainer}>
+        <Text style={styles.sectionHeader}>Leave History</Text>
+        <Text style={styles.noRequests}>No leave history found</Text>
+      </View>
+    );
+  }
+
+  //Group leaves by type
+  const leavesByType = leaveHistory.reduce((acc, leave) => {
+    const type = leave.leave_type || leave.name_; //Handle different API response formats
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push(leave);
+    return acc;
+  }, {});
+
+    return (
+      <View style={styles.historyContainer}>
+        <Text style={styles.sectionHeader}>Leave History</Text>
+        {Object.entries(leavesByType).map(([type, leaves]) => (
+          <View key={type} style={styles.leaveTypeContainer}>
+            <TouchableOpacity 
+              style={styles.leaveTypeHeader}
+              onPress={() => toggleLeaveType(type)}
+            >
+              <Text style={styles.leaveTypeTitle}>
+                {type} ({leaves.length})
+              </Text>
+              <Icon 
+                name={expandedLeaveTypes[type] ? 'chevron-up' : 'chevron-down'} 
+                size={20} 
+                color="#ffffff" 
+              />
+            </TouchableOpacity>
+            
+            {expandedLeaveTypes[type] && (
+              <View style={styles.leaveList}>
+                {leaves.map(leave => (
+                  <View key={leave.leave_id} style={[
+                    styles.historyCard,
+                    leave.status_ === 'approved' && styles.approvedCard,
+                    leave.status_ === 'rejected' && styles.rejectedCard, 
+                    leave.status_ === 'pending' && styles.pendingCard
+                  ]}>
+                    <View style={styles.historyCardHeader}>
+                      <Text style={styles.historyCardTitle}>
+                        {moment(leave.start_date).format('MMM D')} - {moment(leave.end_date).format('MMM D, YYYY')}
+                      </Text>
+                      <Text style={[
+                        styles.historyCardStatus,
+                        leave.status_ === 'approved' && { color: '#4CAF50' },
+                        leave.status_ === 'rejected' && { color: '#F44336' }, 
+                        leave.status_ === 'pending' && { color: '#FFC107' }
+                      ]}>
+                        {leave.status_.charAt(0).toUpperCase() + leave.status_.slice(1)}
+                      </Text>
+                    </View>
+                    <Text style={styles.historyCardText}>
+                      {leave.days_taken} day(s)
+                    </Text>
+                    <Text style={styles.historyCardText}>
+                      Requested on: {moment(leave.created_at).format('MMM D, YYYY h:mm a')}
+                    </Text>
+                    
+                    {leave.leave_type === 'Sick Leave' && (
+                      <View style={styles.sickNoteContainer}>
+                        {!leave.sick_note && leave.status_ === 'approved' ? (
+                          <TouchableOpacity 
+                            style={styles.uploadButton}
+                            onPress={() => handleUploadSickNote(leave.leave_id)}
+                            disabled={uploadingNote}
+                          >
+                            {uploadingNote ? (
+                              <ActivityIndicator color="#007bff" />
+                            ) : (
+                              <>
+                                <Icon name="cloud-upload" size={16} color="#007bff" />
+                                <Text style={styles.uploadButtonText}>Upload Sick Note</Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
+                        ) : leave.sick_note ? (
+                          <View style={styles.uploadedNote}>
+                            <Icon name="checkmark-circle" size={16} color="#4CAF50" />
+                            <Text style={styles.uploadedNoteText}>Sick note uploaded</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
       <View style={styles.appBar}>
@@ -263,6 +562,14 @@ const LeaveRequest = () => {
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={{ paddingBottom: 120 }} 
+         refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#007bff']}
+            tintColor="#007bff"
+          />
+        }
         showsVerticalScrollIndicator={false}>
         <View style={styles.formContainer}>
           <Text style={styles.label}>Start Date:</Text>
@@ -297,8 +604,9 @@ const LeaveRequest = () => {
               selectedValue={leaveType}
               onValueChange={(itemValue) => setLeaveType(itemValue)}
               style={styles.picker}
-              dropdownIconColor="#ffffff" >
-              {leaveTypes.map(type => (
+              dropdownIconColor="#ffffff" 
+              mode="dropdown">
+              {LeaveTypes.map(type => (
                 <Picker.Item 
                   key={type.value} 
                   label={`${type.label} (${type.remaining !== null ? type.remaining : '...'}/${type.max} days)`} 
@@ -381,8 +689,8 @@ const LeaveRequest = () => {
             </View>
           </View>
         </Modal>
+        {renderLeaveHistory()}
       </ScrollView>
-
       <BottomNav />
     </SafeAreaView>
   );
@@ -484,8 +792,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 10,
-    marginLeft: 10,
+    marginVertical: 20,
+    textAlign: 'center',
   },
   requestsContainer: {
     flex: 1,
@@ -567,6 +875,86 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: '#555555',
     opacity: 0.7,
+  },
+  historyContainer: {
+    marginTop: 20,
+    paddingHorizontal: 15,
+  },
+  leaveTypeContainer: {
+    marginBottom: 15,
+    backgroundColor: '#2c2c2c',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  leaveTypeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+  },
+  leaveTypeTitle: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  leaveList: {
+    borderTopWidth: 1,
+    borderTopColor: '#3e3e3e',
+  },
+  historyCard: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3e3e3e',
+  },
+  approvedCard: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  rejectedCard: {
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+  },
+  pendingCard: {
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+  },
+  historyCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  historyCardTitle: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  historyCardStatus: {
+    fontWeight: 'bold',
+  },
+  historyCardText: {
+    color: '#aaaaaa',
+    marginBottom: 3,
+  },
+  uploadButton: {
+    marginTop: 10,
+    padding: 8,
+    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  uploadButtonText: {
+    color: '#007bff',
+    fontWeight: 'bold',
+  },
+  sickNoteContainer: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  uploadedNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  uploadedNoteText: {
+    color: '#4CAF50',
+    marginLeft: 5,
+    fontSize: 14,
   },
 });
 
