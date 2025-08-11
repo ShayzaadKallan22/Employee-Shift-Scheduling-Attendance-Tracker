@@ -6,7 +6,7 @@ const pool = require('./db');
 const { v4: uuidv4 } = require('uuid');
 
 //Cron job to generate normal QR codes at shift start times
-cron.schedule('* * * * * *', async () => {
+cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -93,7 +93,7 @@ cron.schedule('* * * * * *', async () => {
 });
 
 //Cron job to generate proof QR codes at shift end times
-cron.schedule('* * * * * *', async () => {
+cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -158,7 +158,7 @@ cron.schedule('* * * * * *', async () => {
 });
 
 //Cron job to expire QR codes that have passed their expiration time
-cron.schedule('* * * * * *', async () => {  
+cron.schedule('*/5 * * * * *', async () => {  
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
