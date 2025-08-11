@@ -4,8 +4,14 @@
     <meta charset="utf-8" />
     <title>Azania - View All Notifications</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="Employee Management, Staff Management, Shifts" name="keywords" />
-    <meta content="Comprehensive employee management system for shift scheduling, payroll, and leave management" name="description" />
+    <meta
+      content="Employee Management, Staff Management, Shifts"
+      name="keywords"
+    />
+    <meta
+      content="Comprehensive employee management system for shift scheduling, payroll, and leave management"
+      name="description"
+    />
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon" />
@@ -13,15 +19,27 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
-    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link
+      href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css"
+      rel="stylesheet"
+    />
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -40,11 +58,11 @@
         padding: 0;
       }
       .content {
-        margin-left: 260px; /* Maintains 20px gap from sidebar (240px width) */
+        margin-left: 260px;
       }
       .content .container-fluid {
-        padding-left: 20px; /* Set left padding to 20px */
-        padding-right: 20px; /* Set right padding to 20px for equal spacing */
+        padding-left: 20px;
+        padding-right: 20px;
       }
       .stats {
         display: flex;
@@ -55,19 +73,17 @@
         background-color: #191c24;
         border-radius: 8px;
       }
-      
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        width: 240px;
+        width: 260px;
         height: 100vh;
         background-color: #191c24;
         z-index: 1000;
         overflow-y: auto;
       }
-     
       .content.expanded {
         margin-left: 0;
         width: 100%;
@@ -185,7 +201,10 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transition: opacity 0.3s ease, transform 0.3s ease;
       }
-      .notification-card.disappear {
+      .notification-card.message {
+        /* Ensure message notifications don't disappear */
+      }
+      .notification-card.disappear:not(.message) {
         opacity: 0;
         transform: translateY(20px);
       }
@@ -256,7 +275,10 @@
         display: flex;
         gap: 10px;
         margin-top: 10px;
-        justify-content: flex-end;
+        justify-content: flex-start; /* Changed from flex-end to flex-start */
+        margin-left: 54px; /* Matches the icon + text indentation */
+        padding-top: 10px;
+        border-top: 1px solid #2a2e38; /* Optional: adds a subtle separator */
       }
       .btn-primary {
         background-color: #2563eb;
@@ -304,7 +326,7 @@
           margin-left: 0;
         }
         .content .container-fluid {
-          padding-left: 15px; /* Reset to default Bootstrap padding on mobile */
+          padding-left: 15px;
           padding-right: 15px;
         }
         .filter-content {
@@ -329,59 +351,94 @@
   <body>
     <div class="container-fluid position-relative d-flex p-0">
       <!-- Spinner Start -->
-      <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem" role="status">
+      <div
+        id="spinner"
+        class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center"
+      >
+        <div
+          class="spinner-border text-primary"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
           <span class="sr-only">Loading...</span>
         </div>
       </div>
       <!-- Spinner End -->
 
       <!-- Sidebar Start -->
-        <div class="sidebar pe-4 pb-3">
-            <nav class="navbar bg-secondary navbar-dark">
-                <a href="index.html" class="navbar-brand mx-4 mb-3">
-                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
-                </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
-                    <div class="position-relative">
-                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                        <div
-                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h6 class="mb-0">Employee Manager Demo</h6>
-                        <span>Admin</span>
-                    </div>
-                </div>
-                <div class="navbar-nav w-100">
-                    <a href="index.html" class="nav-item nav-link"><i
-                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
-                        Shifts</a>
-                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
-                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
-                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
-                                class="fa fa-user-plus me-2"></i>Registration</a>
-                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
-                            <a href="registration.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-user-edit me-2"></i>New</a>
-                        </div>
-                    </div>
-                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
-                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-                    <a href="messages.html" class="nav-item nav-link"><i class="fa fa-envelope me-2"></i>Messages</a>
-                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-                </div>
-            </nav>
-        </div>
-        <!-- Sidebar End -->
+      <div class="sidebar pe-4 pb-3">
+        <nav class="navbar bg-secondary navbar-dark">
+          <a href="index.html" class="navbar-brand mx-4 mb-3">
+            <img
+              src="img/AzaniaWhite.png"
+              alt="Azania Logo"
+              style="height: 45px"
+            />
+          </a>
+          <div class="d-flex align-items-center ms-4 mb-4">
+            <div class="position-relative">
+              <img
+                class="rounded-circle"
+                src="img/user.jpg"
+                alt=""
+                style="width: 40px; height: 40px"
+              />
+              <div
+                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"
+              ></div>
+            </div>
+            <div class="ms-3">
+              <h6 class="mb-0">Employee Manager Demo</h6>
+              <span>Admin</span>
+            </div>
+          </div>
+          <div class="navbar-nav w-100">
+            <a href="index.html" class="nav-item nav-link"
+              ><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a
+            >
+            <a href="view-shifts.html" class="nav-item nav-link"
+              ><i class="fa fa-calendar me-2"></i>View Shifts</a
+            >
+            <a href="overtime.html" class="nav-item nav-link"
+              ><i class="fa fa-clock me-2"></i>Overtime QR</a
+            >
+            <a href="normalQR.html" class="nav-item nav-link"
+              ><i class="fas fa-qrcode me-2"></i>Normal QR</a
+            >
+            <a href="payroll.html" class="nav-item nav-link"
+              ><i class="fa fa-money-bill me-2"></i>Payroll</a
+            >
+            <div class="nav-item dropdown">
+              <a
+                href="#"
+                class="nav-link dropdown-toggle"
+                data-bs-toggle="dropdown"
+                ><i class="fa fa-user-plus me-2"></i>Registration</a
+              >
+              <div
+                class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3"
+              >
+                <a href="registration.html" class="dropdown-item ps-5"
+                  ><i class="fa fa-user-edit me-2"></i>New</a
+                >
+              </div>
+            </div>
+            <a href="status.html" class="nav-item nav-link"
+              ><i class="fa fa-sign-out-alt me-2"></i>Status</a
+            >
+            <a href="leave.html" class="nav-item nav-link"
+              ><i class="fa fa-sign-out-alt me-2"></i>Leave</a
+            >
+            <a href="reports.html" class="nav-item nav-link"
+              ><i class="fa fa-chart-bar me-2"></i>Reports</a
+            >
+          </div>
+        </nav>
+      </div>
+      <!-- Sidebar End -->
 
       <!-- Content Start -->
       <div class="content">
-        
         <!-- Navbar Start -->
         <div id="navbar-container"></div>
         <!-- Navbar End -->
@@ -391,7 +448,9 @@
           <div class="row g-4">
             <div class="col-12">
               <div id="notification-app">
-                <notification-panel :manager-id="managerId"></notification-panel>
+                <notification-panel
+                  :manager-id="managerId"
+                ></notification-panel>
               </div>
             </div>
           </div>
@@ -420,20 +479,23 @@
 
     <script>
       const { createApp, ref, onMounted, onUnmounted, computed } = Vue;
-      const managerId = localStorage.getItem('employeeId');
-      console.log('Manager ID from localStorage:', managerId);
+      const managerId = localStorage.getItem("employeeId");
+      console.log("Manager ID from localStorage:", managerId);
 
       if (!managerId) {
-        console.error("Manager ID not found in localStorage. Redirecting to login.");
-        document.getElementById('notification-app').innerHTML = '<p>Please log in to view notifications. <a href="/signin.html">Log in</a></p>';
+        console.error(
+          "Manager ID not found in localStorage. Redirecting to login."
+        );
+        document.getElementById("notification-app").innerHTML =
+          '<p>Please log in to view notifications. <a href="/signin.html">Log in</a></p>';
       } else {
         createApp({
           data() {
             return { managerId };
           },
           components: {
-            'notification-panel': {
-              props: ['managerId'],
+            "notification-panel": {
+              props: ["managerId"],
               template: `
                 <div>
                   <div class="stats">
@@ -472,13 +534,14 @@
                   <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
                     <p>No matching notifications found.</p>
                   </div>
-                  <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
-                      class="notification-card" :class="{ unread: n.read_status === 'unread', disappear: n.isDisappearing }">
+                 <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
+                  class="notification-card" :class="{ unread: n.read_status === 'unread', message: n.type === 'message' }">
                     <div class="card-header">
                       <div class="card-left">
                         <span class="card-icon">{{ getIcon(n.type) }}</span>
                         <div>
                           <h3>{{ n.message }}</h3>
+                          <p v-if="n.type === 'message'">From: {{ n.sender_name }}</p>
                           <div class="category-badge">{{ formatCategory(n.type) }}</div>
                         </div>
                       </div>
@@ -489,6 +552,7 @@
                         </button>
                       </div>
                     </div>
+                    <!-- Moved action button under the message -->
                     <div class="card-actions" v-if="getAction(n)">
                       <a :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
                     </div>
@@ -497,263 +561,214 @@
               `,
               setup(props) {
                 const notifications = ref([]);
-                const searchTerm = ref('');
-                const selectedCategory = ref('all');
-                const statusFilter = ref('all');
                 const isLoading = ref(true);
                 const error = ref(null);
-                const lastFetched = ref(null);
-                let pollingInterval = null;
+                const searchTerm = ref("");
+                const selectedCategory = ref("all");
+                const statusFilter = ref("all");
 
                 const fetchNotifications = async () => {
+                  isLoading.value = true;
                   try {
-                    const url = new URL(`https://ifmprojv1-production.up.railway.app/api/manager-notifications`);
-                    url.searchParams.append('employeeId', props.managerId);
-                    if (lastFetched.value) {
-                      url.searchParams.append('since', lastFetched.value.toISOString());
-                    }
-                    
-                    console.log('Fetching notifications and messages for employeeId:', props.managerId);
-                    const res = await fetch(url, {
-                      credentials: 'include'
-                    });
-                    
-                    console.log('Response status:', res.status);
-                    if (!res.ok) {
-                      const errorData = await res.json();
-                      throw new Error(`HTTP error! status: ${res.status}, message: ${errorData.error || 'Unknown error'}`);
-                    }
-                    
-                    const data = await res.json();
-                    console.log('Fetched notifications and messages:', data);
-
-                    // Merge new notifications with existing ones
-                    const currentNotifications = notifications.value.reduce((map, n) => {
-                      map[n.notification_id] = n;
-                      return map;
-                    }, {});
-                    
-                    const updatedNotifications = data.map(n => ({
-                      ...n,
-                      isDisappearing: (currentNotifications[n.notification_id]?.isDisappearing || false)
-                    }));
-
-                    // Update notifications, preserving existing ones
-                    notifications.value = Object.values({
-                      ...currentNotifications,
-                      ...updatedNotifications.reduce((map, n) => {
-                        map[n.notification_id] = n;
-                        return map;
-                      }, {})
-                    }).sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
-
-                    // Update lastFetched timestamp
-                    lastFetched.value = new Date();
+                    const response = await fetch(
+                      `https://ifmprojv1-production.up.railway.app/api/manager-notifications?employeeId=${props.managerId}`
+                    );
+                    if (!response.ok)
+                      throw new Error("Failed to fetch notifications");
+                    notifications.value = await response.json();
+                    console.log(
+                      "Raw notifications fetched:",
+                      notifications.value
+                    );
                   } catch (err) {
-                    error.value = `Failed to load notifications: ${err.message}`;
-                    console.error('Fetch error:', err);
-                    if (!notifications.value.length) {
-                      notifications.value = [];
-                    }
+                    console.error("Error fetching notifications:", err);
+                    error.value = "Failed to load notifications";
                   } finally {
-                    if (isLoading.value) {
-                      isLoading.value = false;
-                    }
+                    isLoading.value = false;
                   }
                 };
 
-                const unreadCount = computed(() => {
-                  const count = notifications.value.filter(n => n.read_status === 'unread').length;
-                  console.log('Unread count:', count);
-                  return count;
-                });
 
-                const filteredNotifications = computed(() => {
-                  return notifications.value
-                    .filter(n => {
-                      const matchesStatus = statusFilter.value === 'all' || n.read_status === statusFilter.value;
-                      const matchesCategory = selectedCategory.value === 'all' || n.type === selectedCategory.value;
-                      const matchesSearch = n.message.toLowerCase().includes(searchTerm.value.toLowerCase());
-                      console.log('Notification:', n, 'Matches:', { matchesStatus, matchesCategory, matchesSearch });
-                      return matchesStatus && matchesCategory && matchesSearch && !n.isDisappearing;
-                    })
-                    .sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
-                });
-
-                const toggleRead = async (n) => {
-                  const notificationId = n.notification_id;
-                  const newStatus = n.read_status === 'read' ? 'unread' : 'read';
-                  console.log('Updating read status for notification:', notificationId, 'to:', newStatus, 'employeeId:', props.managerId);
-                  
-                  // Determine if this is a message or notification
-                  const isMessage = n.source === 'message';
-                  const endpoint = isMessage 
-                    ? `https://ifmprojv1-production.up.railway.app/api/notifications-messages/${notificationId}/${newStatus}`
-                    : `https://ifmprojv1-production.up.railway.app/api/manager-notifications/${notificationId}/${newStatus}`;
-                  
+                const fetchUnreadCount = async () => {
                   try {
-                    const res = await fetch(endpoint, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ employeeId: props.managerId })
-                    });
-                    
-                    console.log('PATCH response status:', res.status);
-                    if (!res.ok) {
-                      const text = await res.text();
-                      console.error('Raw response:', text);
-                      throw new Error(`Failed to update notification status: ${res.status}, message: ${text}`);
-                    }
-                    
-                    const data = await res.json();
-                    console.log('Response data:', data);
-                    
-                    // Update the notification in the local state
-                    notifications.value = notifications.value.map(item => {
-                      if (item.notification_id === notificationId) {
-                        if (newStatus === 'read') {
-                          return { ...item, read_status: 'read', isDisappearing: true };
-                        } else {
-                          return { ...item, read_status: 'unread', isDisappearing: false };
-                        }
-                      }
-                      return item;
-                    });
-                    
-                    if (newStatus === 'read') {
-                      setTimeout(() => {
-                        notifications.value = notifications.value.filter(item => item.notification_id !== notificationId);
-                      }, 300); // Match transition duration
-                    }
-                    
-                    console.log(`Notification ${notificationId} marked as ${newStatus}`);
-                    error.value = null;
+                    const response = await fetch(
+                      `https://ifmprojv1-production.up.railway.app/api/manager-notifications/unread/count?employeeId=${props.managerId}`
+                    );
+                    if (!response.ok)
+                      throw new Error("Failed to fetch unread count");
+                    const data = await response.json();
+                    return data.unreadCount;
                   } catch (err) {
-                    error.value = `Failed to update notification: ${err.message}`;
-                    console.error('Toggle read error:', err);
+                    console.error("Error fetching unread count:", err);
+                    return 0;
+                  }
+                };
+
+                const toggleRead = async (notification) => {
+                  try {
+                    const response = await fetch(
+                      `https://ifmprojv1-production.up.railway.app/api/manager-notifications/${
+                        notification.notification_id
+                      }/${
+                        notification.read_status === "read" ? "unread" : "read"
+                      }?employeeId=${props.managerId}`,
+                      {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type: notification.type }),
+                      }
+                    );
+                    if (!response.ok)
+                      throw new Error("Failed to update notification status");
+                    await fetchNotifications();
+                  } catch (err) {
+                    console.error("Error toggling read status:", err);
+                    error.value = "Failed to update notification status";
                   }
                 };
 
                 const markAllAsRead = async () => {
-                  const unreadNotifications = notifications.value.filter(n => n.read_status === 'unread');
-                  if (!unreadNotifications.length) {
-                    console.log('No unread notifications to mark as read');
-                    return;
-                  }
-                  
-                  // Separate messages and notifications
-                  const unreadMessages = unreadNotifications.filter(n => n.source === 'message');
-                  const unreadRegular = unreadNotifications.filter(n => n.source !== 'message');
-                  
                   try {
-                    // Mark regular notifications as read
-                    if (unreadRegular.length) {
-                      const unreadIds = unreadRegular.map(n => n.notification_id);
-                      await fetch(`https://ifmprojv1-production.up.railway.app/api/manager-notifications/mark-all-read`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ employeeId: props.managerId, notificationIds: unreadIds })
-                      });
-                    }
-                    
-                    // Mark messages as read
-                    if (unreadMessages.length) {
-                      const messageIds = unreadMessages.map(n => n.notification_id);
-                      await fetch(`https://ifmprojv1-production.up.railway.app/api/notifications-messages/mark-all-read`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ employeeId: props.managerId, messageIds })
-                      });
-                    }
-                    
-                    // Update local state
-                    notifications.value = notifications.value.map(n => {
-                      if (unreadNotifications.some(un => un.notification_id === n.notification_id)) {
-                        return { ...n, read_status: 'read', isDisappearing: true };
+
+                    const notificationIds = notifications.value.map((n) => ({
+                      id: n.notification_id,
+                      type: n.type,
+                    }));
+                    if (notificationIds.length === 0) return;
+
+                    const response = await fetch(
+                      "https://ifmprojv1-production.up.railway.app/api/manager-notifications/mark-all-read",
+                      {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          employeeId: props.managerId,
+                          notificationIds,
+                        }),
                       }
-                      return n;
-                    });
-                    
-                    setTimeout(() => {
-                      notifications.value = notifications.value.filter(n => n.read_status !== 'read' || !n.isDisappearing);
-                    }, 300); // Match transition duration
-                    
-                    console.log('All notifications marked as read');
-                    error.value = null;
+                    );
+                    if (!response.ok)
+                      throw new Error("Failed to mark all as read");
+                    await fetchNotifications();
                   } catch (err) {
-                    error.value = `Failed to mark all as read: ${err.message}`;
-                    console.error('Mark all as read error:', err);
+                    console.error("Error marking all as read:", err);
+                    error.value = "Failed to mark all notifications as read";
                   }
                 };
 
-                const getIcon = (type) => ({
-                  leave_request: '📅',
-                  payroll: '💰',
-                  shift_swap: '🔄',
-                  system: '⚙️',
-                  message: '✉️',
-                  default: '🔔'
-                })[type] || '🔔';
+                const filteredNotifications = computed(() => {
+                  let filtered = notifications.value;
+                  console.log("Raw notifications:", notifications.value);
+                  if (searchTerm.value) {
+                    const term = searchTerm.value.toLowerCase();
+                    filtered = filtered.filter((n) =>
+                      n.message.toLowerCase().includes(term)
+                    );
+                  }
+                  if (selectedCategory.value !== "all") {
+                    filtered = filtered.filter(
+                      (n) => n.type === selectedCategory.value
+                    );
+                  }
+                  if (statusFilter.value !== "all") {
+                    filtered = filtered.filter(
+                      (n) => n.read_status === statusFilter.value
+                    );
+                  }
+                  console.log("Filtered notifications:", filtered);
+                  return filtered;
+                });
 
-                const getAction = (n) => ({
-                  leave_request: { text: 'Review Leave', link: 'leave.html' },
-                  shift_swap: { text: 'Manage Shift', link: 'view-shifts.html' },
-                  message: { text: 'View Message', link: `message-employee.html?open_chat={{employee.employee_id}}}` }
-                })[n.type] || null;
+                const unreadCount = computed(() => {
+                  return notifications.value.filter(
+                    (n) => n.read_status === "unread"
+                  ).length;
+                });
+
+                const getIcon = (type) => {
+                  console.log("Getting icon for type:", type);
+                  const icons = {
+                    leave_request: "📅",
+                    shift_swap: "🔄",
+                    payroll: "💰",
+                    system: "⚙️",
+                    message: "✉️",
+                  };
+                  return icons[type] || "📢";
+                };
 
                 const formatCategory = (type) => {
-                  if (type === 'message') return 'Message';
-                  return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                  const categories = {
+                    leave_request: "Leave Request",
+                    shift_swap: "Shift Swap",
+                    payroll: "Payroll",
+                    system: "System",
+                    message: "Message",
+                  };
+                  return categories[type] || type;
                 };
 
-                const formatTime = (timeString) => {
-                  const date = new Date(timeString.replace(' ', 'T'));
-                  return date.toLocaleString('en-ZA', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  });
+                const formatTime = (time) => {
+                  return new Date(time).toLocaleString();
+                };
+
+                const getAction = (notification) => {
+                  console.log("Getting action for notification:", notification);
+                  if (notification.type === "message") {
+                    return {
+                      text: "View Message",
+                      link: `message-employee.html?open_chat=${notification.sender_id}`,
+                    };
+                  }
+                  const actions = {
+                    leave_request: {
+                      text: "View Request",
+                      link: `leave.html?id=${notification.notification_id}`,
+                    },
+                    shift_swap: {
+                      text: "View Swap",
+                      link: `view-shifts.html?id=${notification.notification_id}`,
+                    },
+                    payroll: {
+                      text: "View Payroll",
+                      link: `payroll.html?id=${notification.notification_id}`,
+                    },
+                    attendance: {
+                      text: "Message Employee",
+                      link: `message-employee.html`,
+                    },
+                  };
+                  return actions[notification.type] || null;
                 };
 
                 onMounted(() => {
+                  console.log("Initial filters:", {
+                    selectedCategory: selectedCategory.value,
+                    statusFilter: statusFilter.value,
+                  });
                   fetchNotifications();
-                  // Start polling every 10 seconds
-                  pollingInterval = setInterval(fetchNotifications, 10000);
-                });
-
-                onUnmounted(() => {
-                  // Clean up polling interval
-                  if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                  }
                 });
 
                 return {
                   notifications,
+                  isLoading,
+                  error,
                   searchTerm,
                   selectedCategory,
                   statusFilter,
                   filteredNotifications,
                   unreadCount,
-                  toggleRead,
-                  markAllAsRead,
                   getIcon,
-                  getAction,
                   formatCategory,
                   formatTime,
-                  isLoading,
-                  error
+                  getAction,
+                  toggleRead,
+                  markAllAsRead,
                 };
-              }
-            }
-          }
-        }).mount('#notification-app');
+              },
+            },
+          },
+        }).mount("#notification-app");
       }
     </script>
   </body>

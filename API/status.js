@@ -1,56 +1,49 @@
-//Author: Katlego Mmadi
+// Author: Katlego Mmadi
 document.addEventListener("DOMContentLoaded", () => {
-let allEmployees = [];
-let chartInitialized = false;
-  
+  let allEmployees = [];
+  let chartInitialized = false;
 
+  function renderStaticMetrics(employees) {
+    const workingCount = employees.filter(emp => emp.status === "Working").length;
+    const notWorkingCount = employees.filter(emp => emp.status === "Not Working").length;
+    const onLeaveCount = employees.filter(emp => emp.status === "On Leave").length;
+    const totalCount = employees.length;
 
-function renderStaticMetrics(employees) {
-  const workingCount = employees.filter(emp => emp.status === "Working").length;
-  const notWorkingCount = employees.filter(emp => emp.status === "Not Working").length;
-  const onLeaveCount = employees.filter(emp => emp.status === "On Leave").length;
-  const totalCount = employees.length;
+    document.getElementById("activeCount").innerHTML = `
+      ${workingCount}<br>
+      <small class="text-muted">${Math.round((workingCount / totalCount) * 100)}% of total</small>
+    `;
+    document.getElementById("inactiveCount").innerHTML = `
+      ${notWorkingCount}<br>
+      <small class="text-muted">${Math.round((notWorkingCount / totalCount) * 100)}% of total</small>
+    `;
+    document.getElementById("onLeaveCount").innerHTML = `
+      ${onLeaveCount}<br>
+      <small class="text-muted">${Math.round((onLeaveCount / totalCount) * 100)}% of total</small>
+    `;
 
-  document.getElementById("activeCount").innerHTML = `
-    ${workingCount}<br>
-    <small class="text-muted">${Math.round((workingCount / totalCount) * 100)}% of total</small>
-  `;
-  document.getElementById("inactiveCount").innerHTML = `
-    ${notWorkingCount}<br>
-    <small class="text-muted">${Math.round((notWorkingCount / totalCount) * 100)}% of total</small>
-  `;
-  document.getElementById("onLeaveCount").innerHTML = `
-    ${onLeaveCount}<br>
-    <small class="text-muted">${Math.round((onLeaveCount / totalCount) * 100)}% of total</small>
-  `;
+    initPieChart(workingCount, notWorkingCount, onLeaveCount, totalCount);
+  }
 
-  initPieChart(workingCount, notWorkingCount, onLeaveCount, totalCount);
-}
+  function fetchAndDisplayEmployees() {
+    fetch("http://localhost:3000/api/status/employees")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("✅ Employees fetched:", data);
+        allEmployees = data;
+        renderStaticMetrics(data);
+        updateDisplay(data);
+      })
+      .catch((err) => {
+        console.error("❌ Failed to fetch employees:", err);
+        showError('Failed to fetch employees. Please try again later.');
+      });
+  }
 
-
-  // Fetch and display employees
-function fetchAndDisplayEmployees() {
- fetch("/api/status/employees")
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    })
-    .then((data) => {
-      console.log("✅ Employees fetched:", data);
-      allEmployees = data;
-      renderStaticMetrics(data);
-      updateDisplay(data);       
-    })
-    .catch((err) => {
-      console.error("❌ Failed to fetch employees:", err);
-      showError(err.message);
-    });
-}
-
-  // Update the display with filtered data
   function updateDisplay(employees) {
-
-    // Render list
     const list = document.getElementById("employeeStatusList");
     list.innerHTML = "";
 
@@ -89,10 +82,8 @@ function fetchAndDisplayEmployees() {
       `;
       list.appendChild(item);
     });
+  }
 
-}
-
-  // Error display function
   function showError(message) {
     const list = document.getElementById("employeeStatusList");
     list.innerHTML = `
@@ -102,105 +93,68 @@ function fetchAndDisplayEmployees() {
     `;
   }
 
-  // Search functionality
-function handleSearch() {
-  const searchTerm = document.getElementById("employeeSearch").value.toLowerCase();
-  const selectedRole = document.getElementById("roleFilter").value;
-
-  const filtered = allEmployees.filter(emp => {
-    const matchesName = emp.name.toLowerCase().includes(searchTerm) || emp.email.toLowerCase().includes(searchTerm);
-    const matchesRole = selectedRole ? emp.role === selectedRole : true;
-    return matchesName && matchesRole;
-  });
-
-  updateDisplay(filtered);
-}
-
-  // Initialize pie chart
-  function initPieChart(working, notWorking, onLeave, total) {
-    const ctx = document.getElementById("statusPieChart").getContext("2d");
-    // Destroy previous chart if it exists
-    if (window.employeePieChart) {
-      window.employeePieChart.destroy();
-    }
-    
-    window.employeePieChart = new Chart(ctx, {
-      type: "pie",
-      data: {
-        labels: ["Working", "Not Working", "On Leave"],
-        datasets: [{
-          data: [working, notWorking, onLeave],
-          backgroundColor: [
-            "rgba(0,200,83,0.8)",
-            "rgba(244,67,54,0.8)",
-            "rgba(255,152,0,0.8)"
-          ],
-          borderColor: [
-            "rgba(0,200,83,1)",
-            "rgba(244,67,54,1)",
-            "rgba(255,152,0,1)"
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              color: "#fff",
-              font: { size: 14 }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const value = context.raw || 0;
-                const percentage = Math.round((value / total) * 100);
-                return `${label}: ${value} (${percentage}%)`;
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // Event listeners
-  document.getElementById("searchButton").addEventListener("click", handleSearch);
-  document.getElementById("employeeSearch").addEventListener("keyup", (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  });
-  document.getElementById("roleFilterButton").addEventListener("click", handleSearch);
-
-  // Initial load
-  fetchAndDisplayEmployees();
-});
-
 function populateRoleFilter() {
-  fetch('/api/status/roles')
-    .then(res => res.json())
+  console.log("Starting populateRoleFilter");
+  fetch('http://localhost:3000/api/status/roles')
+    .then(res => {
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    })
     .then(roles => {
+      console.log("Roles received:", roles);
       const roleFilter = document.getElementById('roleFilter');
-      roleFilter.innerHTML = `<option value="">All Roles</option>`;
-      roles.forEach(role => {
-        const option = document.createElement('option');
-        option.value = role.title;
-        option.textContent = role.title;
-        roleFilter.appendChild(option);
-      });
+      roleFilter.innerHTML = '<option value="">All Roles</option>';
+      
+      // Ensure roles is an array
+      if (Array.isArray(roles)) {
+        roles.forEach(role => {
+          const option = document.createElement('option');
+          option.value = role; // This should now be a string
+          option.textContent = role;
+          roleFilter.appendChild(option);
+        });
+      } else {
+        console.error('Received roles is not an array:', roles);
+      }
     })
     .catch(err => {
       console.error('❌ Failed to load roles:', err);
+      // Optionally show error to user
     });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+  function handleSearch() {
+    const searchTerm = document.getElementById("employeeSearch").value.toLowerCase();
+    const selectedRole = document.getElementById("roleFilter").value;
+    console.log("Selected Role:", selectedRole);
+    console.log("Employee Roles:", allEmployees.map(emp => emp.role));
+    const filtered = allEmployees.filter(emp => {
+      const matchesName = emp.name.toLowerCase().includes(searchTerm) || emp.email.toLowerCase().includes(searchTerm);
+      const matchesRole = selectedRole ? emp.role === selectedRole : true;
+      return matchesName && matchesRole;
+    });
+    updateDisplay(filtered);
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  document.getElementById("searchButton").addEventListener("click", handleSearch);
+  document.getElementById("employeeSearch").addEventListener("keyup", debounce((e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    } else {
+      handleSearch();
+    }
+  }, 300));
+  document.getElementById("roleFilter").addEventListener("change", handleSearch);
+  document.getElementById("roleFilterButton").addEventListener("click", handleSearch);
+
   populateRoleFilter();
   fetchAndDisplayEmployees();
 });
