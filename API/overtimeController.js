@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 //Run every second to check expirations
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
+  await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
 

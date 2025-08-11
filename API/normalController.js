@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 //Cron job to generate normal QR codes at shift start times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
+  await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
   try {
     await connection.beginTransaction();
 
@@ -95,6 +96,7 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to generate proof QR codes at shift end times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
+  await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
     
