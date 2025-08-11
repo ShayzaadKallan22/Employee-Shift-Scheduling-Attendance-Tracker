@@ -49,7 +49,7 @@ const register = async (req, res) => {
 
         //Check if user exists
         const [existingUser] = await pool.query(
-            'SELECT * FROM T_Employee WHERE email = ?', 
+            'SELECT * FROM t_employee WHERE email = ?', 
             [email]
         );
 
@@ -78,7 +78,7 @@ const register = async (req, res) => {
         try {
             //Create user with dynamic type_
             const [employeeResult] = await pool.query(
-                'INSERT INTO T_Employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "Not Working", ?, ?)',
+                'INSERT INTO t_employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "Not Working", ?, ?)',
                 [first_name, last_name, email, phone_number, hashedPassword, type_, role_id]
             );
 
@@ -96,7 +96,7 @@ const register = async (req, res) => {
             //Get the newly created user
             const [newUser] = await pool.query(`
                 SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id
-                FROM T_Employee e
+                FROM t_employee e
                 WHERE e.employee_id = ?
             `, [newEmployeeId]);
 
@@ -149,7 +149,7 @@ const login = async (req, res) => {
 
         //Check user exists
         const [user] = await pool.query(
-            'SELECT * FROM T_Employee WHERE email = ?', 
+            'SELECT * FROM t_employee WHERE email = ?', 
             [email]
         );
 
