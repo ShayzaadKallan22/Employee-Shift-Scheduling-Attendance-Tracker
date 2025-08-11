@@ -51,19 +51,42 @@ exports.scanQR = async (req, res) => {
     }
 
     //Find matching shift or if employee was assigned that shift.
-    const [shiftRows] = await db.execute(
-      `SELECT shift_id FROM t_shift
-       WHERE employee_id = ?
-         AND shift_type = ?
-         AND CURDATE() BETWEEN date_ AND end_date
-         AND CURTIME() BETWEEN start_time AND end_time
-         AND status_ = 'scheduled'
-       LIMIT 1`,
-      [employee_id, shiftType]
-    );
+    let shiftQuery;
+    let queryParams;
+    
+    if (qr.purpose === 'attendanceNormal' || qr.purpose === 'attendance') {
+      //For clock-out, we should look for shifts that:
+      //1. Are for today
+      //2. The current time is after start_time (since clock-out happens after shift starts).
+      shiftQuery = `
+        SELECT shift_id FROM t_shift
+        WHERE employee_id = ?
+          AND shift_type = ?
+          AND CURDATE() BETWEEN date_ AND end_date
+          AND CURTIME() >= start_time
+          AND status_ = 'scheduled'
+        LIMIT 1`;
+      queryParams = [employee_id, shiftType];
+    } else {
+      //For clock-in, we should look for shifts that:
+      //1. Are for today
+      //2. The current time is between start_time and end_time.
+      shiftQuery = `
+        SELECT shift_id FROM t_shift
+        WHERE employee_id = ?
+          AND shift_type = ?
+          AND CURDATE() BETWEEN date_ AND end_date
+          AND CURTIME() BETWEEN start_time AND end_time
+          AND status_ = 'scheduled'
+        LIMIT 1`;
+      queryParams = [employee_id, shiftType];
+    }
 
-    if (shiftRows.length === 0)
-      return res.status(404).json({ message: `No active ${shiftType} shift found.` });
+    const [shiftRows] = await db.execute(shiftQuery, queryParams);
+
+    if (shiftRows.length === 0) {
+      return res.status(404).json({ message: `No ${shiftType} shift found for clock-out.` });
+    }
 
     const shift_id = shiftRows[0].shift_id;
 
@@ -88,7 +111,7 @@ exports.scanQR = async (req, res) => {
       await db.execute(
          `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
           VALUES (?, ?, NOW(), ?, ?)`,
-          [employee_id, 'Your clock in for today has been approved.', 'unread', 4]
+          [employee_id, 'Your clock in for today has been accepted.', 'unread', 4]
       );
       
       //Update status if employee clocked in successfully.

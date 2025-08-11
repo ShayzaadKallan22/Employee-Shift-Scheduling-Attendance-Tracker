@@ -19,10 +19,12 @@ const leavesRoutes = require('./leavesRoutes');
 const leavesController = require('./leavesController'); //Added by Cletus.
 const shiftSwapRoutes = require('./shiftSwapRoutes'); //Added by Cletus.
 const qrRoute = require('./qrRoutes'); //Added by Cletus
+const cron = require('node-cron');  //Added by Cletus for scheduling tasks
 const profilesRoutes = require('./profilesRoutes'); //Added by Cletus.
 const menuRoutes = require('./menuRoutes'); //Added by Cletus.
 const menuController = require('./menuController'); //Added by Cletus.
 const scheduleRoute = require('./scheduleRoute'); //Added by Cletus.
+//const jwt = require('jsonwebtoken');   //Added by Cletus for JWT authentication.
 const shiftRoutes = require('./shiftRoute');
 const forgotPassRoute = require('./forgotPassRoute');
 const notifyRoute = require('./notifyRoute');
@@ -32,6 +34,7 @@ const { register, login, logout } = require('./authControllerMan');
 const managerNotificationRoutes = require('./manager_notifications'); 
 const statusRoutes = require('./statusRoutes');
 const webforgotPassRoute = require('./webForgotPassRoute');
+const messagesRouter = require('./messages');
 const path = require('path');
 
 
@@ -61,7 +64,48 @@ app.use(cors({
 
 app.use(express.urlencoded({ extended: true })); //For form submissions
 app.use(express.json()); //For API JSON payloads
- app.use('/uploads', express.static('uploads')); //Added by Cletus.
+
+
+//Start of Cletus's code
+//Serve static files from the 'uploads' directory
+app.use('/uploads', express.static('uploads')); //Added by Cletus.
+
+//Method to handle leave status updates.
+async function updateLeaveStatuses() {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT employee_id FROM t_leave 
+       WHERE status_ = 'approved' 
+       AND end_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+    );
+
+    for (const row of rows) {
+      await pool.execute(
+        `UPDATE t_employee 
+         SET status_ = 'Not Working' 
+         WHERE employee_id = ? AND status_ = 'On Leave'`,
+        [row.employee_id]
+      );
+
+      await pool.execute(
+        `INSERT INTO t_notification 
+         (employee_id, message, sent_time, read_status, notification_type_id)
+         VALUES (?, ?, NOW(), 'unread', 1)`,
+        [row.employee_id, 'Your leave has ended. Your status has been updated to "Not Working".']
+      );
+    }
+  } catch (err) {
+    console.error('Error in leave status update job:', err);
+  }
+}
+
+//Run immediately
+updateLeaveStatuses();
+
+//Also schedule daily at midnight
+cron.schedule('* * * * *', updateLeaveStatuses);
+//End of cron job added by Cletus.
+
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
 // Middleware
@@ -179,6 +223,7 @@ app.post('/api/login', login);
 app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/web', webforgotPassRoute);
+app.use('/api/notifications-messages', messagesRouter);
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
@@ -247,6 +292,36 @@ app.listen(3000, '0.0.0.0', () => {  // Listen on all network interfaces
 });
 
 //CLETUS
+
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Authorization header missing' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT verification error:', err);
+      if (err.name === 'TokenExpiredError') {
+        return res.status(403).json({ message: 'Token expired' });
+      }
+      return res.status(403).json({ message: 'Invalid token' });
+    }
+
+    //Attach decoded user to request
+    req.user = decoded;
+    next();
+  });
+};
+
+
 app.use('/api/leaves', leavesRoutes);
 //Shiftswap routes....
 app.use('/api/shift-swap', shiftSwapRoutes);

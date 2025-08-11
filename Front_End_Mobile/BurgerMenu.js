@@ -147,9 +147,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
   },
   logo: {
-    height: 60,
-    flex: 1,
-    alignSelf: 'center',
+    width: 200,
+    height: 100,
+    position: 'absolute',
+    top: 20, 
+    left: '55%',
+    transform: [{ translateX: -100 }],
   },
   userCard: {
     backgroundColor: '#2c2c2c',

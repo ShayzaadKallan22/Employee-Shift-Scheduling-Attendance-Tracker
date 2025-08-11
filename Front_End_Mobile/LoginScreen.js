@@ -44,7 +44,8 @@ const LoginScreen = () => {
       console.timeEnd('Login API Call');
       
       //Store token and employee_ID.
-      //await AsyncStorage.setItem('userToken', response.data.token);
+      //await AsyncStorage.setItem('userToken', response.data.token.toString);
+      //console.log('Token:', response.data.token);
       await AsyncStorage.setItem('employee_id', response.data.user.id.toString());
       await AsyncStorage.setItem('role_id', response.data.user.role_id.toString());
       await AsyncStorage.setItem('email', response.data.user.email);

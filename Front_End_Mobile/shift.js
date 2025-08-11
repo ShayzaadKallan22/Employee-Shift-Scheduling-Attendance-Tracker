@@ -335,24 +335,40 @@ const Shift = () => {
     }
   };
 
-  const renderRequestCard = (request) => (
+  const renderRequestCard = (request, isMyRequest = false) => (
     <View key={request.id} style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <Text style={styles.requestTitle}>Request #{request.id}</Text>
         <View style={[
           styles.statusBadge,
-          request.status === 'Confirmed' && styles.confirmedBadge,
+          (request.status === 'Confirmed' || request.status === 'approved') && styles.confirmedBadge,
           request.status === 'Declined' && styles.declinedBadge,
-          request.status === 'approved' && styles.confirmedBadge
+          request.status === 'rejected' && styles.declinedBadge
         ]}>
-          <Text style={styles.statusText}>{request.status}</Text>
+          <Text style={styles.statusText}>
+            {request.status === 'approved' ? 'Confirmed' : 
+             request.status === 'rejected' ? 'Declined' : request.status}
+          </Text>
         </View>
       </View>
-      <Text style={styles.requestText}>Colleague: {request.colleague || 'Unknown'}</Text>
-      <Text style={styles.requestText}>Swap Date: {request.swapDate ? new Date(request.swapDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
-      <Text style={styles.requestText}>Assigned Date: {request.assignedDate ? new Date(request.assignedDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
-      
-      {activeTab === 'Swap' && request.status === 'pending' && (
+
+      {/* Show different text based on whether it's my request or a request to me */}
+      {isMyRequest ? (
+        <>
+          <Text style={styles.requestText}>Requested from: {request.colleague || 'Unknown'}</Text>
+          <Text style={styles.requestText}>My current shift: {request.assignedDate ? new Date(request.assignedDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
+          <Text style={styles.requestText}>Requested shift: {request.swapDate ? new Date(request.swapDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
+        </>
+      ) : (
+        <>
+          <Text style={styles.requestText}>Requested by: {request.colleague || 'Unknown'}</Text>
+          <Text style={styles.requestText}>Their current shift: {request.assignedDate ? new Date(request.assignedDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
+          <Text style={styles.requestText}>Requesting your shift: {request.swapDate ? new Date(request.swapDate).toLocaleDateString('en-CA') : 'N/A'}</Text>
+        </>
+      )}
+
+      {/* Only show action buttons for requests that need my approval (not my own requests) */}
+      {!isMyRequest && activeTab === 'Swap' && request.status === 'pending' && (
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={[styles.actionButton, styles.declineButton]}
@@ -362,9 +378,22 @@ const Shift = () => {
           <TouchableOpacity 
             style={[styles.actionButton, styles.confirmButton]}
             onPress={() => respondToRequest(request.id, 'approved')}>
-            <Text style={styles.buttonText}>Confirm</Text>
+            <Text style={styles.buttonText}>Approve</Text>
           </TouchableOpacity>
         </View>
+      )}
+
+      {/* Show status message for my own requests */}
+      {isMyRequest && (
+        <Text style={[
+          styles.requestText, 
+          request.status === 'pending' && styles.pendingStatus,
+          request.status === 'approved' && styles.confirmedStatus,
+          (request.status === 'rejected' || request.status === 'Declined') && styles.declinedStatus
+        ]}>
+          Status: {request.status === 'pending' ? 'Waiting for approval' : 
+                  request.status === 'approved' ? 'Approved!' : 'Declined'}
+        </Text>
       )}
     </View>
   );
@@ -448,11 +477,26 @@ const Shift = () => {
                   <Text style={styles.newRequestText}>Request Swap</Text>
                 </TouchableOpacity>
                 <ScrollView style={styles.requestsContainer}>
-                  <Text style={styles.sectionTitle}>Pending Requests</Text>
-                  {sortByDate(colleagueRequests.filter(r => r.status === 'pending')).map(renderRequestCard)}
+                  {/* Requests assigned to me (I need to approve) */}
+                  <Text style={styles.sectionTitle}>Requests Waiting for My Approval</Text>
+                  {sortByDate(colleagueRequests.filter(r => r.status === 'pending')).map(request => 
+                    renderRequestCard(request, false)
+                  )}
                   
-                  <Text style={styles.sectionTitle}>My Requests</Text>
-                  {sortByDate(myRequests).map(renderRequestCard)}
+                  {/* Requests I made (waiting for others to approve) */}
+                  <Text style={styles.sectionTitle}>My Pending Requests</Text>
+                  {sortByDate(myRequests.filter(r => r.status === 'pending')).map(request => 
+                    renderRequestCard(request, true)
+                  )}
+
+                  {/* Historical requests (approved/rejected) */}
+                  <Text style={styles.sectionTitle}>Request History</Text>
+                  {sortByDate([
+                    ...colleagueRequests.filter(r => r.status !== 'pending'),
+                    ...myRequests.filter(r => r.status !== 'pending')
+                  ]).map(request => 
+                    renderRequestCard(request, request.requesting_employee_id === requestingEmployeeId)
+                  )}
                 </ScrollView>
               </>
             ) : (
@@ -805,6 +849,21 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: '#ffffff',
+  },
+  pendingStatus: {
+    color: '#FFA500',
+    fontWeight: 'bold',
+    marginTop: 10
+  },
+  confirmedStatus: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    marginTop: 10
+  },
+  declinedStatus: {
+    color: '#FF4444',
+    fontWeight: 'bold',
+    marginTop: 10
   }
 });
 

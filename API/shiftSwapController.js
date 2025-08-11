@@ -264,16 +264,41 @@ exports.respondToSwap = async (req, res) => {
         `UPDATE t_shift SET employee_id = ?
          WHERE shift_id = ?`, [approving_employee_id, original_shift_id]
       );
+
+      //Get the approving employee's name to notify them about the swap approval.
       const [[result]] = await db.execute(
         `SELECT CONCAT(first_name, ' ', last_name) AS name
          FROM t_employee
          WHERE employee_id = ?`, [approving_employee_id]
      );
+
+     //Get the requesting employee's name to notify them about the swap approval.
+     const [[requestingEmployee]] = await db.execute(
+        `SELECT CONCAT(first_name, ' ', last_name) AS name
+          FROM t_employee
+          WHERE employee_id = ?`, [requesting_employee_id]
+     );
+      //Insert notifications for both employees about the swap approval.
       await db.execute(
          `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
           VALUES (?, ?, NOW(), ?, ?)`,
           [requesting_employee_id, `${result.name} has approved your shift swap request.`, 'unread', 5]
       );
+      //Get the manager's details to notify them about the swap approval.
+      const [[manager]] = await db.execute(
+        `SELECT *
+         FROM t_employee
+         WHERE type_ = 'manager'`
+      );
+      //Notify the manager about the swap approval.
+      //This will notify the manager about the shift swap approval.
+      await db.execute(
+         `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
+          VALUES (?, ?, NOW(), ?, ?)`,
+          [manager.employee_id, `${result.name} has approved a shift swap request from ${requestingEmployee.name}`, 'unread', 5]
+      );
+
+      //Update the requesting employee's shift to the requested shift.
       await db.execute(
         `UPDATE t_shift SET employee_id = ?
          WHERE shift_id = ?`, [requesting_employee_id, requested_shift_id]
