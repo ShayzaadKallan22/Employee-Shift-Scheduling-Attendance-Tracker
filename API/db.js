@@ -9,34 +9,20 @@ const poolPromise = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
     port: process.env.PORT,
     waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    timezone: '+02:00', // Add this line to set the timezone
-    dateStrings: true // Optional: prevents automatic conversion to JS Date objects
+    connectionLimit: 10,      // Max number of concurrent connections
+    queueLimit: 0,            // Unlimited queue
 }).promise();
 
-// Test database connection with timezone verification
+
+// Test database connection
 const TestConnection = async () => {
     try {
         console.time("DB Connection Test");
-        
-        // First test basic connection
-        const [rows] = await poolPromise.query("SELECT 1");
-        
-        // Then verify timezone
-        const [timeResult] = await poolPromise.query(
-            "SELECT @@global.time_zone, @@session.time_zone, NOW() as current_time"
-        );
-        
+        const [rows, fields] = await poolPromise.query("SELECT 1");
         console.timeEnd("DB Connection Test");
 
         if (rows && rows.length > 0) {
             console.log("Database connection successful!");
-            console.log("Time zone settings:", {
-                global: timeResult[0]['@@global.time_zone'],
-                session: timeResult[0]['@@session.time_zone'],
-                currentTime: timeResult[0].current_time
-            });
         } else {
             console.log("No data returned from the query");
         }
@@ -44,6 +30,7 @@ const TestConnection = async () => {
         console.error("Database connection failed:", err);
     }
 };
+
 
 TestConnection();
 

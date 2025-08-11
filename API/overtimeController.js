@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 //Run every second to check expirations
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  await connection.query("SET time_zone = '+02:00'");
+  // await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
 
@@ -42,7 +42,10 @@ cron.schedule('*/5 * * * * *', async () => {
     for (const session of expiredSessions) {
       //Generate proof QR for auto completed sessions
       const proofData = `OVERTIME-ATTENDANCE-${uuidv4()}`;
-      const proofExpiration = new Date(Date.now() + 0.3 * 60 * 1000); //15 minutes expiry (1 min test)
+
+      //Current time in UTC (Railway's default)
+      const now = new Date();
+      const proofExpiration = new Date(now.getTime() + (135 * 60 * 1000)); //135 minutes in milliseconds
 
       //Inserting the proof QR code for overtime attendance 
       await connection.query(
