@@ -66,6 +66,7 @@ const register = async (req, res) => {
   res.status(501).json({ error: 'Register not implemented' });
 };
 
+
 //authController.js 
 const logout = async (req, res) => {
   try {

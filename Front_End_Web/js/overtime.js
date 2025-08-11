@@ -47,7 +47,7 @@ createApp({
 
     //Check if we have an active session
     currentSession() {
-      return this.qrImage !== null;
+      return this.overtimeId !== null;
     },
 
     isQRExpired() {
@@ -106,6 +106,9 @@ createApp({
         //Start monitoring the session status
         this.startStatusMonitoring();
         //this.startCountdown(new Date(data.expiration));
+
+        //Save the session to local storage
+        this.saveSession()
         
       } catch (error) {
         console.error('QR generation failed:', error);
@@ -141,10 +144,23 @@ createApp({
         }
         
         const data = await response.json();
+
+        //Check if QR has expired - NEW
+        if (this.qrExpiration && new Date() > new Date(this.qrExpiration)) {
+          this.qrImage = null;
+          this.qrId = null;
+          //this.qrExpiration = null;
+          this.saveSession(); //Persist the changes
+        }
         
         //If session is completed, show proof QR
         if (data.status === 'completed' && data.proofImage) {
           this.handleSessionCompleted(data.proofImage, data.proofQRId, data.proofExpiration);
+        }
+        // Handle full session expiration
+        else if (data.status === 'expired') {
+          this.resetSession();
+          this.errorMessage = 'Overtime session has expired.';
         }
         
         //If session expired but no proof QR, session ended unexpectedly
@@ -171,6 +187,9 @@ createApp({
       this.expiration = null;
       this.stopStatusMonitoring();
       this.stopCountdown();
+
+      //Save session to local storage
+      this.saveSession();
       
       //Start monitoring proof QR expiration
       if (proofExpiration) {
@@ -226,14 +245,9 @@ createApp({
     
     //Handle when proof QR expires
     handleProofExpired() {
-      this.proofImage = null;
-      this.proofQRId = null;
-      this.proofExpiration = null;
-      this.selectedRoles = [];
-      this.duration = 60; 
-      this.stopProofMonitoring();
-      this.stopProofCountdown();
-      this.errorMessage = 'Proof QR code has expired. Session completed.';
+    this.clearSession();
+    this.resetSession();
+    this.errorMessage = 'Proof QR code has expired. Session completed.';
     },
     
     //Stop proof monitoring
@@ -353,6 +367,9 @@ createApp({
         
         // Restart countdown with new expiration time
         //this.startCountdown(new Date(data.newExpiration));
+
+        //Save new session to local storage after making edits
+        this.saveSession()
         
         this.closeExtendModal();
       } catch (error) {
@@ -400,6 +417,9 @@ createApp({
         this.expiration = null;
         this.stopStatusMonitoring();
         this.stopCountdown();
+
+        //Save session to local storage after ending overtime
+        this.saveSession()
         
         this.closeEndModal();
 
@@ -433,12 +453,58 @@ createApp({
       this.stopCountdown();
       this.stopProofMonitoring();
       this.stopProofCountdown();
+    },
+
+    //Save current session to localStorage
+    saveSession() {
+      const sessionData = {
+        overtimeId: this.overtimeId,
+        qrImage: this.qrImage,
+        qrId: this.qrId,
+        qrExpiration: this.qrExpiration,
+        expiration: this.expiration,
+        proofImage: this.proofImage,
+        proofQRId: this.proofQRId,
+        proofExpiration: this.proofExpiration,
+        selectedRoles: this.selectedRoles,
+        duration: this.duration
+      };
+      localStorage.setItem('overtimeSession', JSON.stringify(sessionData));
+    },
+
+    //Load session from localStorage
+    loadSession() {
+      const savedSession = localStorage.getItem('overtimeSession');
+      if (savedSession) {
+        const sessionData = JSON.parse(savedSession);
+        
+        //Restore properties
+        Object.keys(sessionData).forEach(key => {
+          this[key] = sessionData[key];
+        });
+        
+        //Restart monitoring if needed
+        if (this.overtimeId) {
+          this.startStatusMonitoring();
+        }
+        if (this.proofQRId) {
+          this.startProofMonitoring();
+        }
+      }
+    },
+
+    //Clear session from localStorage
+    clearSession() {
+      localStorage.removeItem('overtimeSession');
     }
   },
   
   //Fetch roles when component loads
   mounted() {
     this.fetchRoles();
+
+    //Load saved session on startup
+    this.loadSession();
   },
   
   //Cleanup intervals when component is destroyed

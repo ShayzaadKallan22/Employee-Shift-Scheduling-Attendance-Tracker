@@ -31,6 +31,7 @@ const payrollsRoute = require('./payrollsRoutes');
 const { register, login, logout } = require('./authControllerMan');
 const managerNotificationRoutes = require('./manager_notifications'); 
 const statusRoutes = require('./statusRoutes');
+const webforgotPassRoute = require('./webForgotPassRoute');
 const path = require('path');
 
 
@@ -61,6 +62,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true })); //For form submissions
 app.use(express.json()); //For API JSON payloads
 
+app.use('/uploads', express.static('uploads')); //Added by Cletus.
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
 // Middleware
@@ -177,6 +179,7 @@ app.use('/api/reports', reportRoutes); // Added by Yatin
 app.post('/api/login', login);
 app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
+app.use('/api/web', webforgotPassRoute);
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
@@ -267,3 +270,10 @@ app.use('/api', forgotPassRoute); //Added by Cletus.
 app.use('/api', notifyRoute); //Added by Cletus.
 
 app.use('/api/payroll', payrollsRoute); //Added by Cletus.
+
+//Added By Yatin for messages:
+
+const messageRoutes = require('./messageRoutes');
+app.use('/api/messages', messageRoutes);
+
+//End of Yatin's Message code
