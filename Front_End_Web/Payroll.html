@@ -287,7 +287,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr v-for="payment in paymentDetails" :key="payment.employee_id">
-                                                        <td>{{ payment.employee_name }} (EMP-{{ payment.employee_id }})</td>
+                                                        <td>{{ payment.employee_name }}</td>
                                                         <td>{{ payment.role_title }}</td>
                                                         <td>{{ formatCurrency(payment.total_amount) }}</td>
                                                         <td>{{ payment.regular_hours }} hrs</td>
@@ -321,16 +321,31 @@
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-3" v-for="role in roleRates" :key="role.role_id">
+                                        <div class="mb-4">
+                                            <div class="input-group border border-1 border-white rounded">
+                                                <!-- <span class="input-group-text">Search</span> -->
+                                                <span class="input-group-text bg-secondary text-white">
+                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                </span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control bg-secondary text-white" 
+                                                    placeholder="Search by role" 
+                                                    v-model="roleSearchQuery"
+                                                    @input="filterRoles"
+                                                >
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" v-for="role in filteredRoleRates" :key="role.role_id">
                                             <label class="form-label">{{ role.title }}</label>
                                             <div class="input-group mb-2">
-                                                <span class="input-group-text">Base Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="role.base_hourly_rate" step="0.01" min="0">
                                             </div>
                                             <div class="input-group">
-                                                <span class="input-group-text">Overtime Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="role.overtime_hourly_rate" step="0.01" min="0">
@@ -364,23 +379,38 @@
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-3" v-for="employee in employeeRates" :key="employee.employee_id">
+                                        <div class="mb-4">
+                                            <div class="input-group border border-1 border-white rounded">
+                                                <!-- <span class="input-group-text">Search</span> -->
+                                                <span class="input-group-text bg-secondary text-white">
+                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                </span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control bg-secondary text-white" 
+                                                    placeholder="Search by name or role" 
+                                                    v-model="employeeSearchQuery"
+                                                    @input="filterEmployees"
+                                                >
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" v-for="employee in filteredEmployeeRates" :key="employee.employee_id">
                                             <label class="form-label">{{ employee.employee_name }} - {{ employee.role_title }}</label>
                                             <div class="input-group mb-2">
-                                                <span class="input-group-text">Base Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="employee.base_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted">
+                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
                                                     (Role default: {{ formatCurrency(employee.role_base_rate) }})
                                                 </span>
                                             </div>
                                             <div class="input-group">
-                                                <span class="input-group-text">Overtime Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="employee.overtime_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted">
+                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
                                                     (Role default: {{ formatCurrency(employee.role_overtime_rate) }})
                                                 </span>
                                             </div>

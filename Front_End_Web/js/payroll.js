@@ -10,6 +10,10 @@ createApp({
             roleRates: [], //Array to store role-based hourly rates (base and overtime)
             employeeRates: [], //Array to store individual employee hourly rates (overrides role rates)
             paymentDetails: [], //Array containing detailed payment information for employees
+            employeeSearchQuery: '',
+            filteredEmployeeRates: [],
+            roleSearchQuery: '',
+            filteredRoleRates: [],
 
             //Summary statistics for the current payroll period
             payrollSummary: {
@@ -33,6 +37,33 @@ createApp({
     },
 
     methods: {
+
+        filterRoles() {
+            if (!this.roleSearchQuery) {
+                this.filteredRoleRates = [...this.roleRates];
+                return;
+            }
+            
+            const query = this.roleSearchQuery.toLowerCase();
+            this.filteredRoleRates = this.roleRates.filter(role => {
+                return role.title.toLowerCase().includes(query);
+            });
+        },
+
+         filterEmployees() {
+            if (!this.employeeSearchQuery) {
+                this.filteredEmployeeRates = [...this.employeeRates];
+                return;
+            }
+            
+            const query = this.employeeSearchQuery.toLowerCase();
+            this.filteredEmployeeRates = this.employeeRates.filter(employee => {
+                return (
+                    employee.employee_name.toLowerCase().includes(query) ||
+                    employee.role_title.toLowerCase().includes(query)
+                );
+            });
+        },
 
         //Calculate most recent Tuesday
         getMostRecentTuesday() {
@@ -62,15 +93,16 @@ createApp({
                 const response = await fetch(`${API_BASE}/roles`);
                 if (response.ok) {
                     this.roleRates = await response.json();
+                    this.filteredRoleRates = [...this.roleRates]; // Initialize filtered list
                 } else {
                     console.error('Failed to fetch role rates');
-                    //Set empty array on failure to prevent UI errors
                     this.roleRates = [];
+                    this.filteredRoleRates = [];
                 }
             } catch (error) {
                 console.error('Error fetching role rates:', error);
-                //Set empty array on error to prevent UI errors
                 this.roleRates = [];
+                this.filteredRoleRates = [];
             }
         },
 
@@ -80,15 +112,16 @@ createApp({
                 const response = await fetch(`${API_BASE}/employees`);
                 if (response.ok) {
                     this.employeeRates = await response.json();
+                    this.filteredEmployeeRates = [...this.employeeRates]; // Initialize filtered list
                 } else {
                     console.error('Failed to fetch employee rates');
-                    //Set empty array on failure to prevent UI errors
                     this.employeeRates = [];
+                    this.filteredEmployeeRates = [];
                 }
             } catch (error) {
                 console.error('Error fetching employee rates:', error);
-                //Set empty array on error to prevent UI errors
                 this.employeeRates = [];
+                this.filteredEmployeeRates = [];
             }
         },
 

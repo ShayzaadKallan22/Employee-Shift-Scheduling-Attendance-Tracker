@@ -21,7 +21,7 @@ const roleMap = {
 const register = async (req, res) => {
     try {
 
-        let { first_name, last_name, email, phone_number, role_id, mac_address, type_ } = req.body;
+        let { first_name, last_name, email, phone_number, role_id, type_ } = req.body;
 
         //Convert role name to ID if needed
         if (typeof role_id === 'string') {
@@ -33,7 +33,7 @@ const register = async (req, res) => {
         }
 
         //Validate input
-        if (!first_name || !last_name || !email || !phone_number || !role_id || !mac_address || !type_) {
+        if (!first_name || !last_name || !email || !phone_number || !role_id || !type_) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -42,10 +42,10 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'Invalid employee type' });
         }
 
-        //Validate MAC address format
-        if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac_address)) {
-            return res.status(400).json({ message: 'Invalid MAC address format' });
-        }
+        // //Validate MAC address format
+        // if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac_address)) {
+        //     return res.status(400).json({ message: 'Invalid MAC address format' });
+        // }
 
         //Check if user exists
         const [existingUser] = await pool.query(
@@ -57,15 +57,15 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        //Check if MAC address is registered
-        const [existingDevice] = await pool.query(
-            'SELECT * FROM T_Device WHERE mac_address = ?',
-            [mac_address]
-        );
+        // //Check if MAC address is registered
+        // const [existingDevice] = await pool.query(
+        //     'SELECT * FROM T_Device WHERE mac_address = ?',
+        //     [mac_address]
+        // );
 
-        if (existingDevice.length > 0) {
-            return res.status(400).json({ message: 'MAC address already registered' });
-        }
+        // if (existingDevice.length > 0) {
+        //     return res.status(400).json({ message: 'MAC address already registered' });
+        // }
 
         //Generate and hash password
         const generatedPassword = generatePassword();
@@ -85,19 +85,18 @@ const register = async (req, res) => {
             const newEmployeeId = employeeResult.insertId;
 
             //Register device
-            await pool.query(
-                'INSERT INTO T_Device (mac_address, employee_id) VALUES (?, ?)',
-                [mac_address, newEmployeeId]
-            );
+            // await pool.query(
+            //     'INSERT INTO T_Device (mac_address, employee_id) VALUES (?, ?)',
+            //     [mac_address, newEmployeeId]
+            // );
 
             //Commit transaction
             await pool.query('COMMIT');
 
             //Get the newly created user
             const [newUser] = await pool.query(`
-                SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id, d.mac_address
+                SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id
                 FROM T_Employee e
-                LEFT JOIN T_Device d ON e.employee_id = d.employee_id
                 WHERE e.employee_id = ?
             `, [newEmployeeId]);
 
@@ -121,9 +120,9 @@ const register = async (req, res) => {
                     type: newUser[0].type_,
                     role_id: newUser[0].role_id
                 },
-                device: {
-                    mac_address: newUser[0].mac_address
-                },
+                // device: {
+                //     mac_address: newUser[0].mac_address
+                // },
                 temporaryPassword: generatedPassword,
                 token
             });
