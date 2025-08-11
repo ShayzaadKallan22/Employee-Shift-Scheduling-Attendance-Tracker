@@ -59,7 +59,7 @@ createApp({
     //Fetch available roles from server
     async fetchRoles() {
       try {
-        const response = await fetch('http://localhost:3000/api/roles');
+        const response = await fetch('https://ifmprojv1-production.up.railway.app/api/roles');
         if (!response.ok) {
           throw new Error('Failed to fetch roles');
         }
