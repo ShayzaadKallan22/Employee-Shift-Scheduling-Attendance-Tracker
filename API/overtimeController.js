@@ -152,7 +152,7 @@ exports.generateQR = async (req, res) => {
     const qrExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
     
     //Set overtime session expiration to manager specified duration
-    const overtimeExpiration = new Date(Date.now() + duration * 60 * 1000);
+    const overtimeExpiration = new Date(Date.now() + duration * 60 * 60 * 1000);
 
     //Generate QR image
     const qrImage = await QRCode.toDataURL(qrData);
