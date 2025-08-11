@@ -33,6 +33,8 @@ cron.schedule('*/5 * * * * *', async () => {
         }); //Get todays date in format YYYY/MM/DD
 
         //Generate the time now
+        now.setHours(now.getHours() + 2); // Add 2 hours to the Date object
+
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const seconds = now.getSeconds().toString().padStart(2, '0');
@@ -65,7 +67,8 @@ cron.schedule('*/5 * * * * *', async () => {
                     //Generate new QR code
                     const qrData = `NORMAL-SHIFT-${uuidv4()}`;
                     const expiration = new Date();
-                    expiration.setMinutes(expiration.getMinutes() + 1); //15 minutes to clock in (1 min test)
+                    expiration.setHours(expiration.getHours() + 2); // Add 2 hours
+                    expiration.setMinutes(expiration.getMinutes() + 1); // Add 1 minute
 
                     //Place generation time in db for qr code
                     const generationDateTime = `${formattedDate} ${formattedTime}`; 
@@ -136,7 +139,8 @@ cron.schedule('*/5 * * * * *', async () => {
 
         //Generate a single proof QR that all employees can use
         const proofData = `SHIFT-PROOF-${currentDate}-${uuidv4()}`;
-        const proofExpiration = new Date(Date.now() + 1 * 60 * 1000); //1 min for testing (change to 15 mins)
+        proofExpiration.setHours(proofExpiration.getHours() + 2); // +2 hours     
+        proofExpiration.setMinutes(proofExpiration.getMinutes() + 1); // +1 minute
         
         //Save proof QR 
         await connection.query(
