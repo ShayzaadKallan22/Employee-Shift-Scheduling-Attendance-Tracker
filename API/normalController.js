@@ -11,7 +11,7 @@ cron.schedule('*/5 * * * * *', async () => {
   //await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
   try {
     await connection.beginTransaction();
-
+    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
     // Get shifts that should start now
     const [dateTime] = await connection.query(
         `SELECT shift_id, date_, start_time, employee_id
@@ -102,7 +102,7 @@ cron.schedule('*/5 * * * * *', async () => {
   //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
-    
+    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
     const now = new Date();
     const currentTime = now.toTimeString().slice(0, 8); //HH:MM:SS format
     const currentDate = now.toLocaleDateString('en-ZA', 
@@ -169,7 +169,7 @@ cron.schedule('*/5 * * * * *', async () => {
   //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
-
+    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
     //Update expired normal (clock-in) QR codes 
     await connection.query(
       `UPDATE t_qr_code 
