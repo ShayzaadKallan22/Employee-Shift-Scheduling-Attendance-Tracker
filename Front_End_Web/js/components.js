@@ -1,10 +1,13 @@
+
 // Author: Katlego Mmadi / Yatin Fakir
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
   const navbarContainer = document.getElementById("navbar-container");
   if (navbarContainer) {
     navbarContainer.innerHTML = `
+
       <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+
         <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
           <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
         </a>
@@ -30,9 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
               <hr class="dropdown-divider m-0">
               <a href="ViewAllNotifications.html" class="dropdown-item text-center">See all notifications</a>
             </div>
-          </div>
+          </div>     
 
           <!-- User dropdown -->
+
           <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
               <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px" />
@@ -44,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       </nav>
+      </div>
     `;
 
     // Initialize systems
@@ -53,37 +58,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Create a broadcast channel for real-time updates
-const notificationChannel = new BroadcastChannel('notificationChannel');
-
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (!logoutBtn) return;
 
   logoutBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-
-    const token = localStorage.getItem('token');
-    localStorage.removeItem('token');
+    
+    // 1. Clear storage immediately
+    localStorage.removeItem('token'); // Kept for backward compatibility, though not used
     localStorage.removeItem('employeeId');
+    localStorage.removeItem('user');
     sessionStorage.clear();
 
+    // 2. Clear any intervals
     if (window.notificationRefreshInterval) {
       clearInterval(window.notificationRefreshInterval);
     }
 
+    // 3. Notify server to destroy session
     try {
-      await fetch('/api/logout', {
+      const response = await fetch('/api/logout', {
         method: 'POST',
+        credentials: 'include', // Include cookies for session
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Logout API call failed:', data);
+      } else {
+        console.log('Logout successful:', data.message);
+      }
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
     }
+
+    // 4. Force redirect to clear memory
+    window.location.href = 'signin.html?logout=success&t=' + Date.now();
   });
 }
 
@@ -91,52 +104,37 @@ function setupLogoutButton() {
 function initializeNotificationSystem() {
   loadRecentNotifications();
   updateNotificationCount();
-
-  // Polling as a fallback (every 30 seconds)
   window.notificationRefreshInterval = setInterval(() => {
     loadRecentNotifications();
     updateNotificationCount();
   }, 30000);
-
-  // Listen for real-time updates from the broadcast channel
-  notificationChannel.onmessage = (event) => {
-    if (event.data.type === 'update') {
-      updateNotificationCount();
-      loadRecentNotifications();
-    }
-  };
-}
-
-function getEmployeeId() {
-  let id = localStorage.getItem("employeeId");
-  if (id) return id;
-
-  const match = document.cookie.match(/(?:^|;\s*)employeeId=([^;]*)/);
-  return match ? match[1] : null;
 }
 
 async function loadRecentNotifications() {
   try {
-    const employeeId = getEmployeeId();
-    if (!employeeId) {
-      console.warn("No employeeId found");
-      return;
-    }
-
-    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/latest?employeeId=${employeeId}`);
+    const employeeId = localStorage.getItem('employeeId');
+    if (!employeeId) throw new Error('No employee ID found in localStorage');
+    
+    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/latest?employeeId=${employeeId}`, {
+      credentials: 'include' // Include cookies for session
+    });
     if (!response.ok) throw new Error('Failed to fetch notifications');
-
+    
     const notifications = await response.json();
     const container = document.getElementById('recent-notifications');
 
-    container.innerHTML = notifications.length ?
-      notifications.map((n, i) => `
+    container.innerHTML = notifications.length ? 
+      notifications.map(n => `
         <a href="#" class="dropdown-item ${n.read_status === 'unread' ? 'bg-dark' : ''}">
-          <h6 class="fw-normal mb-0">${n.message}</h6>
-          <small>${formatTime(n.sent_time)}</small>
-          ${i < notifications.length - 1 ? '<hr class="dropdown-divider m-0">' : ''}
+          <div class="d-flex align-items-start">
+            <div class="me-2">${getNotificationIcon(n.type)}</div>
+            <div>
+              <small class="text-truncate d-block" style="max-width: 280px;">${n.message}</small>
+              <small class="text-muted">${formatTime(n.sent_time)}</small>
+            </div>
+          </div>
         </a>
-      `).join('') :
+      `).join('') : 
       `<div class="px-3 py-2 text-center text-muted">No notifications</div>`;
   } catch (error) {
     console.error('Notification load error:', error);
@@ -150,15 +148,14 @@ async function loadRecentNotifications() {
 
 async function updateNotificationCount() {
   try {
-    const employeeId = getEmployeeId();
-    if (!employeeId) {
-      console.warn("No employeeId found");
-      return;
-    }
-
-    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/count?employeeId=${employeeId}`);
+    const employeeId = localStorage.getItem('employeeId');
+    if (!employeeId) throw new Error('No employee ID found in localStorage');
+    
+    const response = await fetch(`http://localhost:3000/api/manager-notifications/unread/count?employeeId=${employeeId}`, {
+      credentials: 'include' // Include cookies for session
+    });
     if (!response.ok) throw new Error('Failed to fetch count');
-
+    
     const data = await response.json();
     const badge = document.getElementById('notificationCount');
     if (badge) {
