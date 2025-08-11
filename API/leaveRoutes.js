@@ -29,7 +29,7 @@ const db = require('./db');
 //                LIMIT 3
 //              ) as leave_requests
 //       FROM t_employee e
-//       JOIN T_Role r ON e.role_id = r.role_id
+//       JOIN t_role r ON e.role_id = r.role_id
 //       LEFT JOIN t_leave l ON e.employee_id = l.employee_id AND l.status_ = 'approved'
 //       LEFT JOIN t_leave_type lt ON l.leave_type_id = lt.leave_type_id
 //       GROUP BY e.employee_id
@@ -86,7 +86,7 @@ const db = require('./db');
 //           LIMIT 3
 //         ) as leave_requests
 //       FROM t_employee e
-//       JOIN T_Role r ON e.role_id = r.role_id
+//       JOIN t_role r ON e.role_id = r.role_id
 //       GROUP BY e.employee_id
 //     `);
 //     res.json(employees);
@@ -142,7 +142,7 @@ router.get('/employee-summary', async (req, res) => {
           LIMIT 3
         ) as leave_requests
       FROM t_employee e
-      JOIN T_Role r ON e.role_id = r.role_id
+      JOIN t_role r ON e.role_id = r.role_id
       GROUP BY e.employee_id
       ORDER BY e.first_name, e.last_name
     `);

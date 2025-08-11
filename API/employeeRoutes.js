@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
         const [employees] = await db.query(`
             SELECT e.*, r.title as role_title
             FROM t_employee e
-            JOIN T_Role r ON e.role_id = r.role_id
+            JOIN t_role r ON e.role_id = r.role_id
             ORDER BY e.last_name, e.first_name
         `);
 

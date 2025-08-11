@@ -99,6 +99,7 @@ const tableNameMap = {
   't_shift_swap': 't_shift_swap',
 };
 
+
 // Folder where your code lives (adjust if needed)
 const rootDir = path.resolve(__dirname, './'); // e.g. './src' or './'
 

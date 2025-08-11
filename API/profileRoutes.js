@@ -11,7 +11,7 @@ router.get('/profile/:id', async (req, res) => {
         const [[manager]] = await db.query(`
             SELECT e.*, r.title as role_title
             FROM t_employee e
-            JOIN T_Role r ON e.role_id = r.role_id
+            JOIN t_role r ON e.role_id = r.role_id
             WHERE e.employee_id = ? AND e.type_ = 'manager'
         `, [managerId]);
 

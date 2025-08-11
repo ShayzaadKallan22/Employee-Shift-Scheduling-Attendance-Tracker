@@ -59,7 +59,7 @@ const register = async (req, res) => {
 
         // //Check if MAC address is registered
         // const [existingDevice] = await pool.query(
-        //     'SELECT * FROM T_Device WHERE mac_address = ?',
+        //     'SELECT * FROM t_device WHERE mac_address = ?',
         //     [mac_address]
         // );
 
@@ -86,7 +86,7 @@ const register = async (req, res) => {
 
             //Register device
             // await pool.query(
-            //     'INSERT INTO T_Device (mac_address, employee_id) VALUES (?, ?)',
+            //     'INSERT INTO t_device (mac_address, employee_id) VALUES (?, ?)',
             //     [mac_address, newEmployeeId]
             // );
 
