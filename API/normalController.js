@@ -8,8 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 //Cron job to generate normal QR codes at shift start times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  //await connection.query("SET time_zone = '+02:00'"); // Set to SAST
-  // await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
+  //await connection.query("SET time_zone = '+02:00'"); //TIME ZONE
   try {
     await connection.beginTransaction();
 
@@ -42,7 +41,7 @@ cron.schedule('*/5 * * * * *', async () => {
         //Check each shift to see if it should start now
         for(const shift of dateTime) {
             //Get the start date of each shift from the db
-            const dbDate = new Date(shift.date_).toISOString().split('T')[0]; 
+            const dbDate = new Date(shift.date_).toLocaleDateString('en-ZA'); 
 
             //Get the start time of each shift from the db
             const shiftStartTime = shift.start_time;
@@ -65,8 +64,8 @@ cron.schedule('*/5 * * * * *', async () => {
 
                     //Generate new QR code
                     const qrData = `NORMAL-SHIFT-${uuidv4()}`;
-                    const now = new Date();
-                    const expiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
+                    const expiration = new Date();
+                    expiration.setMinutes(expiration.getMinutes() + 1); //15 minutes to clock in (1 min test)
 
                     //Place generation time in db for qr code
                     const generationDateTime = `${formattedDate} ${formattedTime}`; 
@@ -137,8 +136,7 @@ cron.schedule('*/5 * * * * *', async () => {
 
         //Generate a single proof QR that all employees can use
         const proofData = `SHIFT-PROOF-${currentDate}-${uuidv4()}`;
-        const now = new Date();
-        const proofExpiration = new Date(now.getTime() + (121 * 60 * 1000)); //135 minutes in milliseconds
+        const proofExpiration = new Date(Date.now() + 1 * 60 * 1000); //1 min for testing (change to 15 mins)
         
         //Save proof QR 
         await connection.query(
@@ -164,6 +162,7 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to expire QR codes that have passed their expiration time
 cron.schedule('*/5 * * * * *', async () => {  
   const connection = await pool.getConnection();
+  //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
 
