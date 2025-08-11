@@ -61,7 +61,7 @@ app.use(cors({
 
 app.use(express.urlencoded({ extended: true })); //For form submissions
 app.use(express.json()); //For API JSON payloads
-
+ app.use('/uploads', express.static('uploads')); //Added by Cletus.
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
 // Middleware
@@ -276,3 +276,27 @@ const messageRoutes = require('./messageRoutes');
 app.use('/api/messages', messageRoutes);
 
 //End of Yatin's Message code
+
+//Yatin:
+const uploadsPath = path.join(__dirname, 'uploads');
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsPath, {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.pdf')) {
+            res.set('Content-Type', 'application/pdf');
+        }
+    }
+}));
+
+//added route to serve the view-sick-note.html
+app.get('/view-sick-note.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
+});
+
+//added this route to serve the sick note viewer
+app.get('/view-sick-note.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
+});
+
+//End of Yatin's code
