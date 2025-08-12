@@ -197,8 +197,10 @@ cron.schedule('*/5 * * * * *', async () => {
 
     //Update shift status for shifts whose proof QRs have expired
     for (const qr of expiredProofQRs) {
-    const qrGenerationDate = new Date(qr.generation_time).toLocaleDateString('en-ZA', 
-    { year: 'numeric', 
+    const qrGenerationDate = new Date(new Date(qr.generation_time).getTime() + 2 * 60 * 60 * 1000)
+    .toLocaleDateString('en-ZA', 
+    { 
+        year: 'numeric', 
         month: '2-digit', 
         day: '2-digit' 
     }).replace(/-/g, '/'); 
