@@ -35,10 +35,10 @@ exports.scanQR = async (req, res) => {
     }
 
     //Mark QR code as used
-    await db.execute(
-      `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
-      [qr.qr_id]
-    );
+    // await db.execute(
+    //   `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
+    //   [qr.qr_id]
+    // );
 
     //Determine shift type based on QR purpose
     let shiftType = '';
@@ -61,12 +61,15 @@ exports.scanQR = async (req, res) => {
       shiftQuery = `
         SELECT shift_id FROM t_shift
         WHERE employee_id = ?
-          AND shift_type = ?
-          AND CURDATE() BETWEEN date_ AND end_date
-          AND CURTIME() >= start_time
-          AND status_ = 'scheduled'
+        AND shift_type = ?
+        AND date_ = CURDATE() 
+        AND CURTIME() >= start_time
+        AND status_ = 'scheduled'
+        ORDER BY date_ DESC, start_time ASC
         LIMIT 1`;
-      queryParams = [employee_id, shiftType];
+    queryParams = [employee_id, shiftType];
+
+      console.log(shiftQuery);
     } else {
       //For clock-in, we should look for shifts that:
       //1. Are for today
@@ -129,6 +132,8 @@ exports.scanQR = async (req, res) => {
         [employee_id, shift_id]
       );
 
+      console.log(shift_id);
+      console.log(employee_id);
       if (attendance.length === 0)
         return res.status(400).json({ message: `No active ${shiftType} clock-in found.` });
       //Update the clock-out time.
