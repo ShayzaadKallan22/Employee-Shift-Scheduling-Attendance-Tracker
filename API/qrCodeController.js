@@ -129,6 +129,9 @@ exports.scanQR = async (req, res) => {
         [employee_id, shift_id]
       );
 
+      console.log(employee_id);
+      console.log(shift_id);
+
       if (attendance.length === 0)
         return res.status(400).json({ message: `No active ${shiftType} clock-in found.` });
       //Update the clock-out time.
