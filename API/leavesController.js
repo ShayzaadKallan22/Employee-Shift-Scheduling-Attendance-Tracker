@@ -44,7 +44,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB limit for sick note uploads.
 //Configure file upload with size limit and PDF validation
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = 'uploads/';
+        const uploadDir = './uploads/';
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
