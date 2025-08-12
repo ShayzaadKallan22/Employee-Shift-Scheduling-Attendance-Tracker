@@ -165,7 +165,7 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to expire QR codes that have passed their expiration time
 cron.schedule('*/5 * * * * *', async () => {  
   const connection = await pool.getConnection();
-  //await connection.query("SET time_zone = '+02:00'");
+  await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
     await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
