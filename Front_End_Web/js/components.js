@@ -175,6 +175,17 @@ function formatTime(timeString) {
   return timeString ? new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 }
 
+function getNotificationIcon(type) {
+  const icons = {
+    leave_request: '📅',
+    payroll: '💰',
+    shift_swap: '🔄',
+    system: '⚙',
+    default: '🔔'
+  };
+  return icons[type] || icons.default;
+}
+
 function setupSidebarToggle() {
   const sidebarToggler = document.querySelector(".sidebar-toggler");
   const sidebar = document.querySelector(".sidebar");
