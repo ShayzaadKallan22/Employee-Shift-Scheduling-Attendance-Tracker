@@ -224,6 +224,7 @@ exports.generateQR = async (req, res) => {
 
       //Create shifts for all employees with selected roles
       const currentTime = new Date();
+      currentTime.setHours(currentTime.getHours() + 2);  // Add 2 hours to current time
       const shiftStartTime = currentTime.toTimeString().slice(0, 8);
       const shiftEndTime = overtimeExpiration.toTimeString().slice(0, 8);
       const shiftDate = today.toISOString().slice(0, 10);
