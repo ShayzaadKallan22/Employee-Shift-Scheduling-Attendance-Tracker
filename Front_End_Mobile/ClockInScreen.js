@@ -66,7 +66,7 @@ const ClockInScreen = () => {
     if (!attendanceStatus) return null;
     //Configure user status. 
     const statusConfig = {
-      'Working ': { color: '#4CAF50', icon: 'checkmark-circle', message: 'You are currently clocked in.' },
+      'Working': { color: '#4CAF50', icon: 'checkmark-circle', message: 'You are currently clocked in.' },
       'Not Working': { color: '#FF9800', icon: 'time-outline', message: 'You are currently clocked out.' },
       'Late': { color: '#FF5722', icon: 'alert-circle', message: 'You were late to your last shift.' },
       'On Leave': { color: '#2196F3', icon: 'airplane-outline', message: 'You are currently on leave.' },
@@ -114,7 +114,7 @@ const ClockInScreen = () => {
         disabled={attendanceStatus === 'On Leave'}
        >
        <Text style={styles.clockInText}>
-         {attendanceStatus === 'Working ' ? 'CLOCK-OUT' : 'CLOCK-IN'}
+         {attendanceStatus === 'Working' ? 'CLOCK-OUT' : 'CLOCK-IN'}
        </Text>
        <Icon name="qr-code-outline" size={24} color="#ffffff" />
        </TouchableOpacity>

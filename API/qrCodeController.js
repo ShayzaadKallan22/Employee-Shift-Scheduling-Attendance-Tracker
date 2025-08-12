@@ -35,10 +35,10 @@ exports.scanQR = async (req, res) => {
     }
 
     //Mark QR code as used
-    await db.execute(
-      `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
-      [qr.qr_id]
-    );
+    // await db.execute(
+    //   `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
+    //   [qr.qr_id]
+    // );
 
     //Determine shift type based on QR purpose
     let shiftType = '';
@@ -62,7 +62,7 @@ exports.scanQR = async (req, res) => {
         SELECT shift_id FROM t_shift
         WHERE employee_id = ?
           AND shift_type = ?
-          AND CURDATE() BETWEEN date_ AND end_date
+          AND CURDATE() >= date_ 
           AND CURTIME() >= start_time
           AND status_ = 'scheduled'
         LIMIT 1`;

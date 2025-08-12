@@ -99,11 +99,11 @@ cron.schedule('*/5 * * * * *', async () => {
 //Cron job to generate proof QR codes at shift end times
 cron.schedule('*/5 * * * * *', async () => {
   const connection = await pool.getConnection();
-  await connection.query("SET time_zone = '+02:00'");
+  //await connection.query("SET time_zone = '+02:00'");
   try {
     await connection.beginTransaction();
-    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAST
-    
+    await connection.query("SET time_zone = '+02:00'"); // Ensure session uses SAS
+
     const now = new Date(Date.now() + (2 * 60 * 60 * 1000)); // SAST adjustment
     const currentTime = now.toTimeString().slice(0, 8);
     const currentDate = new Date(Date.now() + (2 * 60 * 60 * 1000))
