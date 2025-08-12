@@ -61,12 +61,16 @@ exports.scanQR = async (req, res) => {
       shiftQuery = `
         SELECT shift_id FROM t_shift
         WHERE employee_id = ?
-          AND shift_type = ?
-          AND CURDATE() >= date_ 
-          AND CURTIME() >= start_time
-          AND status_ = 'scheduled'
+
+        AND shift_type = ?
+        AND date_ = CURDATE() 
+        AND CURTIME() >= start_time
+        AND status_ = 'scheduled'
+        ORDER BY date_ DESC, start_time ASC
         LIMIT 1`;
-      queryParams = [employee_id, shiftType];
+    queryParams = [employee_id, shiftType];
+
+      console.log(shiftQuery);
     } else {
       //For clock-in, we should look for shifts that:
       //1. Are for today
@@ -128,9 +132,6 @@ exports.scanQR = async (req, res) => {
          WHERE employee_id = ? AND shift_id = ? AND clock_out_time IS NULL`,
         [employee_id, shift_id]
       );
-
-      console.log(employee_id);
-      console.log(shift_id);
 
       if (attendance.length === 0)
         return res.status(400).json({ message: `No active ${shiftType} clock-in found.` });

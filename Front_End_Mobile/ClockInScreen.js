@@ -140,7 +140,7 @@ const ClockInScreen = () => {
                     size={16} 
                     color={shift.status_ === 'scheduled' ? '#FF9800' : '#4CAF50'} 
                   />
-                  {shift.status_ === 'scheduled' ? ' Upcoming' : ' Completed'}
+                  {shift.status_ === 'scheduled' ? 'Upcoming' : 'Completed'}
                 </Text>
               </View>
             ))
