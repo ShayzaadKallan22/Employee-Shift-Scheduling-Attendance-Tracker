@@ -207,7 +207,7 @@
     </td>
     <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
     <td>
-      <span class="badge">{{ request.leave_type }} ({{ getRemainingDays(request) }})</span>
+      <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
     </td>
     <td>
       <button @click="respondToLeave(request.leave_id, 'approved')"
