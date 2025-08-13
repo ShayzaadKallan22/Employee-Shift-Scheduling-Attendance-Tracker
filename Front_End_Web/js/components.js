@@ -81,7 +81,7 @@ function setupLogoutButton() {
         }
       });
 
-      window.location.href = '/Front_End_Web/signin.html?logout=success&t=' + Date.now();
+      window.location.href = 'signin.html?logout=success&t=' + Date.now();
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
     }
