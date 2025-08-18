@@ -61,6 +61,41 @@ router.get('/', async (req, res) => {
     const [notifications] = await pool.query(query, params);
     console.log('📦 Notifications for manager', req.employeeId, ':', notifications);
 
+    // Enrich notifications with sick note details by parsing message
+    const enrichedNotifications = await Promise.all(notifications.map(async (n) => {
+      const match = n.message.match(/uploaded a sick note for sick leave #(\d+)/);
+      if (match) {
+        const leaveId = parseInt(match[1]);
+        const [[leave]] = await pool.query(`
+          SELECT 
+            sick_note, 
+            start_date, 
+            end_date, 
+            employee_id,
+            DATEDIFF(end_date, start_date) + 1 AS days_taken
+          FROM t_leave 
+          WHERE leave_id = ?`, [leaveId]);
+        
+        if (leave && leave.sick_note) {
+          const [[employee]] = await pool.query(`
+            SELECT CONCAT(first_name, ' ', last_name) AS employee_name 
+            FROM t_employee 
+            WHERE employee_id = ?`, [leave.employee_id]);
+          
+          return {
+            ...n,
+            sick_note: leave.sick_note,
+            start_date: leave.start_date,
+            end_date: leave.end_date,
+            employee_id: leave.employee_id,
+            employee_name: employee.employee_name,
+            days_taken: leave.days_taken
+          };
+        }
+      }
+      return n;
+    }));
+
     let messageQuery = '';
     if (!type || type === 'message' || type === 'all') {
       messageQuery = `
@@ -85,7 +120,7 @@ router.get('/', async (req, res) => {
     const [messages] = await pool.query(messageQuery, [req.employeeId]);
     console.log('📦 Messages for manager', req.employeeId, ':', messages);
 
-    const combined = [...notifications, ...messages]
+    const combined = [...enrichedNotifications, ...messages]
       .sort((a, b) => new Date(b.sent_time) - new Date(a.sent_time));
     console.log('📦 Combined notifications and messages for manager', req.employeeId, 'fetched:', combined.length, combined);
 
@@ -96,7 +131,14 @@ router.get('/', async (req, res) => {
           message: n.sender_name ? `${n.sender_name}: ${n.message}` : n.message
         };
       }
-      return n;
+      // Construct link if it's a sick note notification with details
+      const link = n.sick_note ? 
+        `ViewSickNote.html?note=${encodeURIComponent(n.sick_note)}&employeeId=${n.employee_id || ''}&startDate=${n.start_date || ''}&endDate=${n.end_date || ''}&employeeName=${encodeURIComponent(n.employee_name || '')}&daysTaken=${n.days_taken || ''}` 
+        : null;
+      return {
+        ...n,
+        link
+      };
     });
 
     res.json(formattedNotifications);

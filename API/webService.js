@@ -224,6 +224,29 @@ app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/web', webforgotPassRoute);
 app.use('/api/notifications-messages', messagesRouter);
+app.get('/api/employees/search', async (req, res) => {
+  const { name } = req.query;
+  if (!name) {
+    return res.status(400).json({ error: 'Name required' });
+  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT employee_id FROM t_employee WHERE CONCAT(first_name, ' ', last_name) = ? AND type_ != 'manager'`,
+      [name]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+    if (rows.length > 1) {
+      return res.status(409).json({ error: 'Multiple employees found with the same name; contact admin' });
+    }
+    res.json({ employee_id: rows[0].employee_id });
+  } catch (err) {
+    console.error('Error searching employee:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
