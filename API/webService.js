@@ -18,6 +18,8 @@ const cors = require('cors'); //Added by Yatin for testing
 const leavesRoutes = require('./leavesRoutes');
 const leavesController = require('./leavesController'); //Added by Cletus.
 const shiftSwapRoutes = require('./shiftSwapRoutes'); //Added by Cletus.
+const messagesRoute = require('./messagesRoute');
+const messagesController = require('./messagesController'); //Added by Cletus.
 const qrRoute = require('./qrRoutes'); //Added by Cletus
 const cron = require('node-cron');  //Added by Cletus for scheduling tasks
 const profilesRoutes = require('./profilesRoutes'); //Added by Cletus.
@@ -341,6 +343,9 @@ app.use('/api', forgotPassRoute); //Added by Cletus.
 app.use('/api', notifyRoute); //Added by Cletus.
 
 app.use('/api/payroll', payrollsRoute); //Added by Cletus.
+//app.post('/api/conversation/:employeeId', messagesController.getMessages); //Added by Cletus.
+
+app.use('/api/conversation', messagesRoute); //Added by Cletus.
 
 //Added By Yatin for messages:
 
