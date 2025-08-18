@@ -249,6 +249,91 @@ router.get('/chart-data', async (req, res) => {
   }
 });
 
+// router.get('/all', async (req, res) => {
+//     try {
+//         const [rows] = await db.query(`
+//             SELECT 
+//                 l.leave_id, 
+//                 l.start_date, 
+//                 l.end_date, 
+//                 l.status_,
+//                 e.first_name, 
+//                 e.last_name, 
+//                 e.employee_id,
+//                 t.name_ AS leave_type, 
+//                 t.max_days_per_year,
+//                 DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+//                 (
+//                     SELECT COUNT(*) 
+//                     FROM t_event_employee ee
+//                     JOIN t_event ev ON ee.event_id = ev.event_id
+//                     WHERE ee.employee_id = e.employee_id
+//                     AND ev.end_date >= l.start_date 
+//                     AND ev.start_date <= l.end_date
+//                 ) > 0 AS has_events
+//             FROM T_Leave l
+//             JOIN T_Employee e ON l.employee_id = e.employee_id
+//             JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+//             WHERE l.status_ = 'pending'
+//             ORDER BY l.created_at DESC
+//         `);
+//         res.status(200).json(rows);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+
+router.get('/all', async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                l.leave_id, 
+                l.start_date, 
+                l.end_date, 
+                l.status_,
+                e.first_name, 
+                e.last_name, 
+                e.employee_id,
+                t.name_ AS leave_type, 
+                t.max_days_per_year,
+                DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+
+                -- Subquery for used days of this leave type for this employee
+                (
+                    SELECT IFNULL(SUM(DATEDIFF(l2.end_date, l2.start_date) + 1), 0)
+                    FROM T_Leave l2
+                    WHERE l2.employee_id = e.employee_id
+                    AND l2.leave_type_id = t.leave_type_id
+                    AND l2.status_ = 'approved'
+                    AND l2.leave_id != l.leave_id
+                ) AS used_days,
+
+                -- Subquery for checking overlapping events
+                (
+                    SELECT COUNT(*) 
+                    FROM t_event_employee ee
+                    JOIN t_event ev ON ee.event_id = ev.event_id
+                    WHERE ee.employee_id = e.employee_id
+                    AND ev.end_date >= l.start_date 
+                    AND ev.start_date <= l.end_date
+                ) > 0 AS has_events
+
+            FROM T_Leave l
+            JOIN T_Employee e ON l.employee_id = e.employee_id
+            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            WHERE l.status_ = 'pending'
+            ORDER BY l.created_at DESC
+        `);
+
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 router.post('/request', leaveController.requestLeave);
 router.get('/all', leaveController.getAllLeaveRequests);

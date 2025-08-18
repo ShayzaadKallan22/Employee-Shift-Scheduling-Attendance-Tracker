@@ -375,3 +375,6 @@ app.get('/view-sick-note.html', (req, res) => {
 });
 
 //End of Yatin's code
+
+const eventRoutes = require('./eventRoutes');
+app.use('/api', eventRoutes);
