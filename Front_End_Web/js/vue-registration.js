@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     phone_number: '',
                     type_: '',
                     role_id: '',
-                    mac_address: ''
+                   // mac_address: ''
                 },
                 termsChecked: false,
                 isSubmitting: false,
@@ -24,13 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         methods: {
             async handleSubmit() {
-                this.formData.mac_address = this.formData.mac_address.trim().toUpperCase();
+                //this.formData.mac_address = this.formData.mac_address.trim().toUpperCase();
                 
-                const macRegex = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/;
-                if (!macRegex.test(this.formData.mac_address)) {
-                    this.showAlert('Please enter valid MAC address format: 00:1A:2B:3C:4D:5E', 'danger');
-                    return;
-                }
+                // const macRegex = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/;
+                // if (!macRegex.test(this.formData.mac_address)) {
+                //     this.showAlert('Please enter valid MAC address format: 00:1A:2B:3C:4D:5E', 'danger');
+                //     return;
+                // }
                 
                 if (!this.termsChecked) {
                     this.showAlert('Please confirm all information is correct', 'danger');
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     phone_number: '',
                     type_: '',
                     role_id: '',
-                    mac_address: ''
+                   // mac_address: ''
                 };
                 this.termsChecked = false;
             }

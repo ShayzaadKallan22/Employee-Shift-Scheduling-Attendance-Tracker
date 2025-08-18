@@ -35,6 +35,36 @@
 
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+.flatpickr-calendar .flatpickr-day.budget-exceeded::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.flatpickr-calendar .flatpickr-day.budget-ok::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background-color: #28a745;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.flatpickr-calendar .flatpickr-day {
+    position: relative;
+}
+</style>
 </head>
 
 <body>
@@ -153,9 +183,9 @@
                                         <h4 class="mb-0"><i class="fa fa-money-bill me-2"></i>Payroll Management</h4>
                                         <div class="d-flex gap-2">
                                            <!-- Update these buttons in the Payroll Management section -->
-                                            <button class="btn btn-primary" @click="openBudgetModal">
+                                            <!-- <button class="btn btn-primary" @click="openBudgetModal">
                                                 <i class="fa fa-wallet me-2"></i>Adjust Budget
-                                            </button>
+                                            </button> -->
                                             <button class="btn btn-primary" @click="showEmployeeModal = true">
                                                 <i class="fa fa-user-edit me-2"></i>Manage Employee Rates
                                             </button>
@@ -193,75 +223,182 @@
                                     <div class="modal-backdrop fade show" v-if="showBudgetModal"></div>    
 
                                     <!-- Payroll Summary -->
-                                    <div class="bg-dark rounded p-4 mb-4">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h5 class="mb-0">Payroll Summary</h5>
-                                            <div class="d-flex position-relative">
-                                                <div class="flex-grow-1">
-                                                    <input type="text" id="payrollDate" class="form-control bg-secondary border-0" 
-                                                        placeholder="Select Tuesday" readonly>
-                                                </div>
-                                                <button class="btn btn-primary" @click="openDatePicker">
-                                                    <i class="fa fa-calendar"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                       <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
-                                                    <h6 class="mb-0">Total Payroll Budget Used</h6>
-                                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                                        <h3 :class="{'text-danger': payrollSummary.totalBudgetUsed > globalBudget, 'text-primary': payrollSummary.totalBudgetUsed <= globalBudget}">
-                                                            {{ formatCurrency(payrollSummary.totalBudgetUsed)}}/{{ formatCurrency(globalBudget) }}
-                                                        </h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
-                                                    <h6 class="mb-0">Payment Date</h6>
-                                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                                        <h3 class="text-success">{{ payrollSummary.paymentDate }}</h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
-                                                    <h6 class="mb-0">Remaining Budget</h6>
-                                                    <div class="flex-grow-1 d-flex flex-column justify-content-center">
-                                                        <h3 :class="{
-                                                            'text-danger': (globalBudget - payrollSummary.totalBudgetUsed) <= 0,
-                                                            'text-warning': (globalBudget - payrollSummary.totalBudgetUsed) > 0 && (globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2),
-                                                            'text-success': (globalBudget - payrollSummary.totalBudgetUsed) >= (globalBudget * 0.2)
-                                                        }">
-                                                            {{ formatCurrency(globalBudget - payrollSummary.totalBudgetUsed) }}
-                                                        </h3>
-                                                        
-                                                        <div class="progress mt-2" style="height: 6px;" v-if="globalBudget > 0">
-                                                            <div class="progress-bar" 
-                                                                :class="{
-                                                                    'bg-danger': (globalBudget - payrollSummary.totalBudgetUsed) <= 0,
-                                                                    'bg-warning': (globalBudget - payrollSummary.totalBudgetUsed) > 0 && (globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2),
-                                                                    'bg-success': (globalBudget - payrollSummary.totalBudgetUsed) >= (globalBudget * 0.2)
-                                                                }"
-                                                                :style="{width: Math.min(100, (payrollSummary.totalBudgetUsed / globalBudget) * 100) + '%'}">
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <!-- Warning message with fixed height to prevent layout shift -->
-                                                        <div class="mt-1" style="min-height: 20px;">
-                                                            <p class="small mb-0" v-if="(globalBudget - payrollSummary.totalBudgetUsed) <= 0">
-                                                                <i class="fas fa-exclamation-triangle me-1"></i> Budget exceeded!
-                                                            </p>
-                                                            <p class="small mb-0 text-warning" v-else-if="(globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2)">
-                                                                <i class="fas fa-info-circle me-1"></i> Low budget remaining
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+
+<div class="bg-dark rounded p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Payroll Summary</h5>
+        <div class="d-flex gap-2">
+            <!-- Budget Details Button - Always visible -->
+            <button class="btn btn-outline-info btn-sm" @click="openBudgetDetailsModal">
+                <i class="fa fa-info-circle me-1"></i>Budget Changes
+            </button>
+            <div class="d-flex position-relative">
+                <div class="flex-grow-1">
+                    <input type="text" id="payrollDate" class="form-control bg-secondary border-0" 
+                        placeholder="Select Tuesday" readonly>
+                </div>
+                <button class="btn btn-primary" @click="openDatePicker">
+                    <i class="fa fa-calendar"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Summary Row -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
+                <h6 class="mb-0">Total Payroll Budget Used</h6>
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                    <h4 :class="{'text-danger': payrollSummary.totalBudgetUsed > globalBudget, 'text-primary': payrollSummary.totalBudgetUsed <= globalBudget}">
+                        {{ formatCurrency(payrollSummary.totalBudgetUsed)}}/{{ formatCurrency(globalBudget) }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
+                <h6 class="mb-0">Payment Date</h6>
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                    <h4 class="text-success">{{ payrollSummary.paymentDate }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center d-flex flex-column" style="min-height: 140px;" v-if="payrollSummary">
+                <h6 class="mb-0">Remaining Budget</h6>
+                <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                    <h4 :class="{
+                        'text-danger': (globalBudget - payrollSummary.totalBudgetUsed) <= 0,
+                        'text-warning': (globalBudget - payrollSummary.totalBudgetUsed) > 0 && (globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2),
+                        'text-success': (globalBudget - payrollSummary.totalBudgetUsed) >= (globalBudget * 0.2)
+                    }">
+                        {{ formatCurrency(globalBudget - payrollSummary.totalBudgetUsed) }}
+                    </h4>
+                    
+                    <div class="progress mt-2" style="height: 6px;" v-if="globalBudget > 0">
+                        <div class="progress-bar" 
+                            :class="{
+                                'bg-danger': (globalBudget - payrollSummary.totalBudgetUsed) <= 0,
+                                'bg-warning': (globalBudget - payrollSummary.totalBudgetUsed) > 0 && (globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2),
+                                'bg-success': (globalBudget - payrollSummary.totalBudgetUsed) >= (globalBudget * 0.2)
+                            }"
+                            :style="{width: Math.min(100, (payrollSummary.totalBudgetUsed / globalBudget) * 100) + '%'}">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-1" style="min-height: 20px;">
+                        <p class="small mb-0" v-if="(globalBudget - payrollSummary.totalBudgetUsed) <= 0">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Budget exceeded!
+                        </p>
+                        <p class="small mb-0 text-warning" v-else-if="(globalBudget - payrollSummary.totalBudgetUsed) < (globalBudget * 0.2)">
+                            <i class="fas fa-info-circle me-1"></i> Low budget remaining
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Budget Details Modal -->
+<div class="modal fade" :class="{ show: showBudgetDetailsModal }" v-show="showBudgetDetailsModal" style="display: block;" tabindex="-1" v-if="showBudgetDetailsModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">
+                    <i class="fa fa-chart-line me-2"></i>Budget Adjustment Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" @click="closeBudgetDetailsModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <!-- Previous Week Summary -->
+                    <div class="col-md-6">
+                        <div class="bg-secondary rounded p-3">
+                            <h6 class="mb-3"><i class="fa fa-history me-2"></i>Previous Week</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Budget:</span>
+                                <strong>{{ formatCurrency(budgetComparison.previousBudget) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Week Summary -->
+                    <div class="col-md-6">
+                        <div class="bg-secondary rounded p-3">
+                            <h6 class="mb-3"><i class="fa fa-calendar me-2"></i>Current Week</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Budget:</span>
+                                <strong>{{ formatCurrency(budgetComparison.currentBudget) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Adjustment Analysis -->
+                    <div class="col-12">
+                        <div class="bg-secondary rounded p-4">
+                            <h6 class="mb-3"><i class="fa fa-calculator me-2"></i>Adjustment Analysis</h6>
+                            
+                            <div class="row text-center mb-4">
+                                <div class="col-md-4">
+                                    <div class="p-3">
+                                        <h4 :class="getAdjustmentClass()" v-if="budgetComparison.hasAdjustment">
+                                            <i :class="['fa', getAdjustmentIcon()]"></i>
+                                            {{ formatCurrency(Math.abs(budgetComparison.adjustment)) }}
+                                        </h4>
+                                        <h4 class="text-muted" v-else>
+                                            <i class="fa fa-equals"></i>
+                                            {{ formatCurrency(0) }}
+                                        </h4>
+                                        <small class="text-muted">Adjustment Amount</small>
                                     </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3">
+                                        <h4 :class="getAdjustmentClass()" v-if="budgetComparison.hasAdjustment">
+                                            {{ budgetComparison.adjustment > 0 ? '+' : '' }}{{ budgetComparison.adjustmentPercentage.toFixed(1) }}%
+                                        </h4>
+                                        <h4 class="text-muted" v-else>
+                                            0.0%
+                                        </h4>
+                                        <small class="text-muted">Percentage Change</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3">
+                                        <h4 class="text-info" v-if="budgetComparison.hasAdjustment">
+                                            <i class="fa fa-robot"></i>
+                                        </h4>
+                                        <h4 class="text-muted" v-else>
+                                            <i class="fa fa-pause"></i>
+                                        </h4>
+                                        <small class="text-muted" v-if="budgetComparison.hasAdjustment">Auto-Adjusted</small>
+                                        <small class="text-muted" v-else>No Adjustment</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Adjustment Reason -->
+                            <!-- <div class="alert mb-0" :class="budgetComparison.hasAdjustment ? 'alert-info' : 'alert-secondary'">
+                                <h6 class="alert-heading">
+                                    <i class="fa fa-info-circle me-2"></i>
+                                    <span v-if="budgetComparison.hasAdjustment">Adjustment Reason</span>
+                                    <span v-else>Budget Status</span>
+                                </h6>
+                                <p class="mb-0">{{ budgetComparison.adjustmentReason }}</p>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" @click="closeBudgetDetailsModal">Close</button>
+            </div> -->
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show" v-if="showBudgetDetailsModal"></div>
                                         
                                     <!-- Payment Details -->
                                     <div class="bg-dark rounded p-4">
@@ -287,7 +424,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr v-for="payment in paymentDetails" :key="payment.employee_id">
-                                                        <td>{{ payment.employee_name }} (EMP-{{ payment.employee_id }})</td>
+                                                        <td>{{ payment.employee_name }}</td>
                                                         <td>{{ payment.role_title }}</td>
                                                         <td>{{ formatCurrency(payment.total_amount) }}</td>
                                                         <td>{{ payment.regular_hours }} hrs</td>
@@ -321,16 +458,31 @@
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-3" v-for="role in roleRates" :key="role.role_id">
+                                        <div class="mb-4">
+                                            <div class="input-group border border-1 border-white rounded">
+                                                <!-- <span class="input-group-text">Search</span> -->
+                                                <span class="input-group-text bg-secondary text-white">
+                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                </span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control bg-secondary text-white" 
+                                                    placeholder="Search by role" 
+                                                    v-model="roleSearchQuery"
+                                                    @input="filterRoles"
+                                                >
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" v-for="role in filteredRoleRates" :key="role.role_id">
                                             <label class="form-label">{{ role.title }}</label>
                                             <div class="input-group mb-2">
-                                                <span class="input-group-text">Base Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="role.base_hourly_rate" step="0.01" min="0">
                                             </div>
                                             <div class="input-group">
-                                                <span class="input-group-text">Overtime Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="role.overtime_hourly_rate" step="0.01" min="0">
@@ -364,23 +516,38 @@
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-3" v-for="employee in employeeRates" :key="employee.employee_id">
+                                        <div class="mb-4">
+                                            <div class="input-group border border-1 border-white rounded">
+                                                <!-- <span class="input-group-text">Search</span> -->
+                                                <span class="input-group-text bg-secondary text-white">
+                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                </span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control bg-secondary text-white" 
+                                                    placeholder="Search by name or role" 
+                                                    v-model="employeeSearchQuery"
+                                                    @input="filterEmployees"
+                                                >
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" v-for="employee in filteredEmployeeRates" :key="employee.employee_id">
                                             <label class="form-label">{{ employee.employee_name }} - {{ employee.role_title }}</label>
                                             <div class="input-group mb-2">
-                                                <span class="input-group-text">Base Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="employee.base_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted">
+                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
                                                     (Role default: {{ formatCurrency(employee.role_base_rate) }})
                                                 </span>
                                             </div>
                                             <div class="input-group">
-                                                <span class="input-group-text">Overtime Rate</span>
+                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
                                                 <span class="input-group-text">R</span>
                                                 <input type="number" class="form-control bg-secondary text-white" 
                                                     v-model.number="employee.overtime_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted">
+                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
                                                     (Role default: {{ formatCurrency(employee.role_overtime_rate) }})
                                                 </span>
                                             </div>

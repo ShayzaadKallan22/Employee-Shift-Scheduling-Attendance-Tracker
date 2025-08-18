@@ -2,333 +2,636 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>Azania - Leave Management</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Employee Management, Leave Management, Staff Management" name="keywords">
-    <meta content="Comprehensive leave management system for employee time-off" name="description">
+  <meta charset="utf-8">
+  <title>Azania - Leave Management</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Employee Management, Leave Management, Staff Management" name="keywords">
+  <meta content="Comprehensive leave management system for employee time-off" name="description">
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+  <!-- Favicon -->
+  <link href="img/favicon.ico" rel="icon">
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
-        rel="stylesheet">
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+    rel="stylesheet">
 
-    <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+  <!-- Libraries Stylesheet -->
+  <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+  <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+  <!-- Customized Bootstrap Stylesheet -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Template Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
+  <!-- Template Stylesheet -->
+  <link href="css/style.css" rel="stylesheet">
 
-    <!-- Vue CDN -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+
+  <!-- Vue CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    .event-indicator {
+      color: #ff6b6b;
+      margin-left: 5px;
+      cursor: pointer;
+    }
+
+    */ .event-indicator:hover {
+      color: #dc3545;
+    }
+
+    /* Calendar Modal Styles */
+    /* .calendar-modal .modal-content {
+  min-height: 70vh;
+}
+
+.calendar-container {
+  height: 50%;
+  padding: 10px;
+} */
+
+    #eventCalendar {
+      width: 100%;
+      min-height: 500px;
+      background-color: #2a3042;
+      border-radius: 0.25rem;
+      padding: 10px;
+    }
+
+    /* FullCalendar overrides */
+    /* .fc .fc-view-harness {
+  min-height: 400px !important;
+}
+
+.fc .fc-scrollgrid-section-body table {
+  min-height: 300px;
+} */
+
+    /* Other existing styles remain the same */
+    /* .fc .fc-toolbar-title {
+  color: white;
+  font-size: 1.2rem;
+}
+
+.fc .fc-button {
+  background-color: #4e73df;
+  border-color: #4e73df;
+  color: white;
+} */
+
+    /* FullCalendar Styles */
+    /* .fc {
+  background-color: #2a3042;
+  border-radius: 0.25rem;
+  padding: 10px;
+}
+
+.fc .fc-toolbar-title {
+  color: white;
+  font-size: 1.2rem;
+}
+
+.fc .fc-button {
+  background-color: #4e73df;
+  border-color: #4e73df;
+  color: white;
+}
+
+.fc .fc-button:hover {
+  background-color: #2e59d9;
+  border-color: #2e59d9;
+}
+
+.fc .fc-daygrid-day-number {
+  color: white;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+.fc .fc-daygrid-day-top {
+  padding: 5px;
+} */
+
+    /* .fc .fc-event {
+  cursor: pointer;
+  margin-bottom: 2px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 50px;
+}
+
+.fc .has-event {
+  background-color: rgba(78, 115, 223, 0.2) !important;
+}
+
+.fc .has-event .fc-daygrid-day-number {
+  font-weight: bold;
+  color: #4e73df;
+} */
+
+    /* Tooltip styling */
+    .tooltip {
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    .tooltip-inner {
+      max-width: 300px;
+      text-align: left;
+    }
+
+    .simple-calendar {
+      font-family: 'Open Sans', sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .calendar-header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .month-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .month-title {
+      color: white;
+      margin: 0 15px;
+      font-size: 1.2rem;
+    }
+
+    .day-names {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 5px;
+    }
+
+    .day-name {
+      color: #6c757d;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .event-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    .event-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: #4e73df;
+      border-radius: 50%;
+    }
+
+    .event-more {
+      font-size: 9px;
+      color: #4e73df;
+      margin-left: 2px;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #2a3042;
+      border-radius: 4px;
+      position: relative;
+      transition: all 0.2s;
+      cursor: pointer;
+      /* Hand cursor for all days */
+    }
+
+    .calendar-day.empty {
+      background-color: transparent;
+      border: none;
+      cursor: default;
+      /* No cursor for empty cells */
+    }
+
+    .calendar-day.today {
+      border: 2px solid #ff6b6b;
+    }
+
+    .calendar-day.has-event {
+      background-color: rgba(78, 115, 223, 0.2);
+      border: 1px solid #4e73df;
+    }
+
+    .calendar-day.has-event:hover {
+      background-color: rgba(78, 115, 223, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Hover effect for all clickable days */
+    .calendar-day:not(.empty):hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: scale(1.03);
+    }
+
+    /* Selected day styling */
+    .calendar-day.selected {
+      background-color: rgba(78, 115, 223, 0.4);
+      box-shadow: 0 0 0 2px #4e73df;
+      transform: scale(1.05);
+    }
+
+    .calendar-day.selected.today {
+      box-shadow: 0 0 0 2px #ff6b6b;
+    }
+
+    .day-number {
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .event-dot {
+      display: block;
+      width: 6px;
+      height: 6px;
+      background-color: #4e73df;
+      border-radius: 50%;
+      margin-top: 3px;
+    }
+
+    /* Modal Sizing */
+    #calendarModal .modal-dialog {
+      max-width: 650px;
+    }
+
+    #eventCalendar {
+      padding: 10px;
+    }
+
+    #eventDetails {
+      background-color: #2a3042;
+      color: white;
+      border: 1px solid #4e757d;
+      margin-top: 20px;
+      min-height: 100px;
+    }
+
+    /* Navigation buttons */
+    .month-navigation button {
+      color: white;
+      border-color: #4e73df;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+
+    .month-navigation button:hover {
+      background-color: #4e73df;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container-fluid position-relative d-flex p-0">
-        <!-- Spinner Start -->
-        <div id="spinner"
-            class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-        <!-- Spinner End -->
-
-        <!-- Sidebar Start -->
-        <div class="sidebar pe-4 pb-3">
-            <nav class="navbar bg-secondary navbar-dark">
-                <a href="index.html" class="navbar-brand mx-4 mb-3">
-                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
-                </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
-                    <div class="position-relative">
-                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                        <div
-                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h6 class="mb-0">Employee Manager Demo</h6>
-                        <span>Admin</span>
-                    </div>
-                </div>
-                <div class="navbar-nav w-100">
-                    <a href="index.html" class="nav-item nav-link"><i
-                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
-                        Shifts</a>
-                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
-                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
-                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
-                                class="fa fa-user-plus me-2"></i>Registration</a>
-                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
-                            <a href="registration.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-user-edit me-2"></i>New</a>
-                        </div>
-                    </div>
-                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
-                    <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-                </div>
-            </nav>
-        </div>
-        <!-- Sidebar End -->
-
-        <!-- Content Start -->
-        <div class="content">
-            <!-- Navbar Start -->
-            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-                </a>
-                <a href="#" class="sidebar-toggler flex-shrink-0">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <div class="navbar-nav align-items-center ms-auto">
-                    <div class="nav-item dropdown">
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt=""
-                                        style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">New employee registered</h6>
-                                        <small>15 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <img class="rounded-circle" src="img/user.jpg" alt=""
-                                        style="width: 40px; height: 40px;">
-                                    <div class="ms-2">
-                                        <h6 class="fw-normal mb-0">Overtime request submitted</h6>
-                                        <small>25 minutes ago</small>
-                                    </div>
-                                </div>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa fa-bell me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Notifications</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Leave request approved</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">New shift scheduled</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Payroll processed</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt=""
-                                style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Admin User</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">Log Out</a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-            <!-- Navbar End -->
-
-            <div class="main-content">
-                <!-- Leave Management Start -->
-                <div class="container-fluid pt-4 px-4">
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <div class="bg-secondary rounded p-4">
-                                <!-- Vue Widget Container -->
-                                <div id="vue-leave-requests">
-                                    <div class="bg-dark rounded p-4">
-                                        <div class="d-flex align-items-center justify-content-between mb-4">
-                                            <h5 class="mb-0">Leave Requests</h5>
-                                            <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
-                                                Leave</a>
-                                        </div>
-
-                                        <div class="table-responsive">
-                                            <table class="table text-start align-middle table-bordered table-hover mb-0">
-                                                <thead>
-                                                    <tr class="text-white">
-                                                        <th scope="col">Employee</th>
-                                                        <th scope="col">Date Range</th>
-                                                        <th scope="col">Type & Days Remaining</th>
-                                                        <th scope="col">Decision</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-  <!--show loading message while data is being fetched -->
-  <tr v-if="isLoading">
-    <td colspan="4" class="text-center">Loading leave requests...</td>
-  </tr>
-  <!--show empty state when no requests exist -->
-  <tr v-else-if="leaveRequests.length === 0">
-    <td colspan="4" class="text-center">No pending leave requests</td>
-  </tr>
-  <!--dynamic Rows -->
-  <tr v-for="request in leaveRequests" :key="request.leave_id">
-    <td>
-      <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
-        {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
-      </a>
-    </td>
-    <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
-    <td>
-      <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
-    </td>
-    <td>
-      <button @click="respondToLeave(request.leave_id, 'approved')"
-              class="btn btn-sm btn-success me-1">Approve</button>
-      <button @click="respondToLeave(request.leave_id, 'rejected')"
-              class="btn btn-sm btn-danger">Reject</button>
-    </td>
-  </tr>
-</tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- Employee Leave History Modal -->
-<div class="modal fade" id="employeeLeaveModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content bg-dark">
-      <div class="modal-header">
-        <h5 class="modal-title" v-if="employeeDetails">
-          Leave History for {{ employeeDetails.first_name }} {{ employeeDetails.last_name }}
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="container-fluid position-relative d-flex p-0">
+    <!-- Spinner Start -->
+    <div id="spinner"
+      class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
       </div>
-      <div class="modal-body">
-        <div v-if="employeeDetails">
-          <div class="table-responsive">
-            <table class="table table-hover text-white">
-              <thead>
-                <tr>
-                  <th>Leave Type</th>
-                  <th>Date Range</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="request in employeeDetails.leaveHistory" :key="request.leave_id">
-                  <td>{{ request.leave_type }}</td>
-                  <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
-                  <td>
-                    <span class="badge" :class="{
+    </div>
+    <!-- Spinner End -->
+
+    <!-- Sidebar Start -->
+    <div class="sidebar pe-4 pb-3">
+      <nav class="navbar bg-secondary navbar-dark">
+        <a href="index.html" class="navbar-brand mx-4 mb-3">
+          <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+        </a>
+        <div class="d-flex align-items-center ms-4 mb-4">
+          <div class="position-relative">
+            <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+            <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+            </div>
+          </div>
+          <div class="ms-3">
+            <h6 class="mb-0">Employee Manager Demo</h6>
+            <span>Admin</span>
+          </div>
+        </div>
+        <div class="navbar-nav w-100">
+          <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+          <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
+            Shifts</a>
+          <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+          <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+          <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+          <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                class="fa fa-user-plus me-2"></i>Registration</a>
+            <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+              <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
+            </div>
+          </div>
+          <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+          <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+          <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+        </div>
+      </nav>
+    </div>
+    <!-- Sidebar End -->
+
+    <!-- Content Start -->
+    <div class="content">
+      <!-- Navbar Start -->
+      <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+        <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+          <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+        </a>
+        <a href="#" class="sidebar-toggler flex-shrink-0">
+          <i class="fa fa-bars"></i>
+        </a>
+        <div class="navbar-nav align-items-center ms-auto">
+          <div class="nav-item dropdown">
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+              <a href="#" class="dropdown-item">
+                <div class="d-flex align-items-center">
+                  <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                  <div class="ms-2">
+                    <h6 class="fw-normal mb-0">New employee registered</h6>
+                    <small>15 minutes ago</small>
+                  </div>
+                </div>
+              </a>
+              <hr class="dropdown-divider">
+              <a href="#" class="dropdown-item">
+                <div class="d-flex align-items-center">
+                  <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                  <div class="ms-2">
+                    <h6 class="fw-normal mb-0">Overtime request submitted</h6>
+                    <small>25 minutes ago</small>
+                  </div>
+                </div>
+              </a>
+              <hr class="dropdown-divider">
+              <a href="#" class="dropdown-item text-center">See all notifications</a>
+            </div>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fa fa-bell me-lg-2"></i>
+              <span class="d-none d-lg-inline-flex">Notifications</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+              <a href="#" class="dropdown-item">
+                <h6 class="fw-normal mb-0">Leave request approved</h6>
+                <small>15 minutes ago</small>
+              </a>
+              <hr class="dropdown-divider">
+              <a href="#" class="dropdown-item">
+                <h6 class="fw-normal mb-0">New shift scheduled</h6>
+                <small>15 minutes ago</small>
+              </a>
+              <hr class="dropdown-divider">
+              <a href="#" class="dropdown-item">
+                <h6 class="fw-normal mb-0">Payroll processed</h6>
+                <small>15 minutes ago</small>
+              </a>
+              <hr class="dropdown-divider">
+              <a href="#" class="dropdown-item text-center">See all notifications</a>
+            </div>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+              <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+              <span class="d-none d-lg-inline-flex">Admin User</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+              <a href="#" class="dropdown-item">Log Out</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <!-- Navbar End -->
+
+      <div class="main-content">
+        <!-- Leave Management Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="bg-secondary rounded p-4">
+                <!-- Vue Widget Container -->
+                <div id="vue-leave-requests">
+                  <div class="bg-dark rounded p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                      <h5 class="mb-0">Leave Requests</h5>
+                      <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
+                        Leave</a>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                          <tr class="text-white">
+                            <th scope="col">Employee</th>
+                            <th scope="col">Date Range</th>
+                            <th scope="col">Type & Days Remaining</th>
+                            <th scope="col">Decision</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!--show loading message while data is being fetched -->
+                          <tr v-if="isLoading">
+                            <td colspan="4" class="text-center">Loading leave requests...</td>
+                          </tr>
+                          <!--show empty state when no requests exist -->
+                          <tr v-else-if="leaveRequests.length === 0">
+                            <td colspan="4" class="text-center">No pending leave requests</td>
+                          </tr>
+                          <!--dynamic Rows -->
+                          <tr v-for="request in leaveRequests" :key="request.leave_id">
+                            <td>
+                              <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+                                {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
+                              </a>
+                              <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
+                                @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
+                                :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
+                              </i>
+                            </td>
+                            <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+                            <td>
+                              <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request)
+                                }})</span>
+                            </td>
+                            <td>
+                              <button @click="respondToLeave(request.leave_id, 'approved')"
+                                class="btn btn-sm btn-success me-1">Approve</button>
+                              <button @click="respondToLeave(request.leave_id, 'rejected')"
+                                class="btn btn-sm btn-danger">Reject</button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- Employee Leave History Modal -->
+                  <div class="modal fade" id="employeeLeaveModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content bg-dark">
+                        <div class="modal-header">
+                          <h5 class="modal-title" v-if="employeeDetails">
+                            Leave History for {{ employeeDetails.first_name }} {{ employeeDetails.last_name }}
+                          </h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <div v-if="employeeDetails">
+                            <div class="table-responsive">
+                              <table class="table table-hover text-white">
+                                <thead>
+                                  <tr>
+                                    <th>Leave Type</th>
+                                    <th>Date Range</th>
+                                    <th>Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr v-for="request in employeeDetails.leaveHistory" :key="request.leave_id">
+                                    <td>{{ request.leave_type }}</td>
+                                    <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+                                    <td>
+                                      <span class="badge" :class="{
                       'bg-success': request.status_ === 'approved',
                       'bg-warning': request.status_ === 'pending',
                       'bg-danger': request.status_ === 'rejected'
                     }">
-                      {{ request.status_ }}
-                    </span>
-                  </td>
-                </tr>
-                <tr v-if="employeeDetails.leaveHistory.length === 0">
-                  <td colspan="3" class="text-center">No leave history found</td>
-                </tr>
-              </tbody>
-            </table>
+                                        {{ request.status_ }}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  <tr v-if="employeeDetails.leaveHistory.length === 0">
+                                    <td colspan="3" class="text-center">No leave history found</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <!-- Leave Management End -->
+
+      <!-- Footer Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-secondary rounded-top p-4">
+          <div class="row">
+            <div class="col-12 col-sm-6 text-center text-sm-start">
+              &copy; <a href="#">Azania</a>, All Rights Reserved.
+            </div>
+            <div class="col-12 col-sm-6 text-center text-sm-end">
+              Designed By <a href="#">Code Connoisseurs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Footer End -->
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+  </div>
+
+  <!-- Calendar Modal -->
+  <div class="modal fade" id="calendarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header">
+          <h5 class="modal-title" id="calendarModalTitle">Event Calendar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="eventCalendar"></div>
+          <div class="mt-3">
+            <h6 class="text-white">Event Details:</h6>
+            <textarea id="eventDetails" class="form-control bg-secondary text-white" rows="4" readonly></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Leave Management End -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- JavaScript Libraries -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/chart/chart.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/waypoints/waypoints.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+  <script src="lib/tempusdominus/js/moment.min.js"></script>
+  <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+  <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-            <!-- Footer Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="bg-secondary rounded-top p-4">
-                    <div class="row">
-                        <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">Azania</a>, All Rights Reserved.
-                        </div>
-                        <div class="col-12 col-sm-6 text-center text-sm-end">
-                            Designed By <a href="#">Code Connoisseurs</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Footer End -->
-        </div>
-        <!-- Content End -->
+  <!-- Template Javascript -->
+  <script src="js/main.js"></script>
 
-        <!-- Back to Top -->
-        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
-    </div>
+  <script src="js/vue-leave-management.js"></script>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/chart/chart.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+  <script>
+    //initialize modal when shown
+    document.addEventListener('DOMContentLoaded', function () {
+      const employeeModal = document.getElementById('employeeLeaveModal');
+      if (employeeModal) {
+        const modal = new bootstrap.Modal(employeeModal);
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+        //listen for Vue's showModal event
+        const vueApp = Vue.createApp({});
+        vueApp.config.globalProperties.$showModal = function () {
+          modal.show();
+        };
+      }
+    });
+  </script>
 
-    <script src="js/vue-leave-management.js"></script>
-
-    <script>
-        // Initialize modal when shown
-        document.addEventListener('DOMContentLoaded', function() {
-            const employeeModal = document.getElementById('employeeLeaveModal');
-            if (employeeModal) {
-                const modal = new bootstrap.Modal(employeeModal);
-                
-                // Listen for Vue's showModal event
-                const vueApp = Vue.createApp({});
-                vueApp.config.globalProperties.$showModal = function() {
-                    modal.show();
-                };
-            }
-        });
-    </script>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js'></script>
 </body>
+
 </html>

@@ -41,6 +41,61 @@ const db = require('./db');
 //   }
 // });
 
+// router.get('/employee-summary', async (req, res) => {
+//   try {
+//     const [employees] = await db.query(`
+//       SELECT 
+//         e.employee_id, 
+//         e.first_name, 
+//         e.last_name, 
+//         e.status_, 
+//         r.title as role_title,
+//         (
+//           SELECT JSON_ARRAYAGG(
+//             JSON_OBJECT(
+//               'leave_type_id', lt.leave_type_id,
+//               'name_', lt.name_,
+//               'max_days', lt.max_days_per_year,
+//               'used_days', IFNULL((
+//                 SELECT SUM(DATEDIFF(l.end_date, l.start_date) + 1)
+//                 FROM T_Leave l
+//                 WHERE l.employee_id = e.employee_id 
+//                 AND l.leave_type_id = lt.leave_type_id
+//                 AND l.status_ = 'approved'
+//               ), 0)
+//             )
+//           )
+//           FROM T_Leave_Type lt
+//         ) as leave_balances,
+//         (
+//           SELECT JSON_ARRAYAGG(
+//             JSON_OBJECT(
+//               'leave_id', l.leave_id,
+//               'start_date', l.start_date,
+//               'end_date', l.end_date,
+//               'status_', l.status_,
+//               'leave_type_id', l.leave_type_id,
+//               'leave_type_name', lt.name_,
+//               'days_taken', DATEDIFF(l.end_date, l.start_date) + 1
+//             )
+//           )
+//           FROM T_Leave l
+//           JOIN T_Leave_Type lt ON l.leave_type_id = lt.leave_type_id
+//           WHERE l.employee_id = e.employee_id
+//           ORDER BY l.start_date DESC
+//           LIMIT 3
+//         ) as leave_requests
+//       FROM T_Employee e
+//       JOIN T_Role r ON e.role_id = r.role_id
+//       GROUP BY e.employee_id
+//     `);
+//     res.json(employees);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error', error: err.message });
+//   }
+// });
+
 router.get('/employee-summary', async (req, res) => {
   try {
     const [employees] = await db.query(`
@@ -76,7 +131,8 @@ router.get('/employee-summary', async (req, res) => {
               'status_', l.status_,
               'leave_type_id', l.leave_type_id,
               'leave_type_name', lt.name_,
-              'days_taken', DATEDIFF(l.end_date, l.start_date) + 1
+              'days_taken', DATEDIFF(l.end_date, l.start_date) + 1,
+              'sick_note', l.sick_note
             )
           )
           FROM T_Leave l
@@ -88,11 +144,18 @@ router.get('/employee-summary', async (req, res) => {
       FROM T_Employee e
       JOIN T_Role r ON e.role_id = r.role_id
       GROUP BY e.employee_id
+      ORDER BY e.first_name, e.last_name
     `);
+    
+    console.log('Successfully fetched employee leave summary');
     res.json(employees);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Error in /employee-summary:', err);
+    res.status(500).json({ 
+      message: 'Server error',
+      error: err.message,
+      sql: err.sql 
+    });
   }
 });
 
@@ -185,6 +248,91 @@ router.get('/chart-data', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+// router.get('/all', async (req, res) => {
+//     try {
+//         const [rows] = await db.query(`
+//             SELECT 
+//                 l.leave_id, 
+//                 l.start_date, 
+//                 l.end_date, 
+//                 l.status_,
+//                 e.first_name, 
+//                 e.last_name, 
+//                 e.employee_id,
+//                 t.name_ AS leave_type, 
+//                 t.max_days_per_year,
+//                 DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+//                 (
+//                     SELECT COUNT(*) 
+//                     FROM t_event_employee ee
+//                     JOIN t_event ev ON ee.event_id = ev.event_id
+//                     WHERE ee.employee_id = e.employee_id
+//                     AND ev.end_date >= l.start_date 
+//                     AND ev.start_date <= l.end_date
+//                 ) > 0 AS has_events
+//             FROM T_Leave l
+//             JOIN T_Employee e ON l.employee_id = e.employee_id
+//             JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+//             WHERE l.status_ = 'pending'
+//             ORDER BY l.created_at DESC
+//         `);
+//         res.status(200).json(rows);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+
+router.get('/all', async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                l.leave_id, 
+                l.start_date, 
+                l.end_date, 
+                l.status_,
+                e.first_name, 
+                e.last_name, 
+                e.employee_id,
+                t.name_ AS leave_type, 
+                t.max_days_per_year,
+                DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+
+                -- Subquery for used days of this leave type for this employee
+                (
+                    SELECT IFNULL(SUM(DATEDIFF(l2.end_date, l2.start_date) + 1), 0)
+                    FROM T_Leave l2
+                    WHERE l2.employee_id = e.employee_id
+                    AND l2.leave_type_id = t.leave_type_id
+                    AND l2.status_ = 'approved'
+                    AND l2.leave_id != l.leave_id
+                ) AS used_days,
+
+                -- Subquery for checking overlapping events
+                (
+                    SELECT COUNT(*) 
+                    FROM t_event_employee ee
+                    JOIN t_event ev ON ee.event_id = ev.event_id
+                    WHERE ee.employee_id = e.employee_id
+                    AND ev.end_date >= l.start_date 
+                    AND ev.start_date <= l.end_date
+                ) > 0 AS has_events
+
+            FROM T_Leave l
+            JOIN T_Employee e ON l.employee_id = e.employee_id
+            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            WHERE l.status_ = 'pending'
+            ORDER BY l.created_at DESC
+        `);
+
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 
 router.post('/request', leaveController.requestLeave);
