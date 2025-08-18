@@ -21,6 +21,7 @@ import Payslip from './Payslip';
 import ForgotPassword from './forgotPassword';
 import ResetPassword from './resetPassword';
 import NotificationDetail from './NotificationDetail';
+import ChatScreen from './Chat';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,6 +71,7 @@ function MainApp() {
           <Stack.Screen name="Home" component={ClockInScreen} />
           <Stack.Screen name="Shift" component={Shift} />
           <Stack.Screen name="Payslip" component={Payslip} />
+          <Stack.Screen name="ChatScreen" component={ChatScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>
