@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
       async fetchLeaveRequests() {
         this.isLoading = true;
         try {
-          const response = await fetch('https://ifmprojv1-production.up.railway.app/api/leave/all');
+          const response = await fetch('http://localhost:3000/api/leave/all');
           this.leaveRequests = await response.json();
 
           this.leaveRequests.forEach(request => {
