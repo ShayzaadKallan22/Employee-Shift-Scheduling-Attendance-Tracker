@@ -111,7 +111,7 @@ cron.schedule('* * * * *', updateLeaveStatuses);
 // Middleware
 //app.use(express.json());
 
-app.set('view engine', 'ejs');
+//app.set('view engine', 'ejs');
 
 // In webService.js, replace CORS middleware with:
 // app.use((req, res, next) => {
@@ -143,8 +143,9 @@ app.set('view engine', 'ejs');
 //   next();
 // });
 
+//SHAYZAAD
 app.get('/', (req, res) => {
-    res.render('registration');
+    res.sendFile(path.join(__dirname, '../Front_End_Web', 'signin.html'));
 });
 
 //Test API endpoint
