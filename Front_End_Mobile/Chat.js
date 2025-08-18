@@ -52,7 +52,7 @@ const ChatScreen = ({ route }) => {
       setLoggedInUserId(empIdNum);
       const otherIdNum = parseInt(otherId, 10);
 
-      console.log(`Fetching conversation between ${empIdNum} and ${otherIdNum}`);
+      //console.log(`Fetching conversation between ${empIdNum} and ${otherIdNum}`);
       const res = await axios.get(`${API_URL}/api/conversation/${empIdNum}/${otherIdNum}`);
       
       //Mark messages as read when fetching
@@ -64,7 +64,7 @@ const ChatScreen = ({ route }) => {
         lastResponse: res.data
       }));
 
-      console.log('Fetched messages:', res.data);
+      //console.log('Fetched messages:', res.data);
       setMessages(res.data);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -84,7 +84,7 @@ const ChatScreen = ({ route }) => {
         receiver_id: userId,
         sender_id: otherUserId
       });
-      console.log('Messages marked as read');
+      //console.log('Messages marked as read');
     } catch (err) {
       console.error('Error marking messages as read:', err);
     }
@@ -147,17 +147,27 @@ const ChatScreen = ({ route }) => {
 
   useEffect(() => {
     if (isFocused) {
-      navigation.setOptions({ title: otherName });
+      //Set the navigation header title with the other person's name
+      navigation.setOptions({ 
+        title: otherName || 'Chat',
+        headerStyle: {
+          backgroundColor: '#1a1a1a',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      });
       fetchMessages();
       
       const interval = setInterval(fetchMessages, 5000);
       return () => clearInterval(interval);
     }
-  }, [isFocused]);
+  }, [isFocused, otherName, navigation]);
 
   useEffect(() => {
     if (messages.length > 0) {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current?.scrollToEnd({ animated: false });
     }
   }, [messages]);
 
@@ -193,6 +203,16 @@ const ChatScreen = ({ route }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {/* Chat Header */}
+      <View style={styles.chatHeader}>
+        <Text style={styles.chatHeaderText}>
+          {otherName || 'Unknown User'}
+        </Text>
+        <Text style={styles.chatHeaderSubtext}>
+          Online • Tap to view profile
+        </Text>
+      </View>
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007bff" />
@@ -236,6 +256,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a'
+  },
+  chatHeader: {
+    backgroundColor: '#2c2c2c',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    alignItems: 'center'
+  },
+  chatHeaderText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 2
+  },
+  chatHeaderSubtext: {
+    color: '#aaa',
+    fontSize: 12
   },
   loadingContainer: {
     flex: 1,
