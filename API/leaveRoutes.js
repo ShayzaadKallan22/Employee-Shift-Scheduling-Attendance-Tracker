@@ -23,15 +23,15 @@ const db = require('./db');
 //                    'leave_type_id', l.leave_type_id
 //                  )
 //                )
-//                FROM T_Leave l
+//                FROM t_leave l
 //                WHERE l.employee_id = e.employee_id
 //                ORDER BY l.start_date DESC
 //                LIMIT 3
 //              ) as leave_requests
-//       FROM T_Employee e
-//       JOIN T_Role r ON e.role_id = r.role_id
-//       LEFT JOIN T_Leave l ON e.employee_id = l.employee_id AND l.status_ = 'approved'
-//       LEFT JOIN T_Leave_Type lt ON l.leave_type_id = lt.leave_type_id
+//       FROM t_employee e
+//       JOIN t_role r ON e.role_id = r.role_id
+//       LEFT JOIN t_leave l ON e.employee_id = l.employee_id AND l.status_ = 'approved'
+//       LEFT JOIN t_leave_type lt ON l.leave_type_id = lt.leave_type_id
 //       GROUP BY e.employee_id
 //     `);
 //     res.json(employees);
@@ -58,14 +58,14 @@ const db = require('./db');
 //               'max_days', lt.max_days_per_year,
 //               'used_days', IFNULL((
 //                 SELECT SUM(DATEDIFF(l.end_date, l.start_date) + 1)
-//                 FROM T_Leave l
+//                 FROM t_leave l
 //                 WHERE l.employee_id = e.employee_id 
 //                 AND l.leave_type_id = lt.leave_type_id
 //                 AND l.status_ = 'approved'
 //               ), 0)
 //             )
 //           )
-//           FROM T_Leave_Type lt
+//           FROM t_leave_type lt
 //         ) as leave_balances,
 //         (
 //           SELECT JSON_ARRAYAGG(
@@ -79,14 +79,14 @@ const db = require('./db');
 //               'days_taken', DATEDIFF(l.end_date, l.start_date) + 1
 //             )
 //           )
-//           FROM T_Leave l
-//           JOIN T_Leave_Type lt ON l.leave_type_id = lt.leave_type_id
+//           FROM t_leave l
+//           JOIN t_leave_type lt ON l.leave_type_id = lt.leave_type_id
 //           WHERE l.employee_id = e.employee_id
 //           ORDER BY l.start_date DESC
 //           LIMIT 3
 //         ) as leave_requests
-//       FROM T_Employee e
-//       JOIN T_Role r ON e.role_id = r.role_id
+//       FROM t_employee e
+//       JOIN t_role r ON e.role_id = r.role_id
 //       GROUP BY e.employee_id
 //     `);
 //     res.json(employees);
@@ -113,14 +113,14 @@ router.get('/employee-summary', async (req, res) => {
               'max_days', lt.max_days_per_year,
               'used_days', IFNULL((
                 SELECT SUM(DATEDIFF(l.end_date, l.start_date) + 1)
-                FROM T_Leave l
+                FROM t_leave l
                 WHERE l.employee_id = e.employee_id 
                 AND l.leave_type_id = lt.leave_type_id
                 AND l.status_ = 'approved'
               ), 0)
             )
           )
-          FROM T_Leave_Type lt
+          FROM t_leave_type lt
         ) as leave_balances,
         (
           SELECT JSON_ARRAYAGG(
@@ -135,14 +135,14 @@ router.get('/employee-summary', async (req, res) => {
               'sick_note', l.sick_note
             )
           )
-          FROM T_Leave l
-          JOIN T_Leave_Type lt ON l.leave_type_id = lt.leave_type_id
+          FROM t_leave l
+          JOIN t_leave_type lt ON l.leave_type_id = lt.leave_type_id
           WHERE l.employee_id = e.employee_id
           ORDER BY l.start_date DESC
           LIMIT 3
         ) as leave_requests
-      FROM T_Employee e
-      JOIN T_Role r ON e.role_id = r.role_id
+      FROM t_employee e
+      JOIN t_role r ON e.role_id = r.role_id
       GROUP BY e.employee_id
       ORDER BY e.first_name, e.last_name
     `);
@@ -161,7 +161,7 @@ router.get('/employee-summary', async (req, res) => {
 
 router.get('/types', async (req, res) => {
   try {
-    const [types] = await db.query('SELECT * FROM T_Leave_Type');
+    const [types] = await db.query('SELECT * FROM t_leave_type');
     res.json(types);
   } catch (err) {
     console.error(err);
@@ -172,28 +172,28 @@ router.get('/types', async (req, res) => {
 // Get leave statistics
 router.get('/stats', async (req, res) => {
   try {
-    const [totalEmployees] = await db.query('SELECT COUNT(*) AS count FROM T_Employee WHERE status_ = "Working"');
+    const [totalEmployees] = await db.query('SELECT COUNT(*) AS count FROM t_employee WHERE status_ = "Working"');
 
     // const [onLeaveToday] = await db.query(`
     //   SELECT COUNT(DISTINCT l.employee_id) AS count 
-    //   FROM T_Leave l 
+    //   FROM t_leave l 
     //   WHERE CURDATE() BETWEEN l.start_date AND l.end_date 
     //   AND l.status_ = 'approved'
     // `);
 
     const [onLeaveToday] = await db.query(`
       SELECT COUNT(DISTINCT e.employee_id) AS count 
-      FROM T_Employee e
+      FROM t_employee e
       WHERE e.status_ = 'On Leave'
     `);
     const [pendingRequests] = await db.query(`
       SELECT COUNT(*) AS count 
-      FROM T_Leave 
+      FROM t_leave 
       WHERE status_ = 'pending'
     `);
     const [leaveThisMonth] = await db.query(`
       SELECT COUNT(DISTINCT employee_id) AS count 
-      FROM T_Leave 
+      FROM t_leave 
       WHERE MONTH(start_date) = MONTH(CURDATE()) 
       AND YEAR(start_date) = YEAR(CURDATE())
     `);
@@ -217,8 +217,8 @@ router.get('/stats', async (req, res) => {
 //       SELECT 
 //         t.name_ AS leave_type,
 //         SUM(DATEDIFF(l.end_date, l.start_date) + 1) AS total_days
-//       FROM T_Leave l
-//       JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+//       FROM t_leave l
+//       JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
 //       WHERE l.status_ = 'approved'
 //       GROUP BY t.name_
 //     `);
@@ -237,8 +237,8 @@ router.get('/chart-data', async (req, res) => {
         t.leave_type_id,
         t.name_ AS leave_type,
         SUM(DATEDIFF(l.end_date, l.start_date) + 1) AS total_days
-      FROM T_Leave l
-      JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+      FROM t_leave l
+      JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
       WHERE l.status_ = 'approved'
       GROUP BY t.leave_type_id, t.name_
     `);
@@ -271,9 +271,9 @@ router.get('/chart-data', async (req, res) => {
 //                     AND ev.end_date >= l.start_date 
 //                     AND ev.start_date <= l.end_date
 //                 ) > 0 AS has_events
-//             FROM T_Leave l
-//             JOIN T_Employee e ON l.employee_id = e.employee_id
-//             JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+//             FROM t_leave l
+//             JOIN t_employee e ON l.employee_id = e.employee_id
+//             JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
 //             WHERE l.status_ = 'pending'
 //             ORDER BY l.created_at DESC
 //         `);
@@ -302,7 +302,7 @@ router.get('/all', async (req, res) => {
                 -- Subquery for used days of this leave type for this employee
                 (
                     SELECT IFNULL(SUM(DATEDIFF(l2.end_date, l2.start_date) + 1), 0)
-                    FROM T_Leave l2
+                    FROM t_leave l2
                     WHERE l2.employee_id = e.employee_id
                     AND l2.leave_type_id = t.leave_type_id
                     AND l2.status_ = 'approved'
@@ -319,9 +319,9 @@ router.get('/all', async (req, res) => {
                     AND ev.start_date <= l.end_date
                 ) > 0 AS has_events
 
-            FROM T_Leave l
-            JOIN T_Employee e ON l.employee_id = e.employee_id
-            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
+            FROM t_leave l
+            JOIN t_employee e ON l.employee_id = e.employee_id
+            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
             WHERE l.status_ = 'pending'
             ORDER BY l.created_at DESC
         `);

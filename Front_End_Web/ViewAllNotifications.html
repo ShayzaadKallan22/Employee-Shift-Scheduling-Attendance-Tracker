@@ -518,9 +518,7 @@
                   <option value="message">Messages</option>
                   <option value="attendance">Attendance</option>
                 </select>
-                <label>Start Date</label>
                 <input type="date" v-model="startDate" class="search-input date-picker" placeholder="Start Date" style="border-radius:7px; --webkit-calendar-picker-indicator: { filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%); }" />
-                <label>End Date</label>
                 <input type="date" v-model="endDate" class="search-input date-picker" placeholder="End Date" style="border-radius:7px; --webkit-calendar-picker-indicator: { filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%); }" />
               </div>
             </div>
@@ -576,7 +574,7 @@
                 const error = ref(null);
                 const searchTerm = ref("");
                 const selectedCategory = ref("all");
-                const statusFilter = ref("all");
+                const statusFilter = ref("unread");
                 const startDate = ref("");
                 const endDate = ref("");
 

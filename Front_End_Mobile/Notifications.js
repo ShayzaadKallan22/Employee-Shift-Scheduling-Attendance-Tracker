@@ -22,10 +22,10 @@ const MessagesAndNotifications = () => {
 
   //State
   const [notifications, setNotifications] = useState([]);
-  const [activeNotificationTab, setActiveNotificationTab] = useState('All');
+  const [activeNotificationTab, setActiveNotificationTab] = useState('Unread');
   const { fetchUnreadCount } = useNotifications();
   const [conversations, setConversations] = useState([]);
-  const [activeMessageTab, setActiveMessageTab] = useState('All');
+  const [activeMessageTab, setActiveMessageTab] = useState('Unread');
 
   //Fetch list of conversations for the current user
     const fetchConversations = async () => {
