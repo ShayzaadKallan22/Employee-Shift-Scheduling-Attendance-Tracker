@@ -27,21 +27,25 @@
 
     <style>
         .message-container {
-            height: 500px;
-            overflow-y: auto;
-            border: 1px solid #2a2e38;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #191c24;
-        }
+        height: 500px;
+        overflow-y: auto;
+        border: 1px solid #2a2e38;
+        border-radius: 8px;
+        padding: 15px;
+        background-color: #191c24;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
         
         .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 70%;
+        word-wrap: break-word;
+        position: relative;
+    }
         
         .sent {
             background-color: #2563eb;
@@ -98,6 +102,31 @@
             margin-left: 10px;
             font-style: italic;
         }
+
+        .message.sent {
+        background-color: #2563eb;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 0;
+    }
+    
+    .message.received {
+        background-color: #2a2e38;
+        color: white;
+        align-self: flex-start;
+        border-bottom-left-radius: 0;
+    }
+    
+    .message-info {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 5px;
+        text-align: right;
+    }
+    
+    .message.received .message-info {
+        text-align: left;
+    }
     </style>
 </head>
 
@@ -160,46 +189,7 @@
         <!-- Content Start -->
         <div class="content">
             <!-- Navbar Start -->
-            <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-                    <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-                </a>
-                <a href="#" class="sidebar-toggler flex-shrink-0">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <div class="navbar-nav align-items-center ms-auto">
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa fa-bell me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Notifications</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">New message received</h6>
-                                <small>15 minutes ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item">
-                                <h6 class="fw-normal mb-0">Employee responded</h6>
-                                <small>1 hour ago</small>
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">See all notifications</a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Manager</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="my-profile.html" class="dropdown-item">My Profile</a>
-                            <a href="#" class="dropdown-item">Settings</a>
-                            <a href="#" class="dropdown-item">Log Out</a>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+           <div id="navbar-container"></div>
             <!-- Navbar End -->
 
             <!-- Message Employee Start -->
@@ -345,35 +335,45 @@
     </div>
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/chart/chart.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="lib/chart/chart.min.js"></script>
+<script src="lib/easing/easing.min.js"></script>
+<script src="lib/waypoints/waypoints.min.js"></script>
+<script src="lib/owlcarousel/owl.carousel.min.js"></script>
+<script src="lib/tempusdominus/js/moment.min.js"></script>
+<script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+<script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-    <!-- Vue.js -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="js/vue-messaging.js"></script>
+<script>
+//this attempts to get the employee ID from where login system stores it
+document.addEventListener('DOMContentLoaded', function() {
+    //check if user data exists in localStorage...set by login.js
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+        console.error('No user data found in localStorage');
+        
+        // window.location.href = 'signin.html';
+    }
+});
+</script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
-
-    
+<!-- Vue.js -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="js/vue-messaging.js"></script>
+
+<!-- Template Javascript -->
+<script src="js/main.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const app = MessageApp.createApp().mount('#vue-messaging');
     
-    // Check for employee ID in URL
+    //check for employee ID in URL
     const urlParams = new URLSearchParams(window.location.search);
     const employeeId = urlParams.get('employeeId');
     
-    // Wait for employees to load then select if ID exists
+    // wait for employees to load then select if ID exists
     const checkAndSelect = () => {
         if (employeeId && app.employees.length) {
             const employee = app.employees.find(e => e.employee_id == employeeId);
@@ -388,5 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAndSelect();
 });
 </script>
+<script src="js/components.js"></script>
 </body>
 </html>

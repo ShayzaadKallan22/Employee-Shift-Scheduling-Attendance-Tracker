@@ -2,6 +2,22 @@ const app = {
     createApp: function(config) {
         return Vue.createApp({
             data() {
+                //get employee ID from cookie or JWT token
+                const getEmployeeId = () => {
+                    //try to get from cookie
+                    const cookieValue = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('employeeId='))
+                        ?.split('=')[1];
+                    
+                    if (cookieValue) return cookieValue;
+
+                    //try to get from localStorage (fallback)
+                    return localStorage.getItem('employeeId') || null;
+                };
+
+                const employeeId = getEmployeeId();
+                
                 return {
                     employees: [],
                     filteredEmployees: [],
@@ -12,19 +28,41 @@ const app = {
                     loading: true,
                     error: null,
                     currentUser: {
-                        employee_id: 1, // This should be set from session (login) or localStorage
-                        first_name: 'Manager',
+                        employee_id: employeeId,
+                        first_name: 'Manager', //default name if we can't get from server
                         last_name: ''
                     },
                     pollingInterval: null,
                     lastPollTime: null
                 };
             },
+            async created() {
+                //if we have an employee ID, try to fetch their details
+                if (this.currentUser.employee_id) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/employees/${this.currentUser.employee_id}`);
+                        if (response.ok) {
+                            const userData = await response.json();
+                            this.currentUser = {
+                                ...this.currentUser,
+                                first_name: userData.first_name,
+                                last_name: userData.last_name
+                            };
+                        }
+                    } catch (err) {
+                        console.error('Error fetching user details:', err);
+                    }
+                }
+            },
             mounted() {
+                if (!this.currentUser.employee_id) {
+                    this.error = 'Please log in to use messaging';
+                    return;
+                }
                 this.fetchEmployees();
                 this.startPolling();
                 
-                // Check for employee ID in URL
+                //check for employee ID in URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const employeeId = urlParams.get('employeeId');
                 if (employeeId) {
@@ -32,11 +70,6 @@ const app = {
                     if (employee) {
                         this.selectEmployee(employee);
                     }
-                }
-            },
-            beforeUnmount() {
-                if (this.pollingInterval) {
-                    clearInterval(this.pollingInterval);
                 }
             },
             methods: {
@@ -112,7 +145,7 @@ const app = {
                     this.lastPollTime = new Date().toISOString();
                     this.scrollToBottom();
 
-                    // Mark messages as read
+                    //mark messages as read
                     const unreadIds = this.messages
                         .filter(m => m.receiver_id === this.currentUser.employee_id && m.read_status === 'unread')
                         .map(m => m.message_id);
@@ -128,7 +161,7 @@ const app = {
                 backToList() {
                     this.selectedEmployee = null;
                     this.messages = [];
-                    // Remove employeeId from URL
+                    //remove employeeId from URL
                     window.history.pushState({}, document.title, window.location.pathname);
                 },
                 async sendMessage() {
@@ -141,7 +174,7 @@ const app = {
                         content: this.newMessage.trim()
                     };
 
-                    // Optimistically add to UI
+                    //optimistically add to UI
                     const tempMessage = {
                         ...messageData,
                         temp_id: tempId,
@@ -166,14 +199,14 @@ const app = {
                         if (!response.ok) throw new Error('Failed to send message');
                         
                         const sentMessage = await response.json();
-                        // Replace temporary message with real one
+                        //replace temporary message with real one
                         const index = this.messages.findIndex(m => m.temp_id === tempId);
                         if (index !== -1) {
                             this.messages.splice(index, 1, sentMessage);
                         }
                     } catch (err) {
                         console.error('Error sending message:', err);
-                        // Remove optimistic message
+                        //remove optimistic message
                         const index = this.messages.findIndex(m => m.temp_id === tempId);
                         if (index !== -1) this.messages.splice(index, 1);
                         
@@ -182,12 +215,12 @@ const app = {
                     }
                 },
                 startPolling() {
-                    // Clear existing interval if any
+                    //clear existing interval if any
                     if (this.pollingInterval) {
                         clearInterval(this.pollingInterval);
                     }
 
-                    // Poll every 5 seconds
+                    //poll every 5 seconds
                     this.pollingInterval = setInterval(() => {
                         if (this.selectedEmployee) {
                             this.fetchMessages();
@@ -213,5 +246,5 @@ const app = {
     }
 };
 
-// Export for HTML to use
+//export for HTML to use
 window.MessageApp = app;

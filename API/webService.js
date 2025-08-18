@@ -18,6 +18,8 @@ const cors = require('cors'); //Added by Yatin for testing
 const leavesRoutes = require('./leavesRoutes');
 const leavesController = require('./leavesController'); //Added by Cletus.
 const shiftSwapRoutes = require('./shiftSwapRoutes'); //Added by Cletus.
+const messagesRoute = require('./messagesRoute');
+const messagesController = require('./messagesController'); //Added by Cletus.
 const qrRoute = require('./qrRoutes'); //Added by Cletus
 const cron = require('node-cron');  //Added by Cletus for scheduling tasks
 const profilesRoutes = require('./profilesRoutes'); //Added by Cletus.
@@ -113,7 +115,7 @@ cron.schedule('* * * * *', updateLeaveStatuses);
 // Middleware
 //app.use(express.json());
 
-app.set('view engine', 'ejs');
+//app.set('view engine', 'ejs');
 
 // In webService.js, replace CORS middleware with:
 // app.use((req, res, next) => {
@@ -145,8 +147,9 @@ app.set('view engine', 'ejs');
 //   next();
 // });
 
+//SHAYZAAD
 app.get('/', (req, res) => {
-    res.render('registration');
+    res.sendFile(path.join(__dirname, '../Front_End_Web', 'signin.html'));
 });
 
 //Test API endpoint
@@ -226,6 +229,29 @@ app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/web', webforgotPassRoute);
 app.use('/api/notifications-messages', messagesRouter);
+app.get('/api/employees/search', async (req, res) => {
+  const { name } = req.query;
+  if (!name) {
+    return res.status(400).json({ error: 'Name required' });
+  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT employee_id FROM t_employee WHERE CONCAT(first_name, ' ', last_name) = ? AND type_ != 'manager'`,
+      [name]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+    if (rows.length > 1) {
+      return res.status(409).json({ error: 'Multiple employees found with the same name; contact admin' });
+    }
+    res.json({ employee_id: rows[0].employee_id });
+  } catch (err) {
+    console.error('Error searching employee:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
@@ -346,6 +372,9 @@ app.use('/api', forgotPassRoute); //Added by Cletus.
 app.use('/api', notifyRoute); //Added by Cletus.
 
 app.use('/api/payroll', payrollsRoute); //Added by Cletus.
+//app.post('/api/conversation/:employeeId', messagesController.getMessages); //Added by Cletus.
+
+app.use('/api/conversation', messagesRoute); //Added by Cletus.
 
 //Added By Yatin for messages:
 
@@ -377,3 +406,6 @@ app.get('/view-sick-note.html', (req, res) => {
 });
 
 //End of Yatin's code
+
+const eventRoutes = require('./eventRoutes');
+app.use('/api', eventRoutes);

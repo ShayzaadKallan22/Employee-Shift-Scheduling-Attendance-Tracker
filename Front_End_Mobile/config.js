@@ -8,5 +8,6 @@ export default {
 
   API_URL: 'https://ifmprojv1-production.up.railway.app'
 
+
 };
 

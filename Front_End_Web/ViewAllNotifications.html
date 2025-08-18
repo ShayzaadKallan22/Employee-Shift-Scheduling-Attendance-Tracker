@@ -345,6 +345,9 @@
         .btn-mark-as-read {
           width: auto;
         }
+        input[type="date"] {
+          filter: invert(1) brightness(2); /* Adjusts to a light/white tone */
+        }
       }
     </style>
   </head>
@@ -476,9 +479,9 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-
     <script>
-      const { createApp, ref, onMounted, onUnmounted, computed } = Vue;
+      const { createApp, ref, onMounted, computed } = Vue;
+
       const managerId = localStorage.getItem("employeeId");
       console.log("Manager ID from localStorage:", managerId);
 
@@ -497,68 +500,74 @@
             "notification-panel": {
               props: ["managerId"],
               template: `
-                <div>
-                  <div class="stats">
-                    <p class="number-notifications">Notifications</p>
-                    <button class="btn-mark-as-read" @click="markAllAsRead">Mark All as Read</button>
-                  </div>
-                  <div class="filter-card mb-4">
-                    <div class="filter-content">
-                      <div class="search-wrapper">
-                        <span class="icon-search">🔍</span>
-                        <input class="search-input" v-model="searchTerm" placeholder="Search notifications..." />
-                      </div>
-                      <select class="filter-select" v-model="selectedCategory">
-                        <option value="all">All Categories</option>
-                        <option value="leave_request">Leave Requests</option>
-                        <option value="shift_swap">Shift Swaps</option>
-                        <option value="payroll">Payroll</option>
-                        <option value="system">System</option>
-                        <option value="message">Messages</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="tabs-list mb-4">
-                    <button class="tab" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">All</button>
-                    <button class="tab" :class="{ active: statusFilter === 'unread' }" @click="statusFilter = 'unread'">
-                      Unread <span class="tab-badge">{{ unreadCount }}</span>
-                    </button>
-                    <button class="tab" :class="{ active: statusFilter === 'read' }" @click="statusFilter = 'read'">Read</button>
-                  </div>
-                  <div v-if="isLoading" class="notification-card empty-state">
-                    <p>Loading notifications...</p>
-                  </div>
-                  <div v-else-if="error" class="notification-card empty-state">
-                    <p style="color: red;">{{ error }}</p>
-                  </div>
-                  <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
-                    <p>No matching notifications found.</p>
-                  </div>
-                 <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
-                  class="notification-card" :class="{ unread: n.read_status === 'unread', message: n.type === 'message' }">
-                    <div class="card-header">
-                      <div class="card-left">
-                        <span class="card-icon">{{ getIcon(n.type) }}</span>
-                        <div>
-                          <h3>{{ n.message }}</h3>
-                          <p v-if="n.type === 'message'">From: {{ n.sender_name }}</p>
-                          <div class="category-badge">{{ formatCategory(n.type) }}</div>
-                        </div>
-                      </div>
-                      <div class="card-right">
-                        <span class="timestamp">{{ formatTime(n.sent_time) }}</span>
-                        <button class="btn-mark-as-read" @click="toggleRead(n)">
-                          {{ n.read_status === 'read' ? 'Mark as Unread' : 'Mark as Read' }}
-                        </button>
-                      </div>
-                    </div>
-                    <!-- Moved action button under the message -->
-                    <div class="card-actions" v-if="getAction(n)">
-                      <a :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
-                    </div>
+          <div>
+            <div class="stats">
+              <p class="number-notifications">Notifications</p>
+              <button class="btn-mark-as-read" @click="markAllAsRead">Mark All as Read</button>
+            </div>
+            <div class="filter-card mb-4">
+              <div class="filter-content">
+                <div class="search-wrapper">
+                  <span class="icon-search">🔍</span>
+                  <input class="search-input" v-model="searchTerm" placeholder="Search notifications..." />
+                </div>
+                <select class="filter-select" v-model="selectedCategory">
+                  <option value="all">All Categories</option>
+                  <option value="leave_request">Leave</option>
+                  <option value="shift_swap">Shift Swaps</option>
+                  <option value="message">Messages</option>
+                  <option value="attendance">Attendance</option>
+                </select>
+                <input type="date" v-model="startDate" class="search-input date-picker" placeholder="Start Date" style="border-radius:7px; --webkit-calendar-picker-indicator: { filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%); }" />
+                <input type="date" v-model="endDate" class="search-input date-picker" placeholder="End Date" style="border-radius:7px; --webkit-calendar-picker-indicator: { filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%); }" />
+              </div>
+            </div>
+            <div class="tabs-list mb-4">
+              <button class="tab" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">All</button>
+              <button class="tab" :class="{ active: statusFilter === 'unread' }" @click="statusFilter = 'unread'">
+                Unread <span class="tab-badge">{{ unreadCount }}</span>
+              </button>
+              <button class="tab" :class="{ active: statusFilter === 'read' }" @click="statusFilter = 'read'">Read</button>
+            </div>
+            <div v-if="isLoading" class="notification-card empty-state">
+              <p>Loading notifications...</p>
+            </div>
+            <div v-else-if="error" class="notification-card empty-state">
+              <p style="color: red;">{{ error }}</p>
+            </div>
+            <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
+              <p>No matching notifications found.</p>
+            </div>
+            <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
+              class="notification-card" :class="{ unread: n.read_status === 'unread', message: n.type === 'message' }">
+              <div class="card-header">
+                <div class="card-left">
+                  <span class="card-icon">{{ getIcon(n.type) }}</span>
+                  <div>
+                    <h3>{{ n.message }}</h3>
+                    <p v-if="n.type === 'message'">From: {{ n.sender_name }}</p>
+                    <div class="category-badge">{{ formatCategory(n.type) }}</div>
                   </div>
                 </div>
-              `,
+                <div class="card-right">
+                  <span class="timestamp">{{ formatTime(n.sent_time) }}</span>
+                  <button class="btn-mark-as-read" @click="toggleRead(n)">
+                    {{ n.read_status === 'read' ? 'Mark as Unread' : 'Mark as Read' }}
+                  </button>
+                </div>
+              </div>
+              <div class="card-actions" v-if="getAction(n)">
+                <a v-if="getAction(n).type === 'message-employee' || n.type === 'message'" 
+                   href="#" 
+                   class="btn-action" 
+                   @click.prevent="handleMessageClick(n)">
+                  {{ getAction(n).text }}
+                </a>
+                <a v-else :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
+              </div>
+            </div>
+          </div>
+        `,
               setup(props) {
                 const notifications = ref([]);
                 const isLoading = ref(true);
@@ -566,6 +575,9 @@
                 const searchTerm = ref("");
                 const selectedCategory = ref("all");
                 const statusFilter = ref("unread");
+
+                const startDate = ref("");
+                const endDate = ref("");
 
                 const fetchNotifications = async () => {
                   isLoading.value = true;
@@ -576,10 +588,6 @@
                     if (!response.ok)
                       throw new Error("Failed to fetch notifications");
                     notifications.value = await response.json();
-                    console.log(
-                      "Raw notifications fetched:",
-                      notifications.value
-                    );
                   } catch (err) {
                     console.error("Error fetching notifications:", err);
                     error.value = "Failed to load notifications";
@@ -603,6 +611,7 @@
                     return 0;
                   }
                 };
+
 
                 const toggleRead = async (notification) => {
                   try {
@@ -658,7 +667,6 @@
 
                 const filteredNotifications = computed(() => {
                   let filtered = notifications.value;
-                  console.log("Raw notifications:", notifications.value);
                   if (searchTerm.value) {
                     const term = searchTerm.value.toLowerCase();
                     filtered = filtered.filter((n) =>
@@ -675,7 +683,20 @@
                       (n) => n.read_status === statusFilter.value
                     );
                   }
-                  console.log("Filtered notifications:", filtered);
+                  if (startDate.value || endDate.value) {
+                    const start = startDate.value
+                      ? new Date(startDate.value)
+                      : new Date(0);
+                    const end = endDate.value
+                      ? new Date(endDate.value)
+                      : new Date();
+                    filtered = filtered.filter((n) => {
+                      const notificationDate = new Date(n.sent_time);
+                      return (
+                        notificationDate >= start && notificationDate <= end
+                      );
+                    });
+                  }
                   return filtered;
                 });
 
@@ -686,13 +707,13 @@
                 });
 
                 const getIcon = (type) => {
-                  console.log("Getting icon for type:", type);
                   const icons = {
                     leave_request: "📅",
                     shift_swap: "🔄",
                     payroll: "💰",
                     system: "⚙️",
                     message: "✉️",
+                    sick_note: "📄",
                   };
                   return icons[type] || "📢";
                 };
@@ -704,20 +725,56 @@
                     payroll: "Payroll",
                     system: "System",
                     message: "Message",
+                    sick_note: "Sick Note",
                   };
                   return categories[type] || type;
                 };
 
-                const formatTime = (time) => {
-                  return new Date(time).toLocaleString();
-                };
+                const formatTime = (time) => new Date(time).toLocaleString();
 
                 const getAction = (notification) => {
-                  console.log("Getting action for notification:", notification);
+                  if (
+                    notification.link &&
+                    notification.message.includes("sick note")
+                  ) {
+                    const [name, surname] = notification.employee_name
+                      ? notification.employee_name.split(" ")
+                      : ["", ""];
+                    const startDate = notification.start_date
+                      ? new Date(notification.start_date)
+                          .toISOString()
+                          .split("T")[0]
+                      : "";
+                    const endDate = notification.end_date
+                      ? new Date(notification.end_date)
+                          .toISOString()
+                          .split("T")[0]
+                      : "";
+                    const link = `view-sick-note.html?note=${encodeURIComponent(
+                      notification.sick_note
+                    )}&employeeId=${
+                      notification.employee_id || ""
+                    }&startDate=${startDate}&endDate=${endDate}&employeeName=${encodeURIComponent(
+                      name + "%20" + surname
+                    )}&daysTaken=${notification.days_taken || ""}`;
+                    return { text: "View Sick Note", link };
+                  }
                   if (notification.type === "message") {
                     return {
                       text: "View Message",
-                      link: `message-employee.html?open_chat=${notification.sender_id}`,
+                      type: "message-employee",
+                      link: `message-employee.html?employeeId=${
+                        notification.sender_id || ""
+                      }`,
+                    };
+                  }
+                  if (notification.type === "attendance") {
+                    return {
+                      text: "Message Employee",
+                      type: "message-employee",
+                      link: `message-employee.html?employeeId=${
+                        notification.employee_id || ""
+                      }`,
                     };
                   }
                   const actions = {
@@ -733,19 +790,75 @@
                       text: "View Payroll",
                       link: `payroll.html?id=${notification.notification_id}`,
                     },
-                    attendance: {
-                      text: "Message Employee",
-                      link: `message-employee.html`,
-                    },
                   };
                   return actions[notification.type] || null;
                 };
 
+                const handleMessageClick = async (notification) => {
+                  try {
+                    // Mark notification as read
+                    await fetch(
+                      `http://localhost:3000/api/manager-notifications/${notification.notification_id}/read`,
+                      {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          type: notification.type,
+                          employeeId: props.managerId,
+                        }),
+                      }
+                    );
+
+                    let employeeId =
+                      notification.sender_id || notification.employee_id;
+
+                    // For attendance notifications, try to resolve employeeId from name if necessary
+                    if (notification.type === "attendance" && !employeeId) {
+                      const match = notification.message.match(
+                        /^([A-Za-z]+ [A-Za-z]+) has missed an overtime shift on (\d{4}\/\d{2}\/\d{2})$/
+                      );
+                      if (match) {
+                        const name = match[1];
+                        try {
+                          const response = await fetch(
+                            `http://localhost:3000/api/employees/search?name=${encodeURIComponent(
+                              name
+                            )}`
+                          );
+                          if (!response.ok)
+                            throw new Error("Employee not found");
+                          const employee = await response.json();
+                          employeeId = employee.employee_id || "";
+                        } catch (err) {
+                          console.error(
+                            "Error fetching employee by name:",
+                            err
+                          );
+                          error.value =
+                            "Could not find employee: " + err.message;
+                          return;
+                        }
+                      }
+                    }
+
+                    if (!employeeId) {
+                      console.error(
+                        "No valid employeeId found for notification:",
+                        notification
+                      );
+                      error.value = "Cannot open chat: Invalid employee ID";
+                      return;
+                    }
+
+                    // Redirect to chat portal
+                    window.location.href = `message-employee.html?employeeId=${employeeId}`;
+                  } catch (err) {
+                    console.error("Error handling message click:", err);
+                    error.value = "Failed to open chat: " + err.message;
+                  }
+                };
+
                 onMounted(() => {
-                  console.log("Initial filters:", {
-                    selectedCategory: selectedCategory.value,
-                    statusFilter: statusFilter.value,
-                  });
                   fetchNotifications();
                 });
 
@@ -756,6 +869,8 @@
                   searchTerm,
                   selectedCategory,
                   statusFilter,
+                  startDate,
+                  endDate,
                   filteredNotifications,
                   unreadCount,
                   getIcon,
@@ -764,6 +879,7 @@
                   getAction,
                   toggleRead,
                   markAllAsRead,
+                  handleMessageClick,
                 };
               },
             },
