@@ -12,6 +12,28 @@ document.addEventListener("DOMContentLoaded", () => {
           <i class="fa fa-bars"></i>
         </a>
         <div class="navbar-nav align-items-center ms-auto">
+          <!-- Messages dropdown -->
+          <div class="nav-item dropdown me-3">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fa fa-envelope me-lg-2"></i>
+              <span class="d-none d-lg-inline-flex">Messages</span>
+              <!-- START: Unread messages count badge -->
+              <span id="messageCount" class="badge bg-success ms-1" style="font-size: 0.75rem; display: none;">0</span>
+              <!-- END: Unread messages count badge -->
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0" style="width: 350px;">
+              <div id="recent-messages" class="overflow-auto" style="max-height: 400px;">
+                <div class="text-center py-3">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+              <hr class="dropdown-divider m-0">
+              <a href="message-employee.html" class="dropdown-item text-center">See all messages</a>
+            </div>
+          </div>
+
           <!-- Notification dropdown -->
           <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
@@ -48,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize systems
     initializeNotificationSystem();
+    initializeMessageSystem();
     setupSidebarToggle();
     setupLogoutButton();
   }
@@ -55,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Create a broadcast channel for real-time updates
 const notificationChannel = new BroadcastChannel('notificationChannel');
+const messageChannel = new BroadcastChannel('messageChannel');
 
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
@@ -70,6 +94,10 @@ function setupLogoutButton() {
 
     if (window.notificationRefreshInterval) {
       clearInterval(window.notificationRefreshInterval);
+    }
+    
+    if (window.messageRefreshInterval) {
+      clearInterval(window.messageRefreshInterval);
     }
 
     try {
@@ -106,6 +134,98 @@ function initializeNotificationSystem() {
     }
   };
 }
+
+// START: Message System
+function initializeMessageSystem() {
+  loadRecentMessages();
+  updateMessageCount();
+
+  // Polling as a fallback (every 30 seconds)
+  window.messageRefreshInterval = setInterval(() => {
+    loadRecentMessages();
+    updateMessageCount();
+  }, 30000);
+
+  // Listen for real-time updates from the broadcast channel
+  messageChannel.onmessage = (event) => {
+    if (event.data.type === 'update') {
+      updateMessageCount();
+      loadRecentMessages();
+    }
+  };
+}
+
+async function loadRecentMessages() {
+  try {
+    const employeeId = getEmployeeId();
+    if (!employeeId) {
+      console.warn("No employeeId found for messages");
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/api/messages/recent/${employeeId}`);
+    if (!response.ok) throw new Error('Failed to fetch recent messages');
+
+    const messages = await response.json();
+    const container = document.getElementById('recent-messages');
+
+    if (!messages || messages.length === 0) {
+      container.innerHTML = `<div class="px-3 py-2 text-center text-muted">No messages</div>`;
+      return;
+    }
+
+    container.innerHTML = messages.map((msg, i) => `
+      <a href="message-employee.html?employeeId=${msg.other_employee_id}" class="dropdown-item ${msg.read_status === 'unread' ? 'bg-dark' : ''}">
+        <div class="d-flex align-items-center">
+          <img src="img/user.jpg" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="">
+          <div class="flex-grow-1">
+            <h6 class="fw-normal mb-0">${msg.other_employee_name}</h6>
+            <small class="text-muted">${truncateMessage(msg.content, 40)}</small>
+          </div>
+          <small class="text-muted">${formatTime(msg.sent_time)}</small>
+        </div>
+        ${i < messages.length - 1 ? '<hr class="dropdown-divider m-0">' : ''}
+      </a>
+    `).join('');
+  } catch (error) {
+    console.error('Message load error:', error);
+    document.getElementById('recent-messages').innerHTML = `
+      <div class="px-3 py-2 text-center text-danger">
+        Failed to load messages
+      </div>
+    `;
+  }
+}
+
+async function updateMessageCount() {
+  try {
+    const employeeId = getEmployeeId();
+    if (!employeeId) {
+      console.warn("No employeeId found for message count");
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/api/messages/unread/count/${employeeId}`);
+    if (!response.ok) throw new Error('Failed to fetch message count');
+
+    const data = await response.json();
+    const badge = document.getElementById('messageCount');
+    if (badge) {
+      badge.textContent = data.unreadCount;
+      badge.style.display = data.unreadCount > 0 ? 'inline-block' : 'none';
+    }
+  } catch (error) {
+    console.error('Message count update error:', error);
+    // Hide badge on error
+    const badge = document.getElementById('messageCount');
+    if (badge) badge.style.display = 'none';
+  }
+}
+
+function truncateMessage(message, maxLength) {
+  return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
+}
+// END: Message System
 
 function getEmployeeId() {
   let id = localStorage.getItem("employeeId");
@@ -187,3 +307,55 @@ function setupSidebarToggle() {
     });
   }
 }
+
+// Add this CSS to fix notification dropdown
+const notificationStyles = `
+    .navbar-nav .dropdown-menu {
+        max-width: 350px !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+    
+    #recent-notifications {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+    
+    #recent-notifications .dropdown-item {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        text-overflow: unset !important;
+        max-width: 100% !important;
+    }
+    
+    #recent-notifications .dropdown-item h6 {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+    }
+    
+    #recent-notifications::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #recent-notifications::-webkit-scrollbar-track {
+        background: #2a2e38;
+    }
+    
+    #recent-notifications::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+    }
+    
+    #recent-notifications::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+`;
+
+// Add the styles to the document
+const style = document.createElement('style');
+style.textContent = notificationStyles;
+document.head.appendChild(style);
