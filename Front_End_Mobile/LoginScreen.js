@@ -27,36 +27,49 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   //Handle employee login...
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Validation Error", "Please enter both email and password.");
-      return;
+  if (!email || !password) {
+    Alert.alert("Validation Error", "Please enter both email and password.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    //console.time('Login API Call');
+    const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+    //console.timeEnd('Login API Call');
+
+    // console.log("Login API raw response:", response.data);
+    // Alert.alert("Login response", JSON.stringify(response.data, null, 2));
+
+    //Safely extract response fields
+    const user = response.data?.user;
+
+    if (!user) {
+      throw new Error("Invalid response from server: missing token or user");
     }
 
-    setLoading(true);
+    //Store values safely
+    if (user.id) await AsyncStorage.setItem("employee_id", String(user.id));
+    if (user.role_id) await AsyncStorage.setItem("role_id", String(user.role_id));
+    if (user.email) await AsyncStorage.setItem("email", user.email);
 
-    try {
-      //fetch the api response 
-      console.time('Login API Call');
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password
-      });
-      console.timeEnd('Login API Call');
-      
-      //Store token and employee_ID.
-      //await AsyncStorage.setItem('userToken', response.data.token.toString);
-      //console.log('Token:', response.data.token);
-      await AsyncStorage.setItem('employee_id', response.data.user.id.toString());
-      await AsyncStorage.setItem('role_id', response.data.user.role_id.toString());
-      await AsyncStorage.setItem('email', response.data.user.email);
-      //Navigate to the clock in page
-      navigation.replace('ClockIn');
-    } catch (error) {
-      Alert.alert("Login Failed", error.response?.data?.error || error.response?.data?.message || error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    //Navigate only after everything succeeds
+    navigation.replace("ClockIn");
+  } catch (error) {
+    console.error("Login error:", error); // debug
+    Alert.alert(
+      "Login Failed",
+      error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
   //Navigate to the forgot password page.
   const handleForgotPassword = async () => {
     navigation.replace('forgotPassword');
