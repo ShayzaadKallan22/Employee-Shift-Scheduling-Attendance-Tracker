@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     console.log(`Fetching events for employee ${employeeId} from ${startDate} to ${endDate}`);
     const response = await fetch(
-      `http://ifmprojv1-production.up.railway.app/api/events/check-leave?employee_id=${employeeId}&start_date=${startDate}&end_date=${endDate}`
+      `https://ifmprojv1-production.up.railway.app/api/events/check-leave?employee_id=${employeeId}&start_date=${startDate}&end_date=${endDate}`
     );
     
     if (!response.ok) {
