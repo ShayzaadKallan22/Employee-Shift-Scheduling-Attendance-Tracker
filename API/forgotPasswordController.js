@@ -11,7 +11,7 @@ const nodemailer = require('nodemailer');   //For the reset_token transporter an
 exports.forgotPassword = async (req , res) =>{
 
     const {email} = req.body;
-
+     console.log("HERE?")
     if(!email) return res.status(400).json({message: 'Email is missing and required.'});
 
     //Get the employee with the entered email.
@@ -54,7 +54,7 @@ exports.forgotPassword = async (req , res) =>{
 //Reset passsword 
 exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
-  
+   console.log("HERE?")
   //Check if the reset token and the new password are valid.
   if (!token || !newPassword) {
     return res.status(400).json({ error: 'Please enter reset token and new password, they are required.' });
