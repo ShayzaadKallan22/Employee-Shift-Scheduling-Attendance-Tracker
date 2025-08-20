@@ -13,7 +13,8 @@ router.post('/events', async (req, res) => {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [event_name, description, start_date, end_date, start_time, end_time, location, expected_attendance, organizer_id]
         );
-        
+        console.log("checking if getting events created:");
+    console.log(result);
         res.status(201).json({ 
             message: 'Event created successfully',
             event_id: result.insertId 
@@ -39,12 +40,14 @@ router.get('/events', async (req, res) => {
             [start_date || new Date().toISOString().split('T')[0], 
              end_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]]
         );
-        
+        console.log("checking if getting events:");
+    console.log(events);
         res.status(200).json(events);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
+    
 });
 
 //check for events during leave period
