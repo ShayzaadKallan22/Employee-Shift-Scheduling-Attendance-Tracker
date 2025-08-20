@@ -163,7 +163,7 @@ async function loadRecentMessages() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/messages/recent/${employeeId}`);
+    const response = await fetch(`https://ifmprojv1-production.up.railway.app/api/messages/recent/${employeeId}`);
     if (!response.ok) throw new Error('Failed to fetch recent messages');
 
     const messages = await response.json();
@@ -205,7 +205,7 @@ async function updateMessageCount() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/messages/unread/count/${employeeId}`);
+    const response = await fetch(`https://ifmprojv1-production.up.railway.app/api/messages/unread/count/${employeeId}`);
     if (!response.ok) throw new Error('Failed to fetch message count');
 
     const data = await response.json();
