@@ -146,6 +146,37 @@
     justify-content: center;
     margin-left: 5px;
 }
+
+.employee-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+    text-transform: uppercase;
+}
+
+.employee-avatar-lg {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+}
+
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2a2e38;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
     </style>
 </head>
 
@@ -252,20 +283,20 @@
                                                 <tr v-for="employee in filteredEmployees" :key="employee.employee_id" 
     :class="{ 'unread-row': employee.last_message && employee.last_message.is_unread }">
     <td>
-        <div class="d-flex align-items-center" :class="{ 'unread-indicator': employee.last_message && employee.last_message.is_unread }">
-            <img :src="employee.profile_pic || 'img/user.jpg'"
-                 class="rounded-circle me-2" alt="Employee"
-                 style="width: 40px; height: 40px; object-fit: cover;">
-            <div>
-                <h6 class="mb-0">
-                    {{ employee.first_name }} {{ employee.last_name }}
-                    <span v-if="employee.last_message && employee.last_message.is_unread" 
-                          class="unread-badge"></span>
-                </h6>
-                <!-- <small>EMP-{{ employee.employee_id }}</small> -->
-            </div>
+    <div class="d-flex align-items-center" :class="{ 'unread-indicator': employee.last_message && employee.last_message.is_unread }">
+        <div class="employee-avatar me-2">
+            {{ getEmployeeInitials(employee) }}
         </div>
-    </td>
+        <div>
+            <h6 class="mb-0">
+                {{ employee.first_name }} {{ employee.last_name }}
+                <span v-if="employee.last_message && employee.last_message.is_unread" 
+                      class="unread-badge"></span>
+            </h6>
+            <small>EMP-{{ employee.employee_id }}</small>
+        </div>
+    </div>
+</td>
     <td>{{ employee.role_title }}</td>
     <td>
         <span class="badge" :class="{
@@ -300,9 +331,12 @@
 
                                 <div v-else class="bg-dark rounded p-4">
                                     <div class="employee-info d-flex align-items-center">
-                                        <img :src="selectedEmployee.profile_pic || 'img/user.jpg'"
+                                        <!-- <img :src="selectedEmployee.profile_pic || 'img/user.jpg'"
                                             class="rounded-circle me-3" alt="Employee"
-                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                            style="width: 50px; height: 50px; object-fit: cover;"> -->
+                                            <div class="employee-avatar employee-avatar-lg me-3">
+        {{ getEmployeeInitials(selectedEmployee) }}
+    </div>
                                         <div>
                                             <h5 class="mb-0">{{ selectedEmployee.first_name }} {{ selectedEmployee.last_name }}</h5>
                                             <small class="text-muted">{{ selectedEmployee.role_title }}</small>
@@ -442,6 +476,21 @@
                     }
                 },
                 methods: {
+
+// Avatar methods - ADD THESE AT THE BEGINNING
+                getEmployeeAvatar(employee) {
+                    if (!employee) return '';
+                    const firstLetter = employee.first_name ? employee.first_name.charAt(0).toUpperCase() : '?';
+                    return firstLetter;
+                },
+                
+                getEmployeeInitials(employee) {
+                    if (!employee) return '?';
+                    const first = employee.first_name ? employee.first_name.charAt(0).toUpperCase() : '';
+                    const last = employee.last_name ? employee.last_name.charAt(0).toUpperCase() : '';
+                    return first + last;
+                },
+
                     async fetchEmployees() {
                         try {
                             this.loading = true;
