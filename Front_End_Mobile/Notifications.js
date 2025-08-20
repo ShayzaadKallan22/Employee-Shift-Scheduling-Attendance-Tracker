@@ -10,6 +10,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNotifications } from './NotificationContext';
 import BottomNav from './BottomNav';
+import EmployeeSelector from './EmployeeSelector';
 import config from './config';
 
 const API_URL = config.API_URL;
@@ -19,6 +20,7 @@ const MessagesAndNotifications = () => {
   const [activeMainTab, setActiveMainTab] = useState('Notifications');
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmployeeSelector, setShowEmployeeSelector] = useState(false);
 
   //State
   const [notifications, setNotifications] = useState([]);
@@ -111,6 +113,14 @@ const MessagesAndNotifications = () => {
     }
   };
 
+  //Handle employee selection for new chat
+  const handleEmployeeSelected = (employee) => {
+    navigation.navigate('ChatScreen', {
+      otherId: employee.employee_id,
+      otherName: employee.name
+    });
+  };
+
   //Effects
   useEffect(() => {
     const init = async () => {
@@ -193,6 +203,18 @@ const MessagesAndNotifications = () => {
         ))}
       </View>
 
+      {/* New Chat Button - Only show in Messages tab */}
+      {activeMainTab === 'Messages' && (
+        <View style={styles.newChatContainer}>
+          <TouchableOpacity
+            style={styles.newChatButton}
+            onPress={() => setShowEmployeeSelector(true)}
+          >
+            <Text style={styles.newChatButtonText}>+ Start New Chat</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Content Area */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -232,7 +254,12 @@ const MessagesAndNotifications = () => {
             )
           ) : (
             filteredConversations.length === 0 ? (
-              <Text style={styles.noNotifications}>No conversations found</Text>
+              <View style={styles.emptyMessagesContainer}>
+                <Text style={styles.noNotifications}>No conversations found</Text>
+                <Text style={styles.emptyMessagesSubtext}>
+                  Tap "Start New Chat" to begin a conversation with your colleagues or managers
+                </Text>
+              </View>
             ) : (
               filteredConversations.map(conv => (
                 <TouchableOpacity
@@ -260,6 +287,14 @@ const MessagesAndNotifications = () => {
           )}
         </ScrollView>
       )}
+
+      {/* Employee Selector Modal */}
+      <EmployeeSelector
+        visible={showEmployeeSelector}
+        onClose={() => setShowEmployeeSelector(false)}
+        onSelectEmployee={handleEmployeeSelected}
+      />
+
       <BottomNav />
     </View>
   );
@@ -277,20 +312,57 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: '#1a1a1a',
     paddingVertical: 10,
+    paddingHorizontal: 5,
     borderBottomColor: '#333',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
+    
   },
   mainTabButton: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#555' },
   mainActiveTab: { backgroundColor: '#007bff', borderColor: '#007bff' },
   mainTabText: { color: '#aaaaaa', fontWeight: '600' },
   mainActiveTabText: { color: '#fff' },
-  tabContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10, paddingHorizontal: 10 },
-  tabButton: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#555' },
+  tabContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10, paddingHorizontal: 5, left: 10, right: 10 },
+  tabButton: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#555', size: 12 },
   activeTab: { backgroundColor: '#007bff', borderColor: '#007bff' },
   tabText: { color: '#aaaaaa', fontWeight: '600' },
   activeTabText: { color: '#ffffff' },
+  newChatContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333'
+  },
+  newChatButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignItems: 'center',
+    shadowColor: '#007bff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  newChatButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600'
+  },
   notificationsContainer: { flex: 1, paddingHorizontal: 15, marginTop: 5 },
   noNotifications: { color: '#aaaaaa', textAlign: 'center', marginTop: 50, fontSize: 16 },
+  emptyMessagesContainer: {
+    alignItems: 'center',
+    marginTop: 50
+  },
+  emptyMessagesSubtext: {
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 14,
+    paddingHorizontal: 20,
+    lineHeight: 20
+  },
   notificationCard: {
     backgroundColor: '#2c2c2c',
     borderRadius: 10,
