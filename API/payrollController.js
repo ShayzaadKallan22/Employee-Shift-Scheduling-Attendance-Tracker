@@ -3,6 +3,112 @@
 const cron = require('node-cron');
 const db = require('./db');
 
+const BUDGET_ADJUSTMENT_FACTOR = 0.5; //Aggresiveness
+const MIN_BUDGET = 10000; //Minimum budget to prevent going too low
+const MAX_BUDGET = 130000; //Maximum budget cap
+
+
+async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
+    try {
+        const MIN_BUDGET = 10000;  //Minimum allowed budget (R10,000)
+        const MAX_BUDGET = 130000;  //Maximum allowed budget (R100,000)
+        const BUFFER_PERCENTAGE = 0.2; //20% buffer above/below actual spend
+        
+        //Ensure actualSpend is a proper number
+        const cleanActualSpend = parseFloat(actualSpend) || 0;
+        
+        //Calculate next payment date
+        const nextPaymentDate = new Date(currentPaymentDate);
+        nextPaymentDate.setDate(nextPaymentDate.getDate() + 7);
+        const nextPaymentDateStr = nextPaymentDate.toISOString().split('T')[0];
+        
+        //Get current budget (default to R10,000 if not found)
+        const [currentBudgetRow] = await db.query(`
+            SELECT adjusted_budget FROM t_budget_history 
+            WHERE payment_date = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [currentPaymentDate]);
+        
+        const currentBudget = currentBudgetRow.length > 0 
+            ? parseFloat(currentBudgetRow[0].adjusted_budget) || 10000
+            : 10000;
+
+        //Calculate new budget
+        let newBudget;
+        let adjustmentReason;
+        
+        if (cleanActualSpend > currentBudget) {
+            //Case 1: Budget was exceeded
+            //Set new budget to actual spend + 20% buffer
+            const overage = cleanActualSpend - currentBudget;
+            const buffer = overage * BUFFER_PERCENTAGE;
+            newBudget = cleanActualSpend + buffer;
+            adjustmentReason = `Exceeded by R${overage.toFixed(2)}, added ${(BUFFER_PERCENTAGE * 100)}% buffer`;
+            
+            console.log(`Budget exceeded by R${overage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
+            
+        } else if (cleanActualSpend < currentBudget) {
+            //Case 2: Budget wasn't fully used
+            //Reduce budget but maintain a buffer above actual spend
+            const underage = currentBudget - cleanActualSpend;
+            const buffer = underage * BUFFER_PERCENTAGE;
+            
+            //New budget = actual spend + a portion of the underage as buffer
+            newBudget = cleanActualSpend + buffer;
+            adjustmentReason = `Under budget by R${underage.toFixed(2)}, reduced with ${(BUFFER_PERCENTAGE * 100)}% buffer`;
+            
+            console.log(`Budget under by R${underage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
+            
+        } else {
+            //Case 3: Exactly on budget (rare)
+            //Keep similar budget with small buffer
+            newBudget = cleanActualSpend * (1 + BUFFER_PERCENTAGE);
+            adjustmentReason = `Exactly on budget, maintained with ${(BUFFER_PERCENTAGE * 100)}% buffer`;
+            
+            console.log(`Exactly on budget. Maintaining with ${(BUFFER_PERCENTAGE * 100)}% buffer`);
+        }
+        
+        //Apply constraints
+        newBudget = Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, newBudget));
+        
+        //Round to nearest R1000
+        newBudget = Math.round(newBudget / 1000) * 1000;
+        
+        //Ensure newBudget is valid
+        if (isNaN(newBudget) || newBudget < MIN_BUDGET) {
+            newBudget = MIN_BUDGET;
+            adjustmentReason = 'Fallback to minimum budget';
+        }
+        
+        //Insert the new budget record
+        await db.query(`
+            INSERT INTO t_budget_history 
+            (payment_date, initial_budget, actual_spend, adjusted_budget, adjustment_reason)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                initial_budget = VALUES(initial_budget),
+                actual_spend = VALUES(actual_spend),
+                adjusted_budget = VALUES(adjusted_budget),
+                adjustment_reason = VALUES(adjustment_reason)
+        `, [
+            nextPaymentDateStr,
+            currentBudget,
+            cleanActualSpend,
+            newBudget,
+            adjustmentReason
+        ]);
+        
+        console.log(`Budget adjusted: R${currentBudget.toFixed(2)} -> R${newBudget.toFixed(2)} (Actual spend: R${cleanActualSpend.toFixed(2)})`);
+        console.log(`Reason: ${adjustmentReason}`);
+        
+        return newBudget;
+    } catch (err) {
+        console.error('Error adjusting budget:', err);
+        return 10000; //Fallback to default
+    }
+}
+
 //Get all role rates
 exports.getRoleRates = async (req, res) => {
     try {
@@ -188,35 +294,37 @@ exports.updateEmployeeRates = async (req, res) => {
 
 async function generatePayroll() {
     try {
+        //Get current date in South Africa timezone (SAST - UTC+2)
         const today = new Date();
-        const dayOfWeek = today.getDay();
+        const saToday = new Date(today.toLocaleString("en-US", {timeZone: "Africa/Johannesburg"}));
+        const dayOfWeek = saToday.getDay();
         
         //Calculate most recent Tuesday (0-6, Sunday=0)
         const daysToSubtract = dayOfWeek >= 2 ? dayOfWeek - 2 : dayOfWeek + 5;
-        const paymentDate = new Date(today);
-        paymentDate.setDate(today.getDate() - daysToSubtract);
+        const paymentDate = new Date(saToday);
+        paymentDate.setDate(saToday.getDate() - daysToSubtract);
         
-        console.log(`Today: ${today.toDateString()} (day ${dayOfWeek})`);
+        console.log(`Today (SA Time): ${saToday.toDateString()} (day ${dayOfWeek})`);
         console.log(`Days to subtract: ${daysToSubtract}`);
         console.log(`Payment date calculated: ${paymentDate.toDateString()}`);
 
-        //Set up date range for payroll period
+        //Set up date range for payroll period using SA timezone
         let startDateTime, endDateTime;
 
-        //Set end date to Tuesday 11:59:00 AM
+        //Set end date to Tuesday 11:59:00 AM (SA Time)
         endDateTime = new Date(paymentDate);
-        endDateTime.setHours(11, 59, 0, 0); //Tuesday 11:59:00 AM
+        endDateTime.setHours(11, 59, 0, 0); //Tuesday 11:59:00 AM SA Time
 
-        //Start date is previous Tuesday 12:00:00 PM
+        //Start date is previous Tuesday 12:00:00 PM (SA Time)
         const previousTuesday = new Date(paymentDate);
         previousTuesday.setDate(paymentDate.getDate() - 7);
         startDateTime = new Date(previousTuesday);
-        startDateTime.setHours(12, 0, 0, 0); //Previous Tuesday 12:00:00 PM
+        startDateTime.setHours(12, 0, 0, 0); //Previous Tuesday 12:00:00 PM SA Time
 
-        //Format payment date for database
-        const paymentDateStr = paymentDate.toISOString().split('T')[0];
+        //Format payment date for database (SA timezone)
+        const paymentDateStr = paymentDate.toLocaleDateString('en-CA', {timeZone: 'Africa/Johannesburg'}); // YYYY-MM-DD format
 
-        console.log(`Generating payroll for period: ${startDateTime.toISOString()} to ${endDateTime.toISOString()}, payment date: ${paymentDateStr}`);
+        console.log(`Generating payroll for period (SA Time): ${startDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})} to ${endDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})}, payment date: ${paymentDateStr}`);
 
         //query to include ALL active employees, not just those with shifts
         const payrollQuery = `
@@ -305,17 +413,21 @@ async function generatePayroll() {
             ORDER BY e.first_name, e.last_name;
         `;
 
-        //Parameters using DATETIME format for precise time filtering
+        //Parameters using DATETIME format for precise time filtering (in SA timezone)
+        //Convert SA time to UTC for database storage if needed, or keep as SA time if database is configured for SA timezone
+        const startDateTimeStr = startDateTime.toLocaleString('sv-SE', {timeZone: 'Africa/Johannesburg'}).replace(' ', ' '); // YYYY-MM-DD HH:MM:SS format
+        const endDateTimeStr = endDateTime.toLocaleString('sv-SE', {timeZone: 'Africa/Johannesburg'}).replace(' ', ' ');
+        
         const params = [
-            startDateTime.toISOString().slice(0, 19).replace('T', ' '), //YYYY-MM-DD HH:MM:SS
-            endDateTime.toISOString().slice(0, 19).replace('T', ' '),
-            startDateTime.toISOString().slice(0, 19).replace('T', ' '),
-            endDateTime.toISOString().slice(0, 19).replace('T', ' ')
+            startDateTimeStr,
+            endDateTimeStr,
+            startDateTimeStr,
+            endDateTimeStr
         ];
         
         const [payrollData] = await db.query(payrollQuery, params);
 
-        //Insert into payroll table - Helps Cletus and Yatin
+        //Insert into payroll table
         for (const employee of payrollData) {
             await db.query(`
                 INSERT INTO t_payroll 
@@ -335,7 +447,15 @@ async function generatePayroll() {
             ]);
         }
 
-        console.log(`Payroll generated successfully for ${paymentDateStr} - processed ${payrollData.length} employees`);
+        //Calculate total payroll amount with proper number conversion
+        const totalPayroll = payrollData.reduce((sum, emp) => {
+            return sum + (parseFloat(emp.total_amount) || 0);
+        }, 0);
+        
+        //Adjust budget for next period automatically
+        await adjustBudgetForNextPeriod(paymentDateStr, totalPayroll);
+        
+        console.log(`Payroll generated successfully for ${paymentDateStr} - processed ${payrollData.length} employees, total: R${totalPayroll.toFixed(2)}`);
         
     } catch (err) {
         console.error('Error generating payroll:', err);
@@ -399,6 +519,7 @@ exports.getPaymentDetails = async (req, res) => {
     }
 };
 
+//getPayrollSummary to use the budget history table
 exports.getPayrollSummary = async (req, res) => {
     try {
         const { date } = req.query;
@@ -416,25 +537,36 @@ exports.getPayrollSummary = async (req, res) => {
             paymentDate = mostRecentTuesday.toISOString().split('T')[0];
         }
 
+        //Get the budget for this period
+        const [budgetRows] = await db.query(`
+            SELECT adjusted_budget 
+            FROM t_budget_history 
+            WHERE payment_date = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [paymentDate]);
+
+        const budget = budgetRows.length > 0 ? budgetRows[0].adjusted_budget : 10000;
+
         //Query the payroll table for summary data
         const query = `
             SELECT 
                 COUNT(p.employee_id) AS employeesPaid,
                 COALESCE(SUM(p.total_amount), 0) AS totalBudgetUsed,
-                50000 AS totalBudget,
+                ? AS totalBudget,
                 ? AS paymentDate
             FROM t_payroll p
             WHERE p.payment_date = ?
             AND p._status = 'paid';
         `;
 
-        const [rows] = await db.query(query, [paymentDate, paymentDate]);
+        const [rows] = await db.query(query, [budget, paymentDate, paymentDate]);
 
         if (rows.length === 0) {
             return res.status(200).json({
                 employeesPaid: 0,
                 totalBudgetUsed: 0,
-                totalBudget: 50000,
+                totalBudget: budget,
                 paymentDate: paymentDate
             });
         }
@@ -465,5 +597,130 @@ exports.getPaymentDates = async (req, res) => {
     } catch (err) {
         console.error('Error in getPaymentDates:', err);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+//Get budget for specific date
+exports.getBudgetForDate = async (req, res) => {
+    try {
+        const { date } = req.query;
+        
+        const [rows] = await db.query(`
+            SELECT adjusted_budget AS budget
+            FROM t_budget_history
+            WHERE payment_date = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [date]);
+        
+        //Ensure budget is never negative
+        const budget = rows.length > 0 
+            ? Math.max(10000, rows[0].budget) //Minimum R10,000
+            : 10000; //Default
+         
+        res.status(200).json({ budget });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getBudgetComparison = async (req, res) => {
+    try {
+        const { date } = req.query;
+        
+        if (!date) {
+            return res.status(400).json({ message: 'Date parameter required' });
+        }
+        
+        //Calculate previous payment date (7 days earlier)
+        const currentDate = new Date(date);
+        const previousDate = new Date(currentDate);
+        previousDate.setDate(currentDate.getDate() - 7);
+        const previousDateStr = previousDate.toISOString().split('T')[0];
+        
+        //Get current week's budget data
+        const [currentBudgetRows] = await db.query(`
+            SELECT 
+                adjusted_budget as current_budget,
+                initial_budget,
+                actual_spend,
+                adjustment_reason,
+                created_at
+            FROM t_budget_history 
+            WHERE payment_date = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [date]);
+        
+        //Get previous week's budget data
+        const [previousBudgetRows] = await db.query(`
+            SELECT 
+                adjusted_budget as previous_budget,
+                actual_spend as previous_spend
+            FROM t_budget_history 
+            WHERE payment_date = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [previousDateStr]);
+        
+        //If no current budget data, return default response
+        if (currentBudgetRows.length === 0) {
+            return res.status(200).json({
+                currentBudget: 10000,
+                previousBudget: 10000,
+                adjustment: 0,
+                adjustmentPercentage: 0,
+                adjustmentReason: 'No budget history available',
+                hasAdjustment: false,
+                currentDate: date,
+                previousDate: previousDateStr
+            });
+        }
+        
+        const currentBudget = parseFloat(currentBudgetRows[0].current_budget) || 10000;
+        const previousBudget = previousBudgetRows.length > 0 
+            ? parseFloat(previousBudgetRows[0].previous_budget) || 10000 
+            : 10000;
+        
+        //Calculate adjustment
+        const adjustment = currentBudget - previousBudget;
+        const adjustmentPercentage = previousBudget > 0 
+            ? (adjustment / previousBudget) * 100 
+            : 0;
+        
+        //Determine if there was a meaningful adjustment (more than R100 change)
+        const hasAdjustment = Math.abs(adjustment) > 100;
+        
+        const response = {
+            currentBudget: currentBudget,
+            previousBudget: previousBudget,
+            adjustment: adjustment,
+            adjustmentPercentage: adjustmentPercentage,
+            adjustmentReason: currentBudgetRows[0].adjustment_reason || 'No reason provided',
+            hasAdjustment: hasAdjustment,
+            currentDate: date,
+            previousDate: previousDateStr,
+            //Additional details for debugging/logging
+            currentSpend: parseFloat(currentBudgetRows[0].actual_spend) || 0,
+            previousSpend: previousBudgetRows.length > 0 
+                ? parseFloat(previousBudgetRows[0].previous_spend) || 0 
+                : 0,
+            initialBudget: parseFloat(currentBudgetRows[0].initial_budget) || currentBudget
+        };
+        
+        res.status(200).json(response);
+        
+    } catch (err) {
+        console.error('Error in getBudgetComparison:', err);
+        res.status(500).json({ 
+            message: 'Server error',
+            currentBudget: 10000,
+            previousBudget: 10000,
+            adjustment: 0,
+            adjustmentPercentage: 0,
+            adjustmentReason: 'Error loading budget comparison',
+            hasAdjustment: false
+        });
     }
 };

@@ -43,7 +43,7 @@ const login = async (req, res) => {
 
     res.cookie('employeeId', user[0].employee_id, {
       httpOnly: true,
-      secure: false,
+      secure: false, // Set to true in production with HTTPS
       sameSite: 'Lax',
       maxAge: 24 * 60 * 60 * 1000
     });
@@ -66,25 +66,30 @@ const register = async (req, res) => {
   res.status(501).json({ error: 'Register not implemented' });
 };
 
-
-//authController.js 
 const logout = async (req, res) => {
   try {
-    //Clear the session without waiting too long
+    // Destroy session and clear cookies
     req.session.destroy((err) => {
       if (err) {
         console.error('Session destruction error:', err);
-        //Still respond successfully to ensure client redirects
-        return res.json({ 
-          success: true,
-          message: 'Logged out (session may not have cleared completely)' 
+        return res.status(500).json({ 
+          success: false,
+          message: 'Failed to destroy session, but client should clear local data' 
         });
       }
-      
-      //Clear the cookies
-      res.clearCookie('employeeId');
-      res.clearCookie('connect.sid');
-      
+
+      // Clear cookies
+      res.clearCookie('employeeId', {
+        httpOnly: true,
+        secure: false, // Match login cookie settings
+        sameSite: 'Lax'
+      });
+      res.clearCookie('connect.sid', {
+        httpOnly: true,
+        secure: false, // Match session cookie settings
+        sameSite: 'Lax'
+      });
+
       return res.json({ 
         success: true,
         message: 'Logged out successfully' 
@@ -92,11 +97,11 @@ const logout = async (req, res) => {
     });
   } catch (err) {
     console.error('Logout error:', err);
-    //Still respond successfully to ensure client redirects
-    return res.json({ 
-      success: true,
-      message: 'Logged out (with possible server errors)' 
+    return res.status(500).json({ 
+      success: false,
+      message: 'Server error during logout, but client should clear local data' 
     });
   }
 };
+
 module.exports = { login, register, logout };
