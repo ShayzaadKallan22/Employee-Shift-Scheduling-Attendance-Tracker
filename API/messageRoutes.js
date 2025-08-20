@@ -44,6 +44,63 @@ router.get('/conversation/:senderId/:receiverId', async (req, res) => {
     }
 });
 
+// Get recent messages for navbar dropdown
+router.get('/recent/:employeeId', async (req, res) => {
+    try {
+        const { employeeId } = req.params;
+        
+        const [messages] = await pool.query(`
+            SELECT m.*, 
+                CASE 
+                    WHEN m.sender_id = ? THEN e2.employee_id
+                    ELSE e1.employee_id
+                END as other_employee_id,
+                CASE 
+                    WHEN m.sender_id = ? THEN CONCAT(e2.first_name, ' ', e2.last_name)
+                    ELSE CONCAT(e1.first_name, ' ', e1.last_name)
+                END as other_employee_name
+            FROM t_message m
+            JOIN t_employee e1 ON m.sender_id = e1.employee_id
+            JOIN t_employee e2 ON m.receiver_id = e2.employee_id
+            WHERE m.message_id IN (
+                SELECT MAX(message_id)
+                FROM t_message
+                WHERE sender_id = ? OR receiver_id = ?
+                GROUP BY 
+                    CASE 
+                        WHEN sender_id < receiver_id THEN CONCAT(sender_id, '-', receiver_id)
+                        ELSE CONCAT(receiver_id, '-', sender_id)
+                    END
+            )
+            ORDER BY m.sent_time DESC
+            LIMIT 5
+        `, [employeeId, employeeId, employeeId, employeeId]);
+
+        res.json(messages);
+    } catch (err) {
+        console.error('Error fetching recent messages:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get unread message count
+router.get('/unread/count/:employeeId', async (req, res) => {
+    try {
+        const { employeeId } = req.params;
+        
+        const [result] = await pool.query(
+            'SELECT COUNT(*) as unreadCount FROM t_message WHERE receiver_id = ? AND read_status = "unread"',
+            [employeeId]
+        );
+        
+        res.json({ unreadCount: result[0].unreadCount });
+    } catch (err) {
+        console.error('Error fetching unread count:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
 //send a message
 router.post('/send', async (req, res) => {
     try {

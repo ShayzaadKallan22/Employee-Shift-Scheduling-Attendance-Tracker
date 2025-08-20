@@ -157,6 +157,10 @@ canvas {
 
 
 /*** Navbar ***/
+.navbar-nav .nav-link {
+    color: white !important;
+}
+
 .sidebar .navbar .navbar-nav .nav-link {
     padding: 7px 20px;
     /* color: var(--light); */
@@ -252,7 +256,7 @@ canvas {
 }
 
 .content .navbar .dropdown-item {
-    color: var(--light);
+    color: var(white);
 }
 
 .content .navbar .dropdown-item:hover,
