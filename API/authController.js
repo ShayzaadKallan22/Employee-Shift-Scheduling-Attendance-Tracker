@@ -152,7 +152,7 @@ const login = async (req, res) => {
             'SELECT * FROM t_employee WHERE email = ?', 
             [email]
         );
-
+        console.log(user)
         if (user.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
