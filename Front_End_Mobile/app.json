@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Azania",
-    "slug": "ProjectName",
+    "slug": "azania-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Slide1.png",
@@ -24,22 +24,47 @@
         "xhdpi": "./assets/Slide1.png",
         "xxhdpi": "./assets/Slide1.png",
         "xxxhdpi": "./assets/Slide1.png",
-        "ldpi": "./assets/Slide1.png"
+        "ldpi": "./assets/Slide1.png",
+        "permissions": [
+          "CAMERA",
+          "READ_EXTERNAL_STORAGE",
+          "WRITE_EXTERNAL_STORAGE"
+        ]
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/Slide1.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.cletus_m78.AzaniaApp"
+      "package": "com.cletus_m.AzaniaApp",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "613bf57c-fd11-42d7-9318-4b9769094991"
+        "projectId": "43f86d8a-81a5-4856-b1ed-d03b817920df"
       }
     },
-    "owner": "thabo_m"
+    "owner": "thabo_m11",
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Azania to access your camera for QR code scanning."
+        }
+      ]
+    ]
   }
 }

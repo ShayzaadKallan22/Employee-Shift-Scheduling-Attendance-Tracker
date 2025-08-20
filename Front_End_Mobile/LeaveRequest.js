@@ -12,10 +12,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
 import BottomNav from './BottomNav';
 import config from './config';
 import * as DocumentPicker from 'expo-document-picker';
+import { format, parseISO, isBefore, isAfter, addDays, differenceInDays, isSameDay } from 'date-fns';
 
 const API_URL = config.API_URL;
 
@@ -41,23 +41,6 @@ const LeaveRequest = () => {
   const [expandedLeaveTypes, setExpandedLeaveTypes] = useState({});
   const [uploadingNote, setUploadingNote] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-
-//   const handleApiError = (error, navigation) => {
-//   console.error('API Error:', error);
-//   if (error.response?.status === 403) {
-//     Alert.alert(
-//       'Session Expired', 
-//       'Your session has expired. Please login again.',
-//       [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-//     );
-//   } else {
-//     Alert.alert(
-//       'Error',
-//       error.response?.data?.message || 'An error occurred'
-//     );
-//   }
-// };
 
   useEffect(() => {
   const fetchRemainingDays = async () => {
@@ -170,7 +153,7 @@ const LeaveTypes = React.useMemo(() => [
       Alert.alert('Invalid Day', 'You can only select Fridays, Saturdays, Sundays, or Mondays as start date');
       return;
     }
-    setStartDate(moment(date).format('YYYY-MM-DD'));
+    setStartDate(format(date, 'yyyy-MM-dd'));
     setShowStartPicker(false);
   };
 
@@ -182,12 +165,12 @@ const LeaveTypes = React.useMemo(() => [
     }
     
     //Also validate that end date is after start date
-    if (startDate && moment(date).isBefore(moment(startDate))) {
+    if (startDate && isBefore(date, parseISO(startDate))) {
       Alert.alert('Invalid Date', 'End date must be after start date');
       return;
     }
     
-    setEndDate(moment(date).format('YYYY-MM-DD'));
+    setEndDate(format(date, 'yyyy-MM-dd'));
     setShowEndPicker(false);
   };
 
@@ -491,7 +474,12 @@ const LeaveTypes = React.useMemo(() => [
             
             {expandedLeaveTypes[type] && (
               <View style={styles.leaveList}>
-                {leaves.map(leave => (
+                {leaves.map(leave => {
+                  const startDate = leave.start_date ? new Date(leave.start_date) : null;
+                  const endDate = leave.end_date ? new Date(leave.end_date) : null;
+                  const createdAt = leave.created_at ? new Date(leave.created_at) : null;
+                  
+                  return (
                   <View key={leave.leave_id} style={[
                     styles.historyCard,
                     leave.status_ === 'approved' && styles.approvedCard,
@@ -500,7 +488,7 @@ const LeaveTypes = React.useMemo(() => [
                   ]}>
                     <View style={styles.historyCardHeader}>
                       <Text style={styles.historyCardTitle}>
-                        {moment(leave.start_date).format('MMM D')} - {moment(leave.end_date).format('MMM D, YYYY')}
+                        {startDate ? format(startDate, 'MMM d') : 'N/A'} - {endDate ? format(endDate, 'MMM d, yyyy') : 'N/A'}
                       </Text>
                       <Text style={[
                         styles.historyCardStatus,
@@ -508,14 +496,14 @@ const LeaveTypes = React.useMemo(() => [
                         leave.status_ === 'rejected' && { color: '#F44336' }, 
                         leave.status_ === 'pending' && { color: '#FFC107' }
                       ]}>
-                        {leave.status_.charAt(0).toUpperCase() + leave.status_.slice(1)}
+                        {leave.status_ ? leave.status_.charAt(0).toUpperCase() + leave.status_.slice(1) : 'Unknown'}
                       </Text>
                     </View>
                     <Text style={styles.historyCardText}>
                       {leave.days_taken} day(s)
                     </Text>
                     <Text style={styles.historyCardText}>
-                      Requested on: {moment(leave.created_at).format('MMM D, YYYY h:mm a')}
+                      Requested on: {createdAt ? format(createdAt, 'MMM d, yyyy h:mm a') : 'N/A'}
                     </Text>
                     
                     {leave.leave_type === 'Sick Leave' && (
@@ -544,7 +532,7 @@ const LeaveTypes = React.useMemo(() => [
                       </View>
                     )}
                   </View>
-                ))}
+                )})}
               </View>
             )}
           </View>
