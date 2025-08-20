@@ -5,7 +5,52 @@
 
 const db = require('./db');
 
+//Get eligible employees for chatting (same role + managers)
+exports.getEligibleEmployees = async (req, res) => {
+  const { employeeId } = req.params;
+  
+  if (!employeeId || isNaN(employeeId)) {
+    return res.status(400).json({ error: 'Invalid employee ID' });
+  }
 
+  try {
+    //Get the current employee's role_id and type
+    const [currentEmployee] = await db.query(`
+      SELECT role_id, type_ FROM t_employee WHERE employee_id = ?
+    `, [employeeId]);
+
+    if (!currentEmployee.length) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    const { role_id, type_ } = currentEmployee[0];
+
+    //Get employees with same role OR managers (excluding the current user)
+    const [eligibleEmployees] = await db.query(`
+      SELECT 
+        e.employee_id,
+        e.first_name,
+        e.last_name,
+        e.type_,
+        r.title
+      FROM t_employee e
+      JOIN t_role r ON e.role_id = r.role_id
+      WHERE e.employee_id != ? 
+        AND (
+          (e.role_id = ? AND e.type_ = ?) 
+          OR e.type_ = 'manager'
+        )
+      ORDER BY e.type_ DESC, e.first_name ASC, e.last_name ASC
+    `, [employeeId, role_id, type_]);
+
+    res.status(200).json(eligibleEmployees);
+  } catch (err) {
+    console.error("Error fetching eligible employees:", err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+//Get conversation partners for a given employee.
 exports.getConversationPartners = async (req, res) => {
   const { employeeId } = req.params;
   

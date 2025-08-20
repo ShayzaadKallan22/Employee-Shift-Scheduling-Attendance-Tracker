@@ -321,7 +321,7 @@ exports.requestLeave = async (req, res) => {
             }
             //If the sick note is valid, set the sick note file name.
             sickNoteFile = file.filename;
-        } else if (typeId === 2 && remaining >= daysRequested) {
+        } else if (remaining >= daysRequested) {
             //If the sick leave balance is sufficient, no sick note is required.    
             sickNoteFile = file ? file.filename : null;
             status_ = 'approved';  //Set status to approved if sick leave balance is sufficient
