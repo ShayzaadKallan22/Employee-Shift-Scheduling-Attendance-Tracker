@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
       async checkForEvents(employeeId, startDate, endDate) {
         try {
           const response = await fetch(
-            `https://ifmprojv1-production.up.railway.app/api/events/check-leave?employee_id=${employeeId}&start_date=${startDate}&end_date=${endDate}`
+            // `https://ifmprojv1-production.up.railway.app/api/events/check-leave?employee_id=${employeeId}&start_date=${startDate}&end_date=${endDate}`
+            `http://localhost:3000/api/events/check-leave?employee_id=${employeeId}&start_date=${startDate}&end_date=${endDate}`
           );
           return await response.json();
         } catch (err) {
