@@ -140,13 +140,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
+         console.log("HERE?")
         const { email, password } = req.body;
-
+         console.log("FIRST")
         //Validate input
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
-
+         console.log("SECOND")
         //Check user exists
         const [user] = await pool.query(
             'SELECT * FROM t_employee WHERE email = ?', 
