@@ -255,7 +255,7 @@ app.get('/api/employees/search', async (req, res) => {
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Front_End_Web', 'signin.html'));
+  res.sendFile(path.join(__dirname, '../Front_End_Web', 'index.html'));
 });
 
 app.use(express.static(path.join(__dirname, '../Front_End_Web')));
