@@ -89,23 +89,49 @@ const app = {
                         this.loading = false;
                     }
                 },
+                // async fetchLastMessages() {
+                //     try {
+                //         for (const employee of this.employees) {
+                //             const response = await fetch(
+                //                 `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
+                //             );
+                //             if (response.ok) {
+                //                 const [lastMessage] = await response.json();
+                //                 if (lastMessage) {
+                //                     employee.last_message = lastMessage.sent_time;
+                //                 }
+                //             }
+                //         }
+                //     } catch (err) {
+                //         console.error('Error fetching last messages:', err);
+                //     }
+                // },
+
                 async fetchLastMessages() {
-                    try {
-                        for (const employee of this.employees) {
-                            const response = await fetch(
-                                `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
-                            );
-                            if (response.ok) {
-                                const [lastMessage] = await response.json();
-                                if (lastMessage) {
-                                    employee.last_message = lastMessage.sent_time;
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Error fetching last messages:', err);
-                    }
-                },
+    try {
+        for (const employee of this.employees) {
+            const response = await fetch(
+                `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
+            );
+            if (response.ok) {
+                const messages = await response.json();
+                if (messages && messages.length > 0) {
+                    const lastMessage = messages[messages.length - 1]; // Get the actual last message
+                    employee.last_message = {
+                        content: lastMessage.content,
+                        time: lastMessage.sent_time,
+                        is_unread: lastMessage.read_status === 'unread' && lastMessage.receiver_id == this.currentUser.employee_id
+                    };
+                } else {
+                    employee.last_message = null;
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching last messages:', err);
+    }
+},
+
                 filterEmployees() {
                     if (!this.searchQuery) {
                         this.filteredEmployees = [...this.employees];
@@ -238,9 +264,20 @@ const app = {
                     });
                 },
                 formatTime(timeString) {
-                    const date = new Date(timeString);
-                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
+    if (!timeString) return '';
+    
+    const date = new Date(timeString);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 48) {
+        return 'Yesterday';
+    } else {
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+}
             }
         });
     }
