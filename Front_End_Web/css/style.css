@@ -157,7 +157,10 @@ canvas {
 
 
 /*** Navbar ***/
-.navbar-nav .nav-link {
+
+
+/* Make the "Messages" and "Notifications" text white */
+.navbar-nav .nav-link .d-none.d-lg-inline-flex {
     color: white !important;
 }
 

@@ -73,6 +73,21 @@ const app = {
                 }
             },
             methods: {
+                // Avatar methods - ADD THESE AT THE BEGINNING
+                getEmployeeAvatar(employee) {
+                    if (!employee) return '';
+                    const firstLetter = employee.first_name ? employee.first_name.charAt(0).toUpperCase() : '?';
+                    return firstLetter;
+                },
+                
+                getEmployeeInitials(employee) {
+                    if (!employee) return '?';
+                    const first = employee.first_name ? employee.first_name.charAt(0).toUpperCase() : '';
+                    const last = employee.last_name ? employee.last_name.charAt(0).toUpperCase() : '';
+                    return first + last;
+                },
+
+                // Existing methods
                 async fetchEmployees() {
                     try {
                         this.loading = true;
@@ -89,6 +104,7 @@ const app = {
                         this.loading = false;
                     }
                 },
+
                 async fetchLastMessages() {
                     try {
                         for (const employee of this.employees) {
@@ -96,9 +112,16 @@ const app = {
                                 `http://localhost:3000/api/messages/conversation/${this.currentUser.employee_id}/${employee.employee_id}?limit=1`
                             );
                             if (response.ok) {
-                                const [lastMessage] = await response.json();
-                                if (lastMessage) {
-                                    employee.last_message = lastMessage.sent_time;
+                                const messages = await response.json();
+                                if (messages && messages.length > 0) {
+                                    const lastMessage = messages[messages.length - 1];
+                                    employee.last_message = {
+                                        content: lastMessage.content,
+                                        time: lastMessage.sent_time,
+                                        is_unread: lastMessage.read_status === 'unread' && lastMessage.receiver_id == this.currentUser.employee_id
+                                    };
+                                } else {
+                                    employee.last_message = null;
                                 }
                             }
                         }
@@ -106,6 +129,7 @@ const app = {
                         console.error('Error fetching last messages:', err);
                     }
                 },
+
                 filterEmployees() {
                     if (!this.searchQuery) {
                         this.filteredEmployees = [...this.employees];
@@ -121,6 +145,7 @@ const app = {
                         employee.role_title.toLowerCase().includes(query)
                     );
                 },
+
                 async selectEmployee(employee) {
                     this.selectedEmployee = employee;
                     this.loading = true;
@@ -133,6 +158,7 @@ const app = {
                         this.loading = false;
                     }
                 },
+
                 async fetchMessages() {
                     if (!this.selectedEmployee) return;
                     
@@ -158,12 +184,13 @@ const app = {
                         });
                     }
                 },
+
                 backToList() {
                     this.selectedEmployee = null;
                     this.messages = [];
-                    //remove employeeId from URL
                     window.history.pushState({}, document.title, window.location.pathname);
                 },
+
                 async sendMessage() {
                     if (!this.newMessage.trim() || !this.selectedEmployee) return;
 
@@ -214,6 +241,7 @@ const app = {
                         setTimeout(() => this.error = null, 5000);
                     }
                 },
+
                 startPolling() {
                     //clear existing interval if any
                     if (this.pollingInterval) {
@@ -229,6 +257,7 @@ const app = {
                         }
                     }, 5000);
                 },
+
                 scrollToBottom() {
                     this.$nextTick(() => {
                         const container = this.$refs.messageContainer;
@@ -237,9 +266,21 @@ const app = {
                         }
                     });
                 },
+
                 formatTime(timeString) {
+                    if (!timeString) return '';
+                    
                     const date = new Date(timeString);
-                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const now = new Date();
+                    const diffInHours = (now - date) / (1000 * 60 * 60);
+                    
+                    if (diffInHours < 24) {
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } else if (diffInHours < 48) {
+                        return 'Yesterday';
+                    } else {
+                        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                    }
                 }
             }
         });
