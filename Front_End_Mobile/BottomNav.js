@@ -45,7 +45,7 @@ const BottomNav = () => {
           )}
         </View>
         <Text style={[styles.navText, currentRoute === 'Notifications' && styles.activeText]}>
-           Alerts
+           Updates
         </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.navButton}>
