@@ -63,6 +63,7 @@ router.get('/events/check-leave', async (req, res) => {
             [employee_id, start_date, end_date]
         );
         console.log(events);
+        console.log(start_date, end_date, employee_id);
         res.status(200).json({ hasEvents: events.length > 0, events });
     } catch (err) {
         console.error(err);
