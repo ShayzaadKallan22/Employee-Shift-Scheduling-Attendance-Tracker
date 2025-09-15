@@ -3,7 +3,7 @@
  * @version API_mobile
  */
 
-
+const cron = require('node-cron');
 const db = require ('./db');
 
 //Scan attendance QR code.
@@ -35,10 +35,10 @@ exports.scanQR = async (req, res) => {
     }
 
     //Mark QR code as used
-    // await db.execute(
-    //   `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
-    //   [qr.qr_id]
-    // );
+    await db.execute(
+      `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
+      [qr.qr_id]
+    );
 
     //Determine shift type based on QR purpose
     let shiftType = '';
@@ -61,15 +61,12 @@ exports.scanQR = async (req, res) => {
       shiftQuery = `
         SELECT shift_id FROM t_shift
         WHERE employee_id = ?
-        AND shift_type = ?
-        AND date_ = CURDATE() 
-        AND CURTIME() >= start_time
-        AND status_ = 'scheduled'
-        ORDER BY date_ DESC, start_time ASC
+          AND shift_type = ?
+          AND CURDATE() BETWEEN date_ AND end_date
+          AND CURTIME() >= start_time
+          AND status_ = 'scheduled'
         LIMIT 1`;
-    queryParams = [employee_id, shiftType];
-
-      console.log(shiftQuery);
+      queryParams = [employee_id, shiftType];
     } else {
       //For clock-in, we should look for shifts that:
       //1. Are for today
@@ -132,8 +129,6 @@ exports.scanQR = async (req, res) => {
         [employee_id, shift_id]
       );
 
-      console.log(shift_id);
-      console.log(employee_id);
       if (attendance.length === 0)
         return res.status(400).json({ message: `No active ${shiftType} clock-in found.` });
       //Update the clock-out time.
@@ -162,3 +157,56 @@ exports.scanQR = async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+//Scheduled job to auto clock-out employees who forgot to clock out at the end of their shift.
+//Runs daily at midnight.
+cron.schedule('0 0 * * *', async () => {
+  //console.log('Running auto clock-out job at midnight...');
+
+  try {
+    //Find employees who are still clocked in but shift ended more than 1 hour ago
+    const [rows] = await db.execute(
+      `SELECT a.attendance_id, a.employee_id, s.shift_id, s.end_time, s.date_
+       FROM t_attendance a
+       JOIN t_shift s ON a.shift_id = s.shift_id
+       WHERE a.clock_out_time IS NULL
+         AND TIMESTAMPADD(HOUR, 1, CONCAT(s.date_, ' ', s.end_time)) <= NOW()`
+    );
+
+    //Check if there are any employees to auto clock-out
+    if (rows.length === 0) {
+      console.log('No pending auto clock-outs.');
+      return;
+    }
+
+    for (const row of rows) {
+      //Clock-out employees
+      await db.execute(
+        `UPDATE t_attendance 
+         SET clock_out_time = NOW(), status_ = 'absent'
+         WHERE attendance_id = ?`,
+        [row.attendance_id]
+      );
+
+      //Update employee status
+      await db.execute(
+        `UPDATE t_employee 
+         SET status_ = 'Not Working'
+         WHERE employee_id = ?`,
+        [row.employee_id]
+      );
+
+      //Insert notification
+      await db.execute(
+        `INSERT INTO t_notification 
+         (employee_id, message, sent_time, read_status, notification_type_id)
+         VALUES (?, ?, NOW(), 'unread', 4)`,
+        [row.employee_id, 'You were automatically clocked out because you did not clock-out.']
+      );
+    }
+
+    console.log(`Auto clocked-out ${rows.length} employees.`);
+  } catch (err) {
+    console.error('Error in auto clock-out job:', err);
+  }
+});

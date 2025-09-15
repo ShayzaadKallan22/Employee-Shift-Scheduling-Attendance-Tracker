@@ -8,38 +8,120 @@ const multer = require('multer');   //For handling file uploads.
 const path = require('path');   //For handling file paths.
 const fs = require('fs');
 const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB limit for sick note uploads.
-// const cron = require('node-cron');   //For scheduling tasks.
+const cron = require('node-cron');   //For scheduling tasks.
+const { type } = require('os');
 
-// //Cron job to update leave status at midnight
-// //This job runs every day at midnight to update leave statuses
-// cron.schedule('0 0 * * *', async () => {
-//   try {
-//     const [rows] = await db.execute(
-//       `SELECT employee_id FROM t_leave 
-//        WHERE status_ = 'approved' 
-//        AND end_date <= DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
-//     );
+//Cron job to update leave status at midnight
+//This job runs every day at midnight to update leave statuses
+cron.schedule('0 * * * *', async () => {
+  try {
+    //Get current date in YYYY-MM-DD format
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    //Find approved leaves where start_date is today
+    const [rows] = await db.execute(
+      `SELECT l.employee_id, l.leave_id, l.status_, l.start_date, l.end_date
+       FROM t_leave l
+       JOIN t_employee e ON l.employee_id = e.employee_id
+       WHERE l.status_ = 'approved' 
+       AND l.start_date >= ?
+       AND e.status_ != 'On Leave'`,
+      [currentDate]
+    );
 
-//     for (const row of rows) {
-//       await db.execute(
-//         `UPDATE t_employee 
-//          SET status_ = 'Not Working' 
-//          WHERE employee_id = ? AND status_ = 'On Leave'`,
-//         [row.employee_id]
-//       );
+    for (const row of rows) {
+      //Update employee status to "On Leave"
+      await db.execute(
+        `UPDATE t_employee 
+         SET status_ = 'On Leave' 
+         WHERE employee_id = ?`,
+        [row.employee_id]
+      );
+
+      if(row.status_ == 'approved'){
+
+        //Find the role of the employee going on leave
+        const [[role]] = await db.execute(
+            `SELECT e.role_id AS role
+             FROM t_employee e
+             WHERE e.employee_id = ?`,
+            [row.employee_id]
+        );
+
+        //Find standby employees with the same role
+        const [employees] = await db.execute(
+            `SELECT employee_id FROM t_employee 
+             WHERE role_id = ? AND standby = 'standby' AND status_ = 'Not Working'`, 
+             [role.role]
+        );
+        if (employees.length === 0) {
+            console.log('No standby employees found for role:', row.role);
+             await db.execute(
+               `DELETE FROM t_shift WHERE employee_id = ? AND date_ BETWEEN ? AND ?`,
+                [row.employee_id, row.start_date, row.end_date]
+            );
+        }else {
+            //Assign shifts to a random standby employee
+            const randomIndex = Math.floor(Math.random() * employees.length);
+            const standbyEmployeeId = employees[randomIndex].employee_id;   
+            //Reassign shifts from the employee going on leave to the standby employee.
+            await db.execute(
+                `UPDATE t_shift 
+                 SET employee_id = ?
+                    WHERE employee_id = ? AND date_ BETWEEN ? AND ?`,
+                [standbyEmployeeId, row.employee_id, row.start_date, row.end_date]
+            );
+            console.log(`Shifts reassigned from employee ${row.employee_id} to standby employee ${standbyEmployeeId}`);
+
+            await db.execute(
+                `INSERT INTO t_notification 
+                 (employee_id, message, sent_time, read_status, notification_type_id)
+                 VALUES (?, ?, NOW(), 'unread', 1)`,
+                 [standbyEmployeeId, `You have been assigned shifts from ${row.start_date} to ${row.end_date} due to a colleague's leave. Please check your schedule.`]
+            );
+        }
+      }
       
-//       //Send notification to employee.
-//       await db.execute(
-//         `INSERT INTO t_notification 
-//          (employee_id, message, sent_time, read_status, notification_type_id)
-//          VALUES (?, ?, NOW(), 'unread', 1)`,
-//         [row.employee_id, 'Your leave has ended. Your status has been updated to "Not Working".']
-//       );
-//     }
-//   } catch (err) {
-//     console.error('Error in leave status update job:', err);
-//   }
-// });
+      //Send notification to employee
+      await db.execute(
+        `INSERT INTO t_notification 
+         (employee_id, message, sent_time, read_status, notification_type_id)
+         VALUES (?, ?, NOW(), 'unread', 1)`,
+        [row.employee_id, `Your leave from ${row.start_date} to ${row.end_date} has started today. Your status has been updated to "On Leave".`]
+      );
+
+    }
+
+    //Also check for leaves that have ended and update status back to "Not Working"
+    const [endedLeaves] = await db.execute(
+      `SELECT l.employee_id, l.leave_id 
+       FROM t_leave l
+       JOIN t_employee e ON l.employee_id = e.employee_id
+       WHERE l.status_ = 'approved' 
+       AND l.end_date < ?
+       AND e.status_ = 'On Leave'`,
+      [currentDate]
+    );
+
+    for (const row of endedLeaves) {
+      await db.execute(
+        `UPDATE t_employee 
+         SET status_ = 'Not Working' 
+         WHERE employee_id = ?`,
+        [row.employee_id]
+      );
+      
+      await db.execute(
+        `INSERT INTO t_notification 
+         (employee_id, message, sent_time, read_status, notification_type_id)
+         VALUES (?, ?, NOW(), 'unread', 1)`,
+        [row.employee_id, 'Your leave has ended. Your status has been updated to "Not Working".']
+      );
+    }
+  } catch (err) {
+    console.error('Error in leave status update job:', err);
+  }
+});
 
 //Configure file upload with size limit and PDF validation
 const storage = multer.diskStorage({
@@ -321,10 +403,14 @@ exports.requestLeave = async (req, res) => {
             }
             //If the sick note is valid, set the sick note file name.
             sickNoteFile = file.filename;
-        } else if (remaining >= daysRequested) {
+        } else if (typeId === 2 && remaining >= daysRequested) {
             //If the sick leave balance is sufficient, no sick note is required.    
             sickNoteFile = file ? file.filename : null;
             status_ = 'approved';  //Set status to approved if sick leave balance is sufficient
+        } else if(typeId !== 2){
+            //For non-sick leave types, set status to pending.
+            sickNoteFile = null;  //No sick note required for non-sick leave types.
+            status_ = 'pending';
         }
         //Insert the leave request into the database.
         //If the status is approved, update the employee's status to "On Leave".
@@ -353,8 +439,19 @@ exports.requestLeave = async (req, res) => {
        
         //If the leave is approved, update the employee's status to "On Leave".
         //This is to reflect that the employee is currently on leave.
-        if (status_ === 'approved') {
-            await db.execute(`UPDATE t_employee SET status_ = ? WHERE employee_id = ?`, ['On Leave', employee_id]);
+       if (status_ === 'approved') {
+            //Get current date in the same format as your start_date
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            const formattedCurrentDate = currentDate.toISOString().split('T')[0];
+            
+            //Check if the start date is today
+            if (start_date === formattedCurrentDate) {
+                await db.execute(
+                    `UPDATE t_employee SET status_ = ? WHERE employee_id = ?`,
+                    ['On Leave', employee_id]
+                );
+            }
         }
 
         res.status(200).json({ message: 'Leave request submitted', leave_id: insertResult.insertId, status_ });
@@ -423,9 +520,9 @@ exports.getAllLeaveRequests = async (req, res) => {
             SELECT l.leave_id, l.start_date, l.end_date, l.status_,
                    e.first_name, e.last_name, e.employee_id,
                    t.name_ AS leave_type
-            FROM t_leave l
-            JOIN t_employee e ON l.employee_id = e.employee_id
-            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
+            FROM T_Leave l
+            JOIN T_Employee e ON l.employee_id = e.employee_id
+            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
             WHERE l.status_ = 'pending' AND
               t.name_ IN ('Annual Leave', 'Family leave')
             ORDER BY l.created_at DESC
@@ -450,7 +547,7 @@ exports.respondToLeave = async (req, res) => {
         //Check current status
         const [[leave]] = await db.query(
             `SELECT status_, employee_id 
-            FROM t_leave WHERE leave_id = ?`, [leave_id]
+            FROM T_Leave WHERE leave_id = ?`, [leave_id]
         );
 
         if(!leave) {
@@ -461,7 +558,7 @@ exports.respondToLeave = async (req, res) => {
         }
         //Update leave status
         await db.execute(
-            `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
+            `UPDATE T_Leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
             [action, leave_id]
         );
 
@@ -483,12 +580,12 @@ exports.respondToLeave = async (req, res) => {
             const [[leaveInfo]] = await db.query(`
                 SELECT employee_id, leave_type_id, 
                    DATEDIFF(end_date, start_date) + 1 AS days_requested
-                FROM t_leave
+                FROM T_Leave
                 WHERE leave_id = ?`, [leave_id]);
             //get days used so far.
             const [rows] = await db.execute(`
                 SELECT COALESCE(SUM(DATEDIFF(end_date, start_date) + 1), 0) AS used_so_far
-                FROM t_leave
+                FROM T_Leave
                 WHERE employee_id = ? 
                   AND leave_type_id = ?
                   AND status_ = 'approved'
@@ -501,7 +598,7 @@ exports.respondToLeave = async (req, res) => {
             const totalUsed = usedSoFar + leaveInfo.days_Requested
             const remaining = maxBalance - totalUsed;
             await db.execute(
-                `UPDATE t_leave SET used_days = ?, remaining_days = ?
+                `UPDATE T_Leave SET used_days = ?, remaining_days = ?
                  WHERE leave_id = ?`,
                 [totalUsed, remaining, leave_id]
             );
@@ -522,8 +619,8 @@ exports.getMyLeaveRequests = async (req, res) => {
         const [rows] = await db.query(`
             SELECT l.leave_id, l.start_date, l.end_date, l.status_,
                    t.name_ AS leave_type
-            FROM t_leave l
-            JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
+            FROM T_Leave l
+            JOIN T_Leave_Type t ON l.leave_type_id = t.leave_type_id
             WHERE l.employee_id = ?
             ORDER BY l.created_at DESC
         `, [employee_id]);
