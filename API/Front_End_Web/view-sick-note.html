@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Azania - View Sick Note</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Fonts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template CSS -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <style>
+        .pdf-container {
+            height: calc(100vh - 250px);
+            width: 100%;
+            margin-top: 20px;
+            background-color: #1a1a1a;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .no-note {
+            text-align: center;
+            padding: 40px;
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .no-note i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #6c757d;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+        .sick-note-header {
+            border-bottom: 1px solid #444;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .employee-info {
+            margin-bottom: 15px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner"
+            class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
+                        </div>
+                    </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+                    <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <div id="navbar-container"></div>
+            <!-- Navbar End -->
+
+            <!-- Sick Note Content Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4 sick-note-header">
+                        <h4 class="mb-0 text-white"><i class="fa fa-file-pdf me-2 text-danger"></i>Sick Note Details</h4>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="goBack()">
+                                <i class="fa fa-arrow-left me-2"></i>Back to Leave Management
+                            </button>
+                            <button class="btn btn-success" id="messageEmployeeBtn">
+                                <i class="fa fa-comment me-2"></i>Message Employee
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="employee-info bg-dark rounded p-3 mb-3">
+                        <h5 class="text-white" id="employeeName">Employee: Loading...</h5>
+                        <p class="text-white mb-0" id="leaveDuration">Leave Period: Loading...</p>
+                    </div>
+                    
+                    <div class="pdf-container" id="pdf-container">
+                        <!-- Content will be loaded by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <!-- Sick Note Content End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved.
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Remove spinner when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const spinner = document.getElementById('spinner');
+                if (spinner) {
+                    spinner.style.display = 'none';
+                }
+            }, 100);
+        });
+
+        function goBack() {
+            // Use window.history.back() for same tab or close if opened in new tab
+            if (window.opener) {
+                window.close();
+            } else {
+                window.history.back();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const notePath = urlParams.get('note');
+            const employeeId = urlParams.get('employeeId');
+            const startDate = urlParams.get('startDate');
+            const endDate = urlParams.get('endDate');
+            const employeeName = urlParams.get('employeeName');
+            const daysTaken = urlParams.get('daysTaken');
+            
+            const container = document.getElementById('pdf-container');
+            const employeeNameElement = document.getElementById('employeeName');
+            const leaveDurationElement = document.getElementById('leaveDuration');
+            const messageEmployeeBtn = document.getElementById('messageEmployeeBtn');
+
+            // Format dates
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString('en-GB', options);
+            };
+
+            // Set employee info
+            if (employeeName) {
+                employeeNameElement.textContent = `Employee: ${decodeURIComponent(employeeName)} (ID: ${employeeId || 'N/A'})`;
+            } else {
+                employeeNameElement.textContent = 'Employee: Information not available';
+            }
+
+            if (startDate && endDate) {
+                const days = daysTaken || Math.ceil((new Date(endDate) - new Date(startDate))) / (1000 * 60 * 60 * 24) + 1;
+                leaveDurationElement.textContent = 
+                    `Leave Period: ${formatDate(startDate)} to ${formatDate(endDate)} (${days} days)`;
+            } else {
+                leaveDurationElement.textContent = 'Leave Period: Information not available';
+            }
+
+            // Set up message button
+            if (employeeId) {
+                messageEmployeeBtn.disabled = false;
+                messageEmployeeBtn.classList.remove('btn-secondary');
+                messageEmployeeBtn.classList.add('btn-success');
+                messageEmployeeBtn.onclick = () => {
+                    window.location.href = `message-employee.html?employeeId=${employeeId}`;
+                };
+            } else {
+                messageEmployeeBtn.disabled = true;
+                messageEmployeeBtn.classList.remove('btn-success');
+                messageEmployeeBtn.classList.add('btn-secondary');
+                messageEmployeeBtn.title = "Employee information not available";
+            }
+            
+            if (notePath) {
+                const pdfUrl = `http://localhost:3000/uploads/${notePath}`;
+                
+                fetch(pdfUrl)
+                    .then(response => {
+                        if (response.ok) {
+                            container.innerHTML = '<iframe></iframe>';
+                            const pdfViewer = container.querySelector('iframe');
+                            pdfViewer.src = pdfUrl;
+                        } else {
+                            showNoNoteMessage('Sick note file not found on server');
+                        }
+                    })
+                    .catch(error => {
+                        showNoNoteMessage('Error loading sick note');
+                        console.error('Error loading PDF:', error);
+                    });
+            } else {
+                showNoNoteMessage('No sick note was attached to this leave request');
+            }
+            
+            function showNoNoteMessage(message) {
+                container.innerHTML = `
+                    <div class="no-note">
+                        <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                        <h5 class="text-white">${message || 'No sick note available'}</h5>
+                        <p class="text-muted">The employee did not upload a sick note for this leave period.</p>
+                    </div>`;
+            }
+        });
+    </script>
+    <script src="js/components.js"></script>
+</body>
+</html>

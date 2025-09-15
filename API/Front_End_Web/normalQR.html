@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Azania - Normal Shift QR</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet"> 
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        /* Compact Layout Styles */
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        .qr-container {
+            overflow: visible !important;
+            min-height: auto;
+        }
+        
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            padding: 10px 0;
+        }
+        
+        .qr-card {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .qr-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3498DB 0%, #2980B9 100%);
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .qr-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .qr-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 10px;
+        }
+        
+        .qr-card-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .qr-card-title {
+            color: #ECF0F1;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .qr-code-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .qr-code-display {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .qr-code-display::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(45deg, #3498DB, #2980B9, #3498DB);
+            border-radius: 13px;
+            z-index: -1;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .qr-code-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+        
+        .qr-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+            border: 2px dashed rgba(127, 140, 141, 0.5);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #95A5A6;
+            gap: 8px;
+        }
+        
+        .qr-placeholder i {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+        
+        .qr-placeholder p {
+            margin: 0;
+            font-size: 0.8rem;
+            text-align: center;
+            line-height: 1.3;
+            padding: 0 8px;
+        }
+        
+        .qr-status {
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .qr-status-active {
+            color: #27AE60;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .qr-status-inactive {
+            color: #95A5A6;
+            font-size: 0.8rem;
+        }
+        
+        .qr-expiry {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            border-radius: 6px;
+            padding: 6px 8px;
+            color: #85C1E9;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #27AE60;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        .info-section {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #3498DB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+        }
+
+        .info-card h6 {
+            color: #3498DB;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-card .value {
+            color: #ECF0F1;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            font-family: 'Roboto', monospace;
+        }
+        
+        .countdown {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #3498DB;
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .status-active {
+            color: #27AE60 !important;
+        }
+
+        .status-waiting {
+            color: #F39C12 !important;
+        }
+
+        .status-unavailable {
+            color: #E74C3C !important;
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Header adjustments */
+        .bg-secondary.rounded-top {
+            padding: 12px 16px !important;
+            margin-bottom: 0;
+        }
+
+        .bg-secondary h4 {
+            font-size: 1.3rem;
+        }
+
+        /* Container padding adjustments */
+        .container-fluid.pt-4.px-4 {
+            padding-top: 16px !important;
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+        }
+
+        .row.g-4 {
+            --bs-gutter-y: 12px;
+        }
+
+        /* Footer adjustments */
+        /* .bg-secondary.rounded-top.p-4 {
+            padding: 12px 16px !important;
+            margin-top: 16px;
+        } */
+        
+        @media (max-width: 768px) {
+            .qr-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .qr-code-display {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .qr-card {
+                padding: 14px;
+            }
+
+            .info-section {
+                padding: 14px;
+            }
+
+            .info-card .value {
+                font-size: 0.95rem;
+            }
+
+            .container-fluid.pt-4.px-4 {
+                padding: 12px !important;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .qr-grid {
+                grid-template-columns: 1fr 1fr;
+                max-width: 700px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .info-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        /* Make sure content doesn't overflow */
+        body, html {
+            overflow-x: hidden;
+        }
+
+        .content {
+            height: 100vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link active"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
+                        </div>
+                    </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+            <div id="navbar-container"></div>
+            <!-- Navbar End -->
+
+            <!-- Normal QR Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div id="normal-qr-app" class="row g-4">
+                    <!-- Header Section -->
+                    <div class="col-12">
+                        <div class="bg-secondary rounded-top p-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0"><i class="fa fa-qrcode me-2"></i>Normal Shift QR Codes</h4>
+                                <button class="btn btn-primary" onclick="openEmployeeDisplay()">
+                                    <i class="fa fa-external-link-alt me-2"></i>Open Employee Display
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Information Section -->
+                    <div class="col-12">
+                        <div class="info-section">
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <h6><i class="fa fa-calendar"></i>Current Date</h6>
+                                    <p class="value">{{ formatDate(new Date()) }}</p>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="fa fa-clock"></i>Current Time</h6>
+                                    <p class="value">{{ currentTime }}</p>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="fa fa-info-circle"></i>QR Status</h6>
+                                    <p class="value" :class="getStatusClass()">
+                                        {{ getStatusText() }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Codes Grid -->
+                    <div class="col-12">
+                        <div class="qr-container">
+                            <div class="qr-grid">
+                                <!-- Clock-in QR Card -->
+                                <div class="qr-card">
+                                    <div class="qr-card-header">
+                                        <div class="qr-card-icon">
+                                            <i class="fa fa-sign-in-alt"></i>
+                                        </div>
+                                        <h5 class="qr-card-title">Clock-in QR</h5>
+                                    </div>
+                                    
+                                    <div class="qr-code-wrapper">
+                                        <div class="qr-code-display" v-if="normalQR">
+                                            <img :src="normalQR" alt="Clock-in QR Code">
+                                        </div>
+                                        <div class="qr-code-display" v-else>
+                                            <div class="qr-placeholder">
+                                                <i class="fa fa-clock"></i>
+                                                <p>{{ getPlaceholderText() }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="qr-status" v-if="normalQR">
+                                            <div class="qr-status-active">
+                                                <div class="pulse-dot"></div>
+                                                Scan to clock in for your shift
+                                            </div>
+                                            <div class="qr-expiry" v-if="expiration">
+                                                <i class="fa fa-clock me-1"></i>
+                                                Valid until: {{expiration}}
+                                            </div>
+                                        </div>
+                                        <div class="qr-status" v-else>
+                                            <div class="qr-status-inactive">
+                                                {{ getPlaceholderText() }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Proof QR Card -->
+                                <div class="qr-card">
+                                    <div class="qr-card-header">
+                                        <div class="qr-card-icon">
+                                            <i class="fa fa-check-circle"></i>
+                                        </div>
+                                        <h5 class="qr-card-title">Proof QR</h5>
+                                    </div>
+                                    
+                                    <div class="qr-code-wrapper">
+                                        <div class="qr-code-display" v-if="proofQR">
+                                            <img :src="proofQR" alt="Clock-out QR Code">
+                                        </div>
+                                        <div class="qr-code-display" v-else>
+                                            <div class="qr-placeholder">
+                                                <i class="fa fa-check-circle"></i>
+                                                <p>{{ getProofPlaceholderText() }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="qr-status" v-if="proofQR">
+                                            <div class="qr-status-active">
+                                                <div class="pulse-dot"></div>
+                                                Scan to proof shift attendance
+                                            </div>
+                                            <div class="qr-expiry" v-if="proofExpiration">
+                                                <i class="fa fa-clock me-1"></i>
+                                                Valid until: {{proofExpiration}}
+                                            </div>
+                                        </div>
+                                        <div class="qr-status" v-else>
+                                            <div class="qr-status-inactive">
+                                                {{ getProofPlaceholderText() }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Normal QR End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4 mt-auto">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved. 
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <!-- Normal QR Vue App -->
+    <script src="js/normalQR.js"></script>
+    <script src="js/components.js"></script>
+
+    <script>
+        function openEmployeeDisplay() {
+            const employeeWindow = window.open(
+                'displayQR.html', 
+                'employeeDisplay',
+                'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
+            );
+            
+            if (employeeWindow) {
+                employeeWindow.focus();
+            } else {
+                alert('Please allow popups for this site to open the employee display. You can also manually navigate to employee-qr-display.html');
+            }
+        }
+    </script>
+</body>
+</html>

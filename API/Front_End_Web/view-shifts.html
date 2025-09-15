@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Azania - View Shifts</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Employee Management, Shift Management, Scheduling" name="keywords">
+    <meta content="Employee shift viewing and management system" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet"> 
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+   
+    <!-- Vue CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        /* Hover effect for employee cards */
+        .hover-effect:hover {
+        background-color: rgba(108, 117, 125, 0.5) !important; /* Slightly lighter than bg-secondary */
+        transform: translateY(-2px);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hover effect for shift cards */
+        .shift-card:hover {
+        transform: translateY(-3px);
+        transition: all 0.2s ease;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        border-color: #6c757d !important;
+        }
+
+        /* Make sure the accordion button doesn't have weird focus styles */
+        .accordion-button:focus {
+        box-shadow: none;
+        border-color: transparent;
+        }
+        
+        /* Style for the shift count badge */
+        .shift-count-badge {
+            font-size: 0.8rem;
+            padding: 0.5em 1.50em;
+            margin-right: 15px;
+        }
+</style>
+</head>
+
+<body>
+    
+         <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+<!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i
+                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link active"><i class="fa fa-calendar me-2"></i>View
+                        Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
+                                class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-user-edit me-2"></i>New</a>
+                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-info-circle me-2"></i>Status</a> -->
+                        </div>
+                    </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+
+        <!-- Content Start -->
+        <div class="content">
+           <!-- Navbar Start -->
+            <div id="navbar-container"></div>
+            <!-- Navbar End -->
+
+        <!-- View Shifts Start -->
+        <div id="empCards">
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <!-- Filter/Search/Calendar Row -->
+                        <div class="bg-secondary rounded p-4 mb-4">
+                        <h4 class="mb-4"><i class="fa fa-sign-out-alt me-2"></i>Shifts</h4>
+                        <div class="d-flex justify-content-center">
+                            <div class="row g-3" style="max-width: 1200px; width: 100%;">
+                                <div class="col-md-4">
+                                    <select v-model="selectedFilter" class="form-select bg-dark border-0">
+                                        <option value="">All Shifts</option>
+                                        <option value="Previous Shift">Previous Shifts</option>
+                                        <option value="Today's Shifts">Today's Shifts</option>
+                                        <option value="Next Shift">Next Shifts</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <input type="text" v-model="searchQuery" class="form-control bg-dark border-0" placeholder="Search by name/role">
+                                        <button class="btn btn-primary">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <input type="text" id="weekendDatePicker" class="form-control bg-dark border-0" placeholder="Select weekend date" readonly>
+                                        <button class="btn btn-primary" @click="openDatePicker">
+                                            <i class="fa fa-calendar"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button @click="clearFilters" class="btn btn-danger" style="height: 100%; width: 100%;">
+                                        <i class="fa fa-times"></i>
+                                        <span class="d-none d-md-inline"> Clear Filters</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        <div class="accordion" id="employeeAccordion">
+                            <div class="accordion-item bg-secondary rounded mb-4 border-0" v-for="(employee, index) in groupedShifts" :key="employee.employee_name">
+                                <h2 class="accordion-header" :id="'heading' + index">
+                                <button class="accordion-button collapsed bg-secondary rounded p-4 hover-effect" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                            <span class="text-white fw-bold">{{employee.employee_name.charAt(0)}}</span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">{{employee.employee_name}}</h5>
+                                            <p class="text-muted mb-0">{{employee.role_title}}</p>
+                                        </div>
+                                        <!-- Shift count badge -->
+                                        <span class="badge bg-primary shift-count-badge ms-2">
+                                            {{employee.shifts.length}} shift{{employee.shifts.length !== 1 ? 's' : ''}}
+                                        </span>
+                                    </div>
+                                </button>
+                                </h2>
+                                <div :id="'collapse' + index" class="accordion-collapse collapse" :aria-labelledby="'heading' + index" data-bs-parent="#employeeAccordion">
+                                <div class="accordion-body pt-0">
+                                    <div class="row g-3">
+                                    <div class="col-md-6 col-lg-4" v-for="shift in employee.shifts" :key="shift.shift_id">
+                                        <div class="bg-dark rounded-4 p-3 h-100 border border-secondary shift-card">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="d-flex align-items-center text-light fw-medium">
+                                                <!-- <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5h16V4H0V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/>
+                                                </svg> -->
+                                                    {{formatShiftDateWithDay(shift.date_)}}
+                                                </div>
+                                               <span class="badge rounded-pill d-inline-flex justify-content-center align-items-center" 
+                                                    style="width: 100px" :class="{
+                                                    'bg-success': shift.status_ === 'completed',
+                                                    'bg-warning': shift.status_ === 'scheduled',
+                                                    'bg-danger': shift.status_ === 'missed' || shift.status_ === 'cancelled',
+                                                    'bg-info': shift.status_ === 'in progress' || shift.status_ === 'pending'
+                                                    }">
+                                                {{shift.status_.charAt(0).toUpperCase() + shift.status_.slice(1).toLowerCase()}}
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center text-muted">
+                                                <!-- <svg class="me-2" width="16" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                                </svg> -->
+                                                <span>{{shift.start_time}} → {{shift.end_time}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+                        <!-- Employee Cards End-->
+                    </div>
+                </div>
+            </div>
+            <!-- View Shifts End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved. 
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- Footer End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+     <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script src="js/shifts.js"></script>
+    <script src="js/components.js"></script>
+    </div>
+</body>
+
+</html>
