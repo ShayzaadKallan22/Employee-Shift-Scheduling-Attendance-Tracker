@@ -73,39 +73,39 @@ app.use(express.json()); //For API JSON payloads
 app.use('/uploads', express.static('uploads')); //Added by Cletus.
 
 //Method to handle leave status updates.
-async function updateLeaveStatuses() {
-  try {
-    const [rows] = await pool.execute(
-      `SELECT employee_id FROM t_leave 
-       WHERE status_ = 'approved' 
-       AND end_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
-    );
+// async function updateLeaveStatuses() {
+//   try {
+//     const [rows] = await pool.execute(
+//       `SELECT employee_id FROM t_leave 
+//        WHERE status_ = 'approved' 
+//        AND end_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+//     );
 
-    for (const row of rows) {
-      await pool.execute(
-        `UPDATE t_employee 
-         SET status_ = 'Not Working' 
-         WHERE employee_id = ? AND status_ = 'On Leave'`,
-        [row.employee_id]
-      );
+//     for (const row of rows) {
+//       await pool.execute(
+//         `UPDATE t_employee 
+//          SET status_ = 'Not Working' 
+//          WHERE employee_id = ? AND status_ = 'On Leave'`,
+//         [row.employee_id]
+//       );
 
-      await pool.execute(
-        `INSERT INTO t_notification 
-         (employee_id, message, sent_time, read_status, notification_type_id)
-         VALUES (?, ?, NOW(), 'unread', 1)`,
-        [row.employee_id, 'Your leave has ended. Your status has been updated to "Not Working".']
-      );
-    }
-  } catch (err) {
-    console.error('Error in leave status update job:', err);
-  }
-}
+//       await pool.execute(
+//         `INSERT INTO t_notification 
+//          (employee_id, message, sent_time, read_status, notification_type_id)
+//          VALUES (?, ?, NOW(), 'unread', 1)`,
+//         [row.employee_id, 'Your leave has ended. Your status has been updated to "Not Working".']
+//       );
+//     }
+//   } catch (err) {
+//     console.error('Error in leave status update job:', err);
+//   }
+// }
 
 //Run immediately
-updateLeaveStatuses();
+//updateLeaveStatuses();
 
 //Also schedule daily at midnight
-cron.schedule('* * * * *', updateLeaveStatuses);
+//cron.schedule('* * * * *', updateLeaveStatuses);
 //End of cron job added by Cletus.
 
 //SHAYZAAD - Cors Middleware
