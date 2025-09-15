@@ -8,9 +8,12 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=7860
       - MYSQL_DATABASE=azania
+      - JWT_SECRET=secret
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - app-network
 
   db:  
     image: mysql:8.0
@@ -26,6 +29,12 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+    networks:
+      - app-network
 
 volumes:
   mysql_data:
+
+networks:
+  app-network:
+    driver: bridge

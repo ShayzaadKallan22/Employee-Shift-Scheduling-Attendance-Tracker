@@ -362,42 +362,96 @@
 </div>
 <div class="modal-backdrop fade show" v-if="showBudgetDetailsModal"></div>
                                         
+
+<!-- Capacity Insights Section -->
+<div class="bg-dark rounded p-4 mb-4">
+    <h5 class="mb-3"><i class="fa fa-chart-pie me-2"></i>Capacity Insights</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center">
+                <h6 class="mb-2 text-danger">Danger</h6>
+                <h4 class="mb-0">{{ getCapacityStats().maxedOut }}</h4>
+                <small class="text-muted">employees</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center">
+                <h6 class="mb-2 text-warning">Underutilized</h6>
+                <h4 class="mb-0">{{ getCapacityStats().underutilized }}</h4>
+                <small class="text-muted">employees</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-secondary rounded p-3 text-center">
+                <h6 class="mb-2" style="color: #28a745;">At Regular Capacity</h6>
+                <h4 class="mb-0">{{ getCapacityStats().atRegularCapacity }}</h4>
+                <small class="text-muted">employees</small>
+            </div>
+        </div>
+    </div>
+</div>
                                     <!-- Payment Details -->
                                     <div class="bg-dark rounded p-4">
                                         <h5 class="mb-4"><i class="fa fa-file-invoice-dollar me-2"></i>Payment Details</h5>
                                         <div class="table-responsive">
-                                            <table class="table text-start align-middle table-bordered table-hover mb-0">
-                                                <thead>
-                                                    <tr class="text-white">
-                                                        <th>Employee</th>
-                                                        <th>Role</th>
-                                                        <th>Total Payment</th>
-                                                        <th>Regular Hours</th>
-                                                        <th>Overtime Hours</th>
-                                                        <th>Base Rate</th>
-                                                        <th>Overtime Rate</th>
-                                                        <th>Payment Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-if="paymentDetails.length === 0">
-                                                        <td colspan="8" class="text-center py-4">
-                                                            No payment records found for selected date
-                                                        </td>
-                                                    </tr>
-                                                    <tr v-for="payment in paymentDetails" :key="payment.employee_id">
-                                                        <td>{{ payment.employee_name }}</td>
-                                                        <td>{{ payment.role_title }}</td>
-                                                        <td>{{ formatCurrency(payment.total_amount) }}</td>
-                                                        <td>{{ payment.regular_hours }} hrs</td>
-                                                        <td>{{ payment.overtime_hours }} hrs</td>
-                                                        <td>{{ formatCurrency(payment.base_hourly_rate) }}</td>
-                                                        <td>{{ formatCurrency(payment.overtime_hourly_rate) }}</td>
-                                                        <td>{{ formatShiftDate(payment.payment_date) }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+    <table class="table text-start align-middle table-bordered table-hover mb-0">
+        <thead>
+            <tr class="text-white">
+                <th>Employee</th>
+                <th>Role</th>
+                <th>Total Payment</th>
+                <th>Regular Hours</th>
+                <th>Overtime Hours</th>
+                <th>Base Rate</th>
+                <th>Overtime Rate</th>
+                <th>Payment Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-if="paymentDetails.length === 0">
+                <td colspan="8" class="text-center py-4">
+                    No payment records found for selected date
+                </td>
+            </tr>
+            <tr v-for="payment in paymentDetails" :key="payment.employee_id">
+                <td>{{ payment.employee_name }}</td>
+                <td>{{ payment.role_title }}</td>
+                <td>{{ formatCurrency(payment.total_amount) }}</td>
+                <td>
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">{{ payment.regular_hours }}/{{ payment.max_regular_hours }} hrs</span>
+                        <small :class="getHoursUtilizationClass(payment.regular_utilization_percent)">
+                            {{ payment.regular_utilization_percent }}% utilized
+                        </small>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar" 
+                                :class="getProgressBarClass(payment.regular_utilization_percent)"
+                                :style="{width: Math.min(100, payment.regular_utilization_percent) + '%'}">
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">{{ payment.overtime_hours }}/{{ payment.max_overtime_hours }} hrs</span>
+                        <small :class="getHoursUtilizationClass(payment.overtime_utilization_percent)">
+                            {{ payment.overtime_utilization_percent }}% utilized
+                        </small>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar" 
+                                :class="getProgressBarClass(payment.overtime_utilization_percent)"
+                                :style="{width: Math.min(100, payment.overtime_utilization_percent) + '%'}">
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ formatCurrency(payment.base_hourly_rate) }}</td>
+                <td>{{ formatCurrency(payment.overtime_hourly_rate) }}</td>
+                <td>{{ formatShiftDate(payment.payment_date) }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
                                     </div>
                                 </div>
                             </div>

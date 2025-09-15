@@ -103,7 +103,7 @@ createApp({
         return 'Proof QR Available';
       }
       
-      return 'Waiting for shift time';
+      return 'Awaiting QR';
     },
     
     //Determine the CSS class for status styling

@@ -427,23 +427,32 @@ async function generatePayroll() {
         
         const [payrollData] = await db.query(payrollQuery, params);
 
-        //Insert into payroll table
+        //Insert into payroll table WITH historical rates stored
         for (const employee of payrollData) {
             await db.query(`
                 INSERT INTO t_payroll 
-                    (employee_id, base_hours, overtime_hours, total_amount, _status, payment_date)
-                VALUES (?, ?, ?, ?, 'paid', ?)
+                    (employee_id, base_hours, overtime_hours, total_amount, _status, payment_date,
+                     base_hourly_rate_used, overtime_hourly_rate_used, role_title_snapshot, employee_name_snapshot)
+                VALUES (?, ?, ?, ?, 'paid', ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     base_hours = VALUES(base_hours),
                     overtime_hours = VALUES(overtime_hours),
                     total_amount = VALUES(total_amount),
-                    _status = VALUES(_status)
+                    _status = VALUES(_status),
+                    base_hourly_rate_used = VALUES(base_hourly_rate_used),
+                    overtime_hourly_rate_used = VALUES(overtime_hourly_rate_used),
+                    role_title_snapshot = VALUES(role_title_snapshot),
+                    employee_name_snapshot = VALUES(employee_name_snapshot)
             `, [
                 employee.employee_id,
                 employee.base_hours,
                 employee.overtime_hours,
                 employee.total_amount,
-                paymentDateStr
+                paymentDateStr,
+                employee.base_hourly_rate,    //Store the actual rate used for this payroll period
+                employee.overtime_hourly_rate, //Store the actual rate used for this payroll period
+                employee.role_title,          //Store role title at time of payment
+                employee.employee_name        //Store employee name at time of payment
             ]);
         }
 
@@ -466,7 +475,7 @@ async function generatePayroll() {
 cron.schedule('0 12 * * 2', generatePayroll);
 //cron.schedule('*/5 * * * * *', generatePayroll);
 
-//getPaymentDetails function - using payroll table with current rates
+//getPaymentDetails function - using payroll table with historical rates stored during payroll generation
 exports.getPaymentDetails = async (req, res) => {
     try {
         const { date } = req.query;
@@ -486,24 +495,30 @@ exports.getPaymentDetails = async (req, res) => {
             paymentDate = mostRecentTuesday.toISOString().split('T')[0];
         }
 
-        //Query the payroll table with current employee rates for display
+        //Query the payroll table using stored historical rates instead of current rates
         const query = `
             SELECT 
                 p.employee_id,
-                CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
-                r.title AS role_title,
+                COALESCE(p.employee_name_snapshot, CONCAT(e.first_name, ' ', e.last_name)) AS employee_name,
+                COALESCE(p.role_title_snapshot, r.title) AS role_title,
                 p.base_hours AS regular_hours,
                 p.overtime_hours,
                 p.total_amount,
                 DATE_FORMAT(p.payment_date, '%d-%m-%Y') AS payment_date,
-                COALESCE(e.base_hourly_rate, r.base_hourly_rate) AS base_hourly_rate,
-                COALESCE(e.overtime_hourly_rate, r.overtime_hourly_rate) AS overtime_hourly_rate
+                COALESCE(p.base_hourly_rate_used, COALESCE(e.base_hourly_rate, r.base_hourly_rate)) AS base_hourly_rate,
+                COALESCE(p.overtime_hourly_rate_used, COALESCE(e.overtime_hourly_rate, r.overtime_hourly_rate)) AS overtime_hourly_rate,
+                36 AS max_regular_hours,
+                12 AS max_overtime_hours,
+                ROUND((p.base_hours / 36) * 100, 1) AS regular_utilization_percent,
+                ROUND((p.overtime_hours / 12) * 100, 1) AS overtime_utilization_percent,
+                (p.base_hours + p.overtime_hours) AS total_hours_worked,
+                48 AS max_total_hours
             FROM t_payroll p
             INNER JOIN t_employee e ON p.employee_id = e.employee_id
             INNER JOIN t_role r ON e.role_id = r.role_id
             WHERE p.payment_date = ?
             AND p._status = 'paid'
-            ORDER BY p.total_amount DESC;
+            ORDER BY p.total_amount DESC
         `;
         
         const [rows] = await db.query(query, [paymentDate]);

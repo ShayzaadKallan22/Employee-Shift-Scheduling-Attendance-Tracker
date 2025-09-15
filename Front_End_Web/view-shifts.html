@@ -58,6 +58,13 @@
         box-shadow: none;
         border-color: transparent;
         }
+        
+        /* Style for the shift count badge */
+        .shift-count-badge {
+            font-size: 0.8rem;
+            padding: 0.5em 1.50em;
+            margin-right: 15px;
+        }
 </style>
 </head>
 
@@ -171,14 +178,18 @@
                             <div class="accordion-item bg-secondary rounded mb-4 border-0" v-for="(employee, index) in groupedShifts" :key="employee.employee_name">
                                 <h2 class="accordion-header" :id="'heading' + index">
                                 <button class="accordion-button collapsed bg-secondary rounded p-4 hover-effect" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center w-100">
                                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
                                             <span class="text-white fw-bold">{{employee.employee_name.charAt(0)}}</span>
                                         </div>
-                                        <div>
+                                        <div class="flex-grow-1">
                                             <h5 class="mb-1">{{employee.employee_name}}</h5>
                                             <p class="text-muted mb-0">{{employee.role_title}}</p>
                                         </div>
+                                        <!-- Shift count badge -->
+                                        <span class="badge bg-primary shift-count-badge ms-2">
+                                            {{employee.shifts.length}} shift{{employee.shifts.length !== 1 ? 's' : ''}}
+                                        </span>
                                     </div>
                                 </button>
                                 </h2>

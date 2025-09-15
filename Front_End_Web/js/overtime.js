@@ -5,6 +5,7 @@ const API_BASE = 'http://localhost:3000/api/overtime';
 createApp({
   data() {
     return {
+      currentTime: new Date().toLocaleTimeString(),
       roles: [], //Available roles for overtime
       selectedRoles: [], //Roles selected for current overtime
       duration: 60, //Default overtime duration (minutes)
@@ -56,6 +57,41 @@ createApp({
   },
 
   methods: {
+     //Update the current time display
+    updateCurrentTime() {
+      this.currentTime = new Date().toLocaleTimeString();
+    },
+    
+    // Format a date object into a readable string
+    formatDate(date) {
+      return date.toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    },
+    
+    //Determine the status text to display based on available QR codes
+    getStatusText() {
+      if (this.qrImage) {
+        return 'Overtime Session Active';
+      }
+      
+      if (this.proofImage) {
+        return 'Overtime Proof QR Available';
+      }
+      
+      return 'No Active Overtime Sessions';
+    },
+    
+    //Determine the CSS class for status styling
+    getStatusClass() {
+      if (this.qrImage || this.proofImage) {
+        return 'status-active';
+      }
+      return 'status-waiting';
+    },
     //Fetch available roles from server
     async fetchRoles() {
       try {
@@ -73,7 +109,7 @@ createApp({
     //Generate new overtime QR code
     async generateQR() {
       if (!this.selectedRoles.length || this.duration > 180 || this.duration < 60) {
-        this.errorMessage = 'Please select at least one role and set duration (min 1 hour, max 3 hours)';
+        this.errorMessage = 'Please select at least one role and set the duration';
         return;
       }
       
@@ -502,7 +538,9 @@ createApp({
   //Fetch roles when component loads
   mounted() {
     this.fetchRoles();
-
+    setInterval(() => {
+        this.updateCurrentTime();
+      }, 1000);
     //Load saved session on startup
     this.loadSession();
   },
