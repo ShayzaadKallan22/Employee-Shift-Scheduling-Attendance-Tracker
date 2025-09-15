@@ -35,10 +35,10 @@ exports.scanQR = async (req, res) => {
     }
 
     //Mark QR code as used
-    await db.execute(
-      `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
-      [qr.qr_id]
-    );
+    // await db.execute(
+    //   `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
+    //   [qr.qr_id]
+    // );
 
     //Determine shift type based on QR purpose
     let shiftType = '';
