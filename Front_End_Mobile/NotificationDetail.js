@@ -8,6 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, Linking } from 'rea
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
+//NotificationDetails component to display detailed view of a notification.
 const NotificationDetails = ({ route }) => {
   const { notification } = route.params;
   const navigation = useNavigation();

@@ -64,7 +64,7 @@ export default function ScanScreen() {
       }
     }catch(error){
       Alert.alert('Error', 'Could not scan the QR Code');
-      console.error(error);
+      //console.error(error);
       setScanned(false);
       setLoading(false);
     }
@@ -100,6 +100,7 @@ export default function ScanScreen() {
           barcodeScannerSettings={{barcodeTypes: ['qr'],}}/>
       </View>
 
+      {/* If qr is scanned. */}
       {scanned &&(
       <TouchableOpacity
         style={styles.scanButton}
@@ -112,6 +113,7 @@ export default function ScanScreen() {
   );
 }
 
+{/* Styles */}
 const styles = StyleSheet.create({
   container: {
     flex: 1,

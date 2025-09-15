@@ -15,6 +15,7 @@ import config from './config';
 
 const API_URL = config.API_URL;
 
+//Message and Notifications main component
 const MessagesAndNotifications = () => {
   const navigation = useNavigation();
   const [activeMainTab, setActiveMainTab] = useState('Notifications');
@@ -24,10 +25,10 @@ const MessagesAndNotifications = () => {
 
   //State
   const [notifications, setNotifications] = useState([]);
-  const [activeNotificationTab, setActiveNotificationTab] = useState('Unread');
+  const [activeNotificationTab, setActiveNotificationTab] = useState('All');
   const { fetchUnreadCount } = useNotifications();
   const [conversations, setConversations] = useState([]);
-  const [activeMessageTab, setActiveMessageTab] = useState('Unread');
+  const [activeMessageTab, setActiveMessageTab] = useState('All');
 
   //Fetch list of conversations for the current user
     const fetchConversations = async () => {
@@ -42,7 +43,7 @@ const MessagesAndNotifications = () => {
         //Get all unique conversation partners
         const partnersRes = await axios.get(`${API_URL}/api/conversation/partners/${employeeId}`);
         
-        console.log('Partners response:', partnersRes.data); // Debug log
+        // console.log('Partners response:', partnersRes.data); // Debug log
         
         //Get the last message for each conversation
         const conversationsWithLastMessage = await Promise.all(
@@ -54,7 +55,7 @@ const MessagesAndNotifications = () => {
               const messages = res.data;
               
               //Debug log to check partner data
-              console.log('Partner data:', partner);
+              // console.log('Partner data:', partner);
               
               //If no messages, return null
               const firstName = partner.first_name || '';
@@ -80,10 +81,10 @@ const MessagesAndNotifications = () => {
 
         //Filter out any null values from failed requests
         const validConversations = conversationsWithLastMessage.filter(conv => conv !== null);
-        console.log('Final conversations:', validConversations); // Debug log
+        // console.log('Final conversations:', validConversations); //Debug log
         setConversations(validConversations);
       } catch (err) {
-        console.error('Failed to fetch conversations:', err);
+        Alert.alert('Failed to fetch conversations:', err);
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +99,7 @@ const MessagesAndNotifications = () => {
       const res = await axios.get(`${API_URL}/api/${employeeId}`);
       setNotifications(res.data || []);
     } catch (err) {
-      console.error('Failed to fetch notifications:', err);
+      Alert.alert('Failed to fetch notifications:', err);
     }
   };
 
@@ -109,7 +110,7 @@ const MessagesAndNotifications = () => {
       fetchNotifications();
       fetchUnreadCount();
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      Alert.alert('Failed to mark notification as read:', error);
     }
   };
 
@@ -266,7 +267,7 @@ const MessagesAndNotifications = () => {
                   key={conv.otherId}
                   style={[styles.notificationCard, conv.unread && styles.unreadNotification]}
                   onPress={() =>
-                    navigation.navigate('ChatScreen', {
+                    navigation.push('ChatScreen', {
                       otherId: conv.otherId,
                       otherName: conv.otherName
                     })

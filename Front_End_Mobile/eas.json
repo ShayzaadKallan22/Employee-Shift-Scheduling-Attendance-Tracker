@@ -13,8 +13,7 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "permissions": []
+        "buildType": "apk"
       }
     },
     "production": {

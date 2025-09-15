@@ -9,8 +9,10 @@ import config from './config';
 
 const API_URL = config.API_URL;
 
+//Create a context for notifications.
 const NotificationContext = createContext();
 
+//Provider component to wrap the app and provide notification context.
 export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -25,7 +27,7 @@ export const NotificationProvider = ({ children }) => {
       //Set the number of unread notifications.
       setUnreadCount(unread);
     } catch (err) {
-      console.error('Failed to fetch unread notifications:', err);
+      Alert.alert('Failed to fetch unread notifications:', err);
     }
   };
 

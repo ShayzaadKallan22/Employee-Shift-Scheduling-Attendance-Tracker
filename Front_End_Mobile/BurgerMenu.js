@@ -12,6 +12,7 @@ import config from './config';
 
 const API_URL = config.API_URL;
 
+//BurgerMenu component to display user info and navigation options.
 const BurgerMenuScreen = () => {
   const navigation = useNavigation();
   const [menuData, setMenuData] = useState(null);
@@ -28,20 +29,21 @@ const BurgerMenuScreen = () => {
     try {
       const employee_id = await AsyncStorage.getItem('employee_id');
       if (!employee_id) {
-        throw new Error('Employee ID not found.');
+        return;
+        //throw new Error('Employee ID not found.');
       }
 
       const res = await fetch(`${API_URL}/api/menu/respond/${employee_id}`);
       if (!res.ok) {
         const text = await res.text();
-        console.error(`Server error: ${res.status}`, text);
-        throw new Error(`Failed to fetch employee menu data. Status: ${res.status}`);
+        Alert.alert(`Server error: ${res.status}`, text);
+        //throw new Error(`Failed to fetch employee menu data. Status: ${res.status}`);
       }
 
       const data = await res.json();
       setMenuData(data);
     } catch (err) {
-      console.error('Error fetching menu data:', err);
+      Alert.alert('Error fetching menu data:', err);
     } finally {
       setLoading(false);
     }

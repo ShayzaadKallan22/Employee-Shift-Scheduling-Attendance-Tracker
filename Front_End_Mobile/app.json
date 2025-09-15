@@ -46,10 +46,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "43f86d8a-81a5-4856-b1ed-d03b817920df"
+        "projectId": "bd31b921-c5c4-465c-ba00-d61777d52889"
       }
     },
-    "owner": "thabo_m11",
+    "owner": "cletus_tm",
     "plugins": [
       [
         "expo-font",

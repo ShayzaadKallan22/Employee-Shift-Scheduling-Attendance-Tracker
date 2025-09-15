@@ -19,6 +19,7 @@ import { format, parseISO, isBefore, isAfter, addDays, differenceInDays, isSameD
 
 const API_URL = config.API_URL;
 
+//LeaveRequest component to handle leave requests and display leave history.
 const LeaveRequest = () => {
   const navigation = useNavigation();
   const [startDate, setStartDate] = useState('');
@@ -53,9 +54,9 @@ const LeaveRequest = () => {
         return;
       }
 
-      console.log('Employee ID:', employeeId); // Debug log
+      //console.log('Employee ID:', employeeId); // Debug log
       const numericId = employeeId.replace('EMP-', '');
-      console.log('Numeric ID:', numericId); // Debug log
+      //console.log('Numeric ID:', numericId); // Debug log
 
       const leaveTypeMap = {
         'Annual': 1,
@@ -64,7 +65,7 @@ const LeaveRequest = () => {
       };
       
       for (const [type, id] of Object.entries(leaveTypeMap)) {
-        console.log(`Fetching ${type} leave (ID: ${id})`); //Debug log
+        //console.log(`Fetching ${type} leave (ID: ${id})`); //Debug log
         
         try {
           const response = await axios.get(
@@ -72,7 +73,7 @@ const LeaveRequest = () => {
             { headers: { 'Content-Type': 'application/json' } }
           );
           
-          console.log(`${type} leave response:`, response.data); //Debug log
+          //console.log(`${type} leave response:`, response.data); //Debug log
           
           if (response.data) {
             setLeaveBalances(prev => ({
@@ -85,15 +86,15 @@ const LeaveRequest = () => {
             }));
           }
         } catch (error) {
-          console.error(`Error fetching ${type} leave:`, error);
+          Alert.alert(`Error fetching ${type} leave:`, error);
           if (error.response) {
-            console.error('Response data:', error.response.data);
-            console.error('Status code:', error.response.status);
+            //Alert.alert('Response data:', error.response.data);
+            Alert.alert('Status code:', error.response.status);
           }
         }
       }
     } catch (error) {
-      console.error('General error in fetchRemainingDays:', error);
+      Alert.alert('General error in fetchRemainingDays:', error);
     }
   };
 
@@ -135,7 +136,7 @@ const LeaveTypes = React.useMemo(() => [
       await fetchLeaveHistory();
       await fetchRemainingDays();
     } catch (error) {
-      console.error('Error refreshing:', error);
+      Alert.alert('Error refreshing:', error);
     } finally {
       setRefreshing(false);
     }
@@ -222,7 +223,8 @@ const LeaveTypes = React.useMemo(() => [
       //Get employee ID from AsyncStorage.
       const employeeId = await AsyncStorage.getItem('employee_id');
       if (!employeeId) {
-        throw new Error('Employee ID not found');
+        return;
+        //throw new Error('Employee ID not found');
       }
 
       //Map leave type to leave_type_id 
@@ -252,10 +254,10 @@ const LeaveTypes = React.useMemo(() => [
       }
       
       //Debugging: Log FormData entries
-      console.log('FormData entries:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
+      // console.log('FormData entries:');
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
 
       const response = await axios.post(`${API_URL}/api/leaves/request`, formData, {
         headers: { 
@@ -264,7 +266,7 @@ const LeaveTypes = React.useMemo(() => [
         },
       });
 
-      console.log('Full response:', response.data);
+      //console.log('Full response:', response.data);
       
       //Add the new request to pendingRequests with the response data
       const newRequest = {
@@ -284,7 +286,7 @@ const LeaveTypes = React.useMemo(() => [
       //Pop up if leave request was was submitted successfully
       Alert.alert('Success', 'Leave request submitted successfully');
     } catch (error) {
-      console.error('Error submitting leave request:', error);
+      //console.error('Error submitting leave request:', error);
       Alert.alert(
         'Error', 
         error.response?.data?.message || 'Failed to submit leave request'
@@ -338,7 +340,7 @@ const LeaveTypes = React.useMemo(() => [
         }
       }
     } catch (error) {
-      console.error('Error uploading sick note:', error);
+      //console.error('Error uploading sick note:', error);
       Alert.alert(
         'Error', 
         error.response?.data?.message || 
@@ -415,16 +417,16 @@ const LeaveTypes = React.useMemo(() => [
     );
 
     //Debug the response
-    console.log('Leave History Response:', response.data);
+    //console.log('Leave History Response:', response.data);
     
     if (response.data && Array.isArray(response.data)) {
       setLeaveHistory(response.data);
     } else {
-      console.warn('Unexpected leave history data format:', response.data);
+      //console.warn('Unexpected leave history data format:', response.data);
       setLeaveHistory([]);
     }
   } catch (error) {
-    console.error('Error fetching leave history:', error);
+    //console.error('Error fetching leave history:', error);
     Alert.alert(
       'Error', 
       error.response?.data?.message || 'Failed to load leave history'

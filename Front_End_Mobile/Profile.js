@@ -31,14 +31,14 @@ const ProfileScreen = () => {
        const res = await fetch(`${API_URL}/api/profile/create/${employee_id}`);
        if(!res.ok){
         const text = await res.text();
-        console.error(`Server error: ${res.status}`, text);
+        Alert.alert(`Server error: ${res.status}`, text);
         throw new Error(`Failed to fetch profile data. Status: ${res.status}`);
        }
 
        const data = await res.json();
        setProfileData(data);
    }catch(err){
-     console.error('Error fetching profile data:', err);
+     Alert.alert('Error fetching profile data:', err);
    }finally{
     setLoading(false);
    }
@@ -68,9 +68,9 @@ const ProfileScreen = () => {
 
        const updated = await res.json();
        setProfileData(updated);
-       console.log('Saved:', profileData);
+      //  console.log('Saved:', profileData);
     }catch(err){
-       console.error('Error saving profile:', err);
+       Alert.alert('Error saving profile:', err);
     }
     
   };
@@ -95,7 +95,7 @@ const ProfileScreen = () => {
           await AsyncStorage.setItem('User_name', profileData.name);
           await AsyncStorage.setItem('User_role', profileData.role);
         }catch(err){
-          console.error('Error storing profile data:', err);
+          Alert.alert('Error storing profile data:', err);
         }
       };
       storeProfileData();

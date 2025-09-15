@@ -3,20 +3,22 @@
  * @version mobile_app
  */
 import React, { useState, useEffect, useRef } from 'react';
-import {View,Text,TextInput,TouchableOpacity,FlatList,StyleSheet,KeyboardAvoidingView,Platform,ActivityIndicator} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import Ionicon from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import config from './config';
 
 const API_URL = config.API_URL;
 
+//ChatScreen component to handle messaging between two employees.
 const ChatScreen = ({ route }) => {
   const { otherId, otherName } = route.params;
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loggedInUserId, setLoggedInUserId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const isFocused = useIsFocused();
@@ -27,14 +29,19 @@ const ChatScreen = ({ route }) => {
     lastError: null
   });
 
-  const fetchMessages = async () => {
+  //Track last message ID to detect new messages.
+  const lastMessageID = useRef(null);
+  const pollInterval = useRef(null);
+
+  const fetchMessages = async (silent = false) => {
     try {
-      setIsLoading(true);
-      setDebugInfo(prev => ({...prev, apiStatus: 'loading'}));
+      if (!silent) {
+        setIsLoading(true);
+      }
       
       const employeeId = await AsyncStorage.getItem('employee_id');
       if (!employeeId) {
-        console.log('No employee ID found');
+        // console.log('No employee ID found');
         return;
       }
       
@@ -42,41 +49,38 @@ const ChatScreen = ({ route }) => {
       setLoggedInUserId(empIdNum);
       const otherIdNum = parseInt(otherId, 10);
 
-      //console.log(`Fetching conversation between ${empIdNum} and ${otherIdNum}`);
       const res = await axios.get(`${API_URL}/api/conversation/${empIdNum}/${otherIdNum}`);
       
-      //Mark messages as read when fetching
-      await markMessagesAsRead(empIdNum, otherIdNum);
+      //Check if there are new messages
+      const latestMessage = res.data[res.data.length - 1];
+      const hasNewMessages = latestMessage && latestMessage.message_id !== lastMessageID.current;
 
-      setDebugInfo(prev => ({
-        ...prev,
-        apiStatus: 'success',
-        lastResponse: res.data
-      }));
+      if (hasNewMessages) {
+        //Only update if there are new messages
+        setMessages(res.data);
+        lastMessageID.current = latestMessage.message_id;
+        
+        //Mark as read only when new messages arrive
+        await markMessagesAsRead(empIdNum, otherIdNum);
+      }
 
-      //console.log('Fetched messages:', res.data);
-      setMessages(res.data);
     } catch (err) {
-      console.error('Fetch error:', err);
-      setDebugInfo(prev => ({
-        ...prev,
-        apiStatus: 'error',
-        lastError: err.message
-      }));
+      Alert.alert('Fetch error:', err);
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
-  const markMessagesAsRead = async (userId, otherUserId) => {
+ const markMessagesAsRead = async (userId, otherUserId) => {
     try {
       await axios.patch(`${API_URL}/api/conversation/mark-read`, {
         receiver_id: userId,
         sender_id: otherUserId
       });
-      //console.log('Messages marked as read');
     } catch (err) {
-      console.error('Error marking messages as read:', err);
+      Alert.alert('Error marking messages as read:', err);
     }
   };
 
@@ -104,7 +108,6 @@ const ChatScreen = ({ route }) => {
         read_status: 'unread'
       };
 
-      console.log('Adding optimistic message:', tempMessage);
       setMessages(prev => [...prev, tempMessage]);
       setText('');
 
@@ -116,7 +119,6 @@ const ChatScreen = ({ route }) => {
       };
 
       const response = await axios.post(`${API_URL}/api/conversation/reply`, payload);
-      console.log('Server response:', response.data);
 
       //Replace optimistic message with server response
       if (response.data) {
@@ -128,16 +130,27 @@ const ChatScreen = ({ route }) => {
             sent_time: response.data.sent_time || new Date().toISOString()
           }
         ]);
+        
+        //Update last message ID
+        lastMessageID.current = response.data.message_id;
       }
     } catch (err) {
-      console.error('Send error:', err);
+      Alert.alert('Send error:', err);
       setMessages(prev => prev.filter(msg => !msg.isOptimistic));
     }
   };
 
-  useEffect(() => {
+//   const BackButton = ({ onPress }) => (
+//   <TouchableOpacity 
+//     onPress={onPress}
+//     style={{ marginLeft: 15, padding: 8 }}
+//   >
+//     <Icon name="arrow-back" size={24} color="#fff" />
+//   </TouchableOpacity>
+// );
+
+useEffect(() => {
     if (isFocused) {
-      //Set the navigation header title with the other person's name
       navigation.setOptions({ 
         title: otherName || 'Chat',
         headerStyle: {
@@ -147,17 +160,44 @@ const ChatScreen = ({ route }) => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={{ 
+              marginLeft: 15, 
+              padding: 8,
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 24, marginRight: 5 }}>←</Text>
+            <Text style={{ color: '#fff', fontSize: 16 }}>Back</Text>
+          </TouchableOpacity>
+        ),
       });
+      
+      //Initial fetch
       fetchMessages();
       
-      const interval = setInterval(fetchMessages, 5000);
-      return () => clearInterval(interval);
+      //Smart polling - silent mode to avoid UI refreshes
+      pollInterval.current = setInterval(() => {
+        fetchMessages(true); //silent fetch
+      }, 8000); //Poll every 8 seconds
     }
+
+    return () => {
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current);
+      }
+    };
   }, [isFocused, otherName, navigation]);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      flatListRef.current?.scrollToEnd({ animated: false });
+    if (messages.length > 0 && flatListRef.current) {
+      //Smooth scroll to bottom when new messages arrive
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   }, [messages]);
 
@@ -175,7 +215,10 @@ const ChatScreen = ({ route }) => {
         <Text style={styles.messageText}>{item.content}</Text>
         <View style={styles.messageFooter}>
           <Text style={styles.messageTime}>
-            {item.sent_time?.split('T')[1]?.slice(0, 5) || 'now'}
+            {item.sent_time ? new Date(item.sent_time).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            }) : 'now'}
           </Text>
           {isOwnMessage && (
             <Text style={styles.readStatus}>
@@ -199,11 +242,11 @@ const ChatScreen = ({ route }) => {
           {otherName || 'Unknown User'}
         </Text>
         <Text style={styles.chatHeaderSubtext}>
-          Online • Tap to view profile
+          Tap to view profile
         </Text>
       </View>
 
-      {isLoading ? (
+      {isLoading && messages.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007bff" />
         </View>
@@ -218,6 +261,9 @@ const ChatScreen = ({ route }) => {
             <Text style={styles.emptyText}>No messages yet. Start chatting!</Text>
           }
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
         />
       )}
 
@@ -231,7 +277,7 @@ const ChatScreen = ({ route }) => {
           multiline
         />
         <TouchableOpacity 
-          style={styles.sendButton} 
+          style={[styles.sendButton, !text.trim() && styles.sendButtonDisabled]} 
           onPress={sendMessage}
           disabled={!text.trim()}
         >
