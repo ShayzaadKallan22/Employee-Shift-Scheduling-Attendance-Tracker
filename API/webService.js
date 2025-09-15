@@ -36,6 +36,7 @@ const { register, login, logout } = require('./authControllerMan');
 const managerNotificationRoutes = require('./manager_notifications'); 
 const statusRoutes = require('./statusRoutes');
 const webforgotPassRoute = require('./webForgotPassRoute');
+const messagesRouter = require('./messages');
 const path = require('path');
 
 
@@ -65,6 +66,7 @@ app.use(cors({
 
 app.use(express.urlencoded({ extended: true })); //For form submissions
 app.use(express.json()); //For API JSON payloads
+
 
 //Start of Cletus's code
 //Serve static files from the 'uploads' directory
@@ -111,7 +113,7 @@ app.use('/uploads', express.static('uploads')); //Added by Cletus.
 // Middleware
 //app.use(express.json());
 
-app.set('view engine', 'ejs');
+//app.set('view engine', 'ejs');
 
 // In webService.js, replace CORS middleware with:
 // app.use((req, res, next) => {
@@ -143,8 +145,9 @@ app.set('view engine', 'ejs');
 //   next();
 // });
 
+//SHAYZAAD
 app.get('/', (req, res) => {
-    res.render('registration');
+    res.sendFile(path.join(__dirname, '../Front_End_Web', 'signin.html'));
 });
 
 //Test API endpoint
@@ -223,6 +226,30 @@ app.post('/api/login', login);
 app.use('/api/manager-notifications', managerNotificationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/web', webforgotPassRoute);
+app.use('/api/notifications-messages', messagesRouter);
+app.get('/api/employees/search', async (req, res) => {
+  const { name } = req.query;
+  if (!name) {
+    return res.status(400).json({ error: 'Name required' });
+  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT employee_id FROM t_employee WHERE CONCAT(first_name, ' ', last_name) = ? AND type_ != 'manager'`,
+      [name]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+    if (rows.length > 1) {
+      return res.status(409).json({ error: 'Multiple employees found with the same name; contact admin' });
+    }
+    res.json({ employee_id: rows[0].employee_id });
+  } catch (err) {
+    console.error('Error searching employee:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
@@ -353,3 +380,30 @@ const messageRoutes = require('./messageRoutes');
 app.use('/api/messages', messageRoutes);
 
 //End of Yatin's Message code
+
+//Yatin:
+const uploadsPath = path.join(__dirname, 'uploads');
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsPath, {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.pdf')) {
+            res.set('Content-Type', 'application/pdf');
+        }
+    }
+}));
+
+//added route to serve the view-sick-note.html
+app.get('/view-sick-note.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
+});
+
+//added this route to serve the sick note viewer
+app.get('/view-sick-note.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
+});
+
+//End of Yatin's code
+
+const eventRoutes = require('./eventRoutes');
+app.use('/api', eventRoutes);
