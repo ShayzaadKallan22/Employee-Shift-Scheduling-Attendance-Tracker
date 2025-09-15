@@ -16,7 +16,7 @@ import config from './config';
 
 const API_URL = config.API_URL;
 
-
+//LoginScreen component
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +46,8 @@ const LoginScreen = () => {
     const user = response.data?.user;
 
     if (!user) {
-      throw new Error("Invalid response from server: missing token or user");
+      return;
+      //throw new Error("Invalid response from server: missing token or user");
     }
 
     //Store values safely
@@ -57,7 +58,7 @@ const LoginScreen = () => {
     //Navigate only after everything succeeds
     navigation.replace("ClockIn");
   } catch (error) {
-    console.error("Login error:", error); // debug
+    //console.error("Login error:", error); // debug
     Alert.alert(
       "Login Failed",
       error.response?.data?.error ||

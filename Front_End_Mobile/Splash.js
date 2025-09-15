@@ -8,8 +8,10 @@ import {View, StyleSheet, Animated, Text, Easing} from 'react-native';
 import Svg, {Polygon} from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
 
+//Animated Polygon for triangle stroke animation.
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
+//Splash component.
 export default function Splash({navigation}){
     const dashOffset = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -30,7 +32,7 @@ export default function Splash({navigation}){
     //Fade in the whole splash screen
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1000,
+      duration: 3000,
       useNativeDriver: true,
     }).start();
 
@@ -42,11 +44,13 @@ export default function Splash({navigation}){
     return () => clearTimeout(timer);
   }, []);
 
+  //Interpolate dash offset for stroke animation.
   const strokeDashoffset = dashOffset.interpolate({
     inputRange: [0, 136],
     outputRange: [0, 136],
   });
 
+  //Render splash screen
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.triangleWrapper}>
@@ -67,6 +71,7 @@ export default function Splash({navigation}){
   );
 }
 
+{/* Styles */}
 const styles = StyleSheet.create({
   container: {
     flex: 1,

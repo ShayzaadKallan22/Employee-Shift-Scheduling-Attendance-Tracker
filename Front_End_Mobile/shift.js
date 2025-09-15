@@ -68,7 +68,7 @@ const Shift = () => {
         }));
         setShifts(shiftData);
       } catch(err) {
-        console.error('Failed to fetch shifts:', err);
+        Alert.alert('Failed to fetch shifts:', err);
       }
     };
     fetchShifts();
@@ -101,7 +101,7 @@ const Shift = () => {
           setAssignedDate(dates[0]);
         }
       } catch (error) {
-        console.error('Error fetching employee shift dates:', error);
+        Alert.alert('Error fetching employee shift dates:', error);
       } finally {
         setIsLoading(false);
       }
@@ -119,7 +119,7 @@ const Shift = () => {
         const response = await fetch(`${API_URL}/api/shift-swap/colleagues/${requestingEmployeeId}`);
         if (!response.ok) {
           const errText = await response.text();
-          console.error('Backend error:', errText);
+          Alert.alert('Backend error:', errText);
           throw new Error(`Status ${response.status}`);
         }
         
@@ -127,7 +127,7 @@ const Shift = () => {
         if (!Array.isArray(data)) throw new Error('Invalid response format'); 
         setColleagues(data.map(e => ({ label: e.name, value: e.employee_id })));
       } catch (error) {
-        console.error('Failed to fetch colleagues', error);
+        Alert.alert('Failed to fetch colleagues', error);
       }
     };
 
@@ -144,7 +144,7 @@ const Shift = () => {
       const data = await response.json();
       return data.shift_id;
     } catch (error) {
-      console.error('Shift fetch error:', error);
+      Alert.alert('Shift fetch error:', error);
       return null;
     }
   };
@@ -174,7 +174,7 @@ const Shift = () => {
           setSwapDate(parsedDates[0]);
         }
       } catch (error) {
-        console.error('Error fetching colleague shift dates:', error);
+        Alert.alert('Error fetching colleague shift dates:', error);
       }
     };
     
@@ -271,7 +271,7 @@ const Shift = () => {
       setShowRequestForm(false);
     } catch (error) {
       Alert.alert('Failed to submit shift-swap request');
-      console.error(error);
+      //console.error(error);
     }
   };
 
@@ -286,7 +286,7 @@ const Shift = () => {
         const data = await res.json();
         setColleagueRequests(data);
       } catch (error) {
-        console.error('Failed to fetch colleague requests:', error);
+        Alert.alert('Failed to fetch colleague requests:', error);
       }
     };
 
@@ -304,7 +304,7 @@ const Shift = () => {
         const data = await res.json();
         setMyRequests(data);
       } catch (error) {
-        console.error('Failed to fetch my requests:', error);
+        Alert.alert('Failed to fetch my requests:', error);
       }
     };
 
@@ -331,7 +331,7 @@ const Shift = () => {
       );
     } catch (error) {
       Alert.alert('Failed to update request');
-      console.error(error);
+      //console.error(error);
     }
   };
 
@@ -439,10 +439,6 @@ const Shift = () => {
                 <Text style={styles.detailHeader}>Shift Details</Text>
                 {selectedShift ? (
                   <>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Role:</Text>
-                      <Text style={styles.detailValue}>{selectedShift.role}</Text>
-                    </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Start Time:</Text>
                       <Text style={styles.detailValue}>{selectedShift.start?.split(':').slice(0, 2).join(':')}</Text>
@@ -620,6 +616,7 @@ const Shift = () => {
   );
 };
 
+{/* Styles */}
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

@@ -11,6 +11,7 @@ import config from './config';
 
 const API_URL = config.API_URL;
 
+//EmployeeSelector component to select an employee to start a new chat with.
 const EmployeeSelector = ({ visible, onClose, onSelectEmployee }) => {
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
@@ -30,7 +31,7 @@ const EmployeeSelector = ({ visible, onClose, onSelectEmployee }) => {
       setEmployees(response.data);
       setFilteredEmployees(response.data);
     } catch (error) {
-      console.error('Error fetching eligible employees:', error);
+      //console.error('Error fetching eligible employees:', error);
       Alert.alert('Error', 'Failed to load employees');
     } finally {
       setIsLoading(false);

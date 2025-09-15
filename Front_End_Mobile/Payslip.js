@@ -81,7 +81,7 @@ const Payslip = () => {
       setPayslip(null);
     }
   } catch (err) {
-    console.error('Error fetching payslips:', err);
+    //console.error('Error fetching payslips:', err);
     Alert.alert('Failed to load payslips.');
     setPayslip(null);
   } finally {
@@ -124,7 +124,7 @@ const Payslip = () => {
       alert('Sharing is not available on this device');
     }
   } catch (error) {
-    console.error('Download failed:', error);
+    //console.error('Download failed:', error);
     alert('Failed to download payslip.');
   }
 };

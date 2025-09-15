@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import { useNotifications } from './NotificationContext';
 
+// BottomNav component for navigating between main app sections.
 const BottomNav = () => {
   const navigation = useNavigation();
   const { unreadCount } = useNotifications();

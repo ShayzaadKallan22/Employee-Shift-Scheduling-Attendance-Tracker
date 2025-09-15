@@ -33,7 +33,7 @@ const ForgotPassword = () => {
 
             navigation.replace('ResetPassword');
         }catch(err){
-            console.error('Something went wrong:', err);
+            Alert.alert('Something went wrong:', err);
         }finally{
             setLoading(false);
         }
