@@ -506,13 +506,19 @@ exports.getPaymentDetails = async (req, res) => {
                 p.total_amount,
                 DATE_FORMAT(p.payment_date, '%d-%m-%Y') AS payment_date,
                 COALESCE(p.base_hourly_rate_used, COALESCE(e.base_hourly_rate, r.base_hourly_rate)) AS base_hourly_rate,
-                COALESCE(p.overtime_hourly_rate_used, COALESCE(e.overtime_hourly_rate, r.overtime_hourly_rate)) AS overtime_hourly_rate
+                COALESCE(p.overtime_hourly_rate_used, COALESCE(e.overtime_hourly_rate, r.overtime_hourly_rate)) AS overtime_hourly_rate,
+                36 AS max_regular_hours,
+                12 AS max_overtime_hours,
+                ROUND((p.base_hours / 36) * 100, 1) AS regular_utilization_percent,
+                ROUND((p.overtime_hours / 12) * 100, 1) AS overtime_utilization_percent,
+                (p.base_hours + p.overtime_hours) AS total_hours_worked,
+                48 AS max_total_hours
             FROM t_payroll p
             INNER JOIN t_employee e ON p.employee_id = e.employee_id
             INNER JOIN t_role r ON e.role_id = r.role_id
             WHERE p.payment_date = ?
             AND p._status = 'paid'
-            ORDER BY p.total_amount DESC;
+            ORDER BY p.total_amount DESC
         `;
         
         const [rows] = await db.query(query, [paymentDate]);

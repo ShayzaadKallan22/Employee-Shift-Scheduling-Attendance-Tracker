@@ -1,4 +1,3 @@
-
 //AUTHOR - SHAYZAAD
 const { createApp } = Vue;
 
@@ -101,7 +100,14 @@ createApp({
           //Status filter
           if (this.selectedFilter) {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); //Set to midnight (00:00:00) for comparison (CHANGE?)
+            today.setHours(0, 0, 0, 0); //Set to midnight (00:00:00) for comparison
+
+            // Calculate date ranges for 31-day periods
+            const thirtyOneDaysAgo = new Date(today);
+            thirtyOneDaysAgo.setDate(today.getDate() - 31);
+            
+            const thirtyOneDaysFromNow = new Date(today);
+            thirtyOneDaysFromNow.setDate(today.getDate() + 31);
 
             filtered = filtered.filter(shift => {
               const shiftDate = new Date(shift.date_);
@@ -110,11 +116,13 @@ createApp({
               //Switch case to check filter
               switch (this.selectedFilter) {
                 case 'Previous Shift':
-                  return shiftDate < today; //Shifts before today
+                  // Shifts from the last 31 days (excluding today)
+                  return shiftDate >= thirtyOneDaysAgo && shiftDate < today;
                 case "Today's Shifts":
                   return shiftDate.getTime() === today.getTime(); //Shifts today
                 case 'Next Shift':
-                  return shiftDate > today; //Shifts after today
+                  // Shifts for the next 31 days (excluding today)
+                  return shiftDate > today && shiftDate <= thirtyOneDaysFromNow;
                 default:
                   return true; //No filtering
               }

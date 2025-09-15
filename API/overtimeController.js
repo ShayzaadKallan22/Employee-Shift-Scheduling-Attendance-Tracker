@@ -6,12 +6,20 @@ const pool = require('./db');
 const { v4: uuidv4 } = require('uuid');
 
 //Run every second to check expirations
-cron.schedule('* * * * * * *', async () => {
+cron.schedule('* * * * * *', async () => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    //Expire overtime QR codes after 15 minute
+    //Get expired overtime QR codes before updating them
+    const [expiredOvertimeQRs] = await connection.query(`
+      SELECT qr_id, code_value, generation_time FROM t_qr_code 
+      WHERE status_ = 'active' 
+      AND expiration_time < NOW() 
+      AND purpose = 'overtime'`
+    );
+
+    //Expire overtime QR codes after 15 minutes
     await connection.query(`
       UPDATE t_qr_code 
       SET status_ = 'expired'
@@ -20,7 +28,100 @@ cron.schedule('* * * * * * *', async () => {
       AND expiration_time < NOW()
     `);
 
+    //NEW LOGIC: Check attendance for expired overtime QRs
+    for (const qr of expiredOvertimeQRs) {
+      const qrGenerationTime = new Date(qr.generation_time);
+      const qrGenerationDate = qrGenerationTime.toLocaleDateString('en-ZA', 
+      { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      });
+      
+      const currentDate = new Date().toLocaleDateString('en-ZA', 
+      {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      //Only process QRs that were generated today
+      if (qrGenerationDate === currentDate) {
+        //Get the start time from the QR generation time
+        const startTime = qrGenerationTime.toTimeString().slice(0, 8);
+
+        //Find all overtime shifts that started around this time today
+        const [overtimeShiftsAtThisTime] = await connection.query(
+          `SELECT s.shift_id, s.employee_id, s.start_time, s.end_time, s.date_, s.end_date, 
+                  s.shift_type, s.schedule_id, e.first_name, e.last_name, e.role_id, r.title as role_title
+          FROM t_shift s
+          JOIN t_employee e ON s.employee_id = e.employee_id
+          JOIN t_role r ON e.role_id = r.role_id
+          WHERE s.status_ = 'scheduled' 
+          AND s.shift_type = 'overtime'
+          AND s.date_ = ?
+          AND ABS(TIME_TO_SEC(TIMEDIFF(s.start_time, ?))) <= 60`,
+          [currentDate, startTime]
+        );
+
+        //Check each overtime shift to see if employee clocked in
+        for (const shift of overtimeShiftsAtThisTime) {
+          //Check if this employee has an attendance record for this shift
+          const [attendanceRecord] = await connection.query(
+            `SELECT attendance_id FROM t_attendance 
+            WHERE employee_id = ? AND shift_id = ?`,
+            [shift.employee_id, shift.shift_id]
+          );
+
+          //If no attendance record exists, mark shift as missed
+          if (attendanceRecord.length === 0) {
+            //Mark shift as missed
+            await connection.query(
+              `UPDATE t_shift 
+              SET status_ = 'missed'
+              WHERE shift_id = ?`,
+              [shift.shift_id]
+            );
+
+            //Get all managers for notifications
+            const [managers] = await connection.query(
+              `SELECT 
+                  employee_id,
+                  first_name,
+                  last_name,
+                  email,
+                  phone_number,
+                  status_,
+                  role_id
+              FROM t_employee 
+              WHERE type_ = 'manager'`
+            );
+
+            //Send notification about missed overtime clock-in
+            const formattedDate = new Date().toLocaleDateString('en-ZA');
+            for (const manager of managers) {
+              await connection.query(
+                `INSERT INTO t_notification 
+                (employee_id, message, sent_time, notification_type_id)
+                VALUES (?, ?, NOW(), ?)`, 
+                [manager.employee_id, `${shift.first_name} ${shift.last_name} failed to clock in for their overtime shift starting at ${startTime} on ${formattedDate}. Consider taking disciplinary action`, 4]
+              );
+            }
+
+            console.log(`Marked overtime shift ${shift.shift_id} as missed - employee ${shift.employee_id} did not clock in`);
+          }
+        }
+      }
+    }
+
     //Expire proof QR codes after 15 minutes
+    const [expiredProofQRs] = await connection.query(`
+      SELECT code_value, generation_time FROM t_qr_code 
+      WHERE status_ = 'active' 
+      AND expiration_time < NOW() 
+      AND purpose = 'attendance'`
+    );
+
     const [proof] = await connection.query(`
       UPDATE t_qr_code 
       SET status_ = 'expired'
@@ -28,9 +129,6 @@ cron.schedule('* * * * * * *', async () => {
       AND purpose = 'attendance'
       AND expiration_time < NOW()
     `);
-
-    //Check if the proofQR expired
-    const proofExpired = proof.affectedRows > 0;
 
     //Auto complete overtime sessions after their duration
     const [expiredSessions] = await connection.query(
@@ -59,65 +157,96 @@ cron.schedule('* * * * * * *', async () => {
       );
     }
 
-    //Check if any rows were affected
-    if(proofExpired){
-      const [scheduledShifts] = await connection.query(
-        `SELECT s.shift_id, s.employee_id, s.date_, e.first_name, e.last_name  
-        FROM t_shift s
-        JOIN t_employee e ON s.employee_id = e.employee_id
-        WHERE s.status_ = 'scheduled' AND s.shift_type = 'overtime'`
-      );
+    //Check if any proof QR rows were affected
+    const proofExpired = proof.affectedRows > 0;
 
-      //Process each scheduled shift
-      for (const shift of scheduledShifts) {
-        //Check if this employee_id and shift_id combination exists in attendance table
-        let [attendanceRecord] = await connection.query(
-          `SELECT status_ FROM t_attendance 
-          WHERE employee_id = ? AND shift_id = ?`,
-          [shift.employee_id, shift.shift_id]
-        );
-
-        let newShiftStatus;
+    //Update shift status for shifts whose proof QRs have expired
+    for (const qr of expiredProofQRs) {
+      const qrGenerationDate = new Date(qr.generation_time).toLocaleDateString('en-ZA', 
+      { year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit' 
+      }).replace(/-/g, '/'); 
+      
+      const currentDate = new Date().toLocaleDateString('en-ZA', 
+      {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+      }); //Get todays date in format YYYY/MM/DD
         
-        if (attendanceRecord.length === 0) {
-          //Case 1: No attendance record found - mark as missed
-          newShiftStatus = 'missed';
-        } else {
-          //Case 2: Attendance record exists - check its status
-          const attendanceStatus = attendanceRecord[0].status_;
-          if (attendanceStatus === 'present') {
-            newShiftStatus = 'completed';
-          } else if (attendanceStatus === 'absent'){
+      //Only process QRs that were generated today
+      if (qrGenerationDate === currentDate) {
+
+        //Find all overtime shifts that ended today and should be affected by this proof QR expiration
+         const [affectedShifts] = await connection.query(
+          `SELECT s.shift_id, s.employee_id, s.end_time, s.end_date, e.first_name, e.last_name
+          FROM t_shift s
+          JOIN t_employee e ON s.employee_id = e.employee_id
+          WHERE s.status_ = 'scheduled' 
+          AND s.shift_type = 'overtime'
+          AND s.end_date = ?`,
+          [currentDate]
+        );
+
+        //Process each scheduled overtime shift
+        for (const shift of affectedShifts) {
+          //Check if this employee_id and shift_id combination exists in attendance table
+          let [attendanceRecord] = await connection.query(
+            `SELECT status_ FROM t_attendance 
+             WHERE employee_id = ? AND shift_id = ?`,
+            [shift.employee_id, shift.shift_id]
+          );
+
+          let newShiftStatus;
+          
+          if (attendanceRecord.length === 0) {
+            //Case 1: No attendance record found - mark as missed
             newShiftStatus = 'missed';
+          } else {
+            //Case 2: Attendance record exists - check its status
+            const attendanceStatus = attendanceRecord[0].status_;
+            if (attendanceStatus === 'present') {
+              newShiftStatus = 'completed';
+            } else if (attendanceStatus === 'absent' || attendanceStatus === null){
+              newShiftStatus = 'missed';
+            }
           }
-        }
+          
+          //Update the shift status
+          if (newShiftStatus) {
+            await connection.query(
+              `UPDATE t_shift 
+               SET status_ = ?
+               WHERE shift_id = ?`,
+              [newShiftStatus, shift.shift_id]
+            );
+            
+            console.log(`Updated overtime shift ${shift.shift_id} status to '${newShiftStatus}' after proof QR expired`);
+          }
 
-        //Update the shift status
-        await connection.query(
-          `UPDATE t_shift 
-          SET status_ = ? 
-          WHERE shift_id = ? AND employee_id = ?`,
-          [newShiftStatus, shift.shift_id, shift.employee_id]
-        );
+          //Send notification to manager of missed overtime shift
+          if (newShiftStatus === "missed") {
+            const formattedDate = new Date(shift.end_date).toLocaleDateString('en-ZA');
+            
+            //Get all managers for notifications
+            const [managers] = await connection.query(
+              `SELECT employee_id FROM t_employee WHERE type_ = 'manager'`
+            );
 
-        //Send notification to manager if an employee missed a shift
-        if(newShiftStatus === "missed"){
-          const formattedDate = new Date(shift.date_).toLocaleDateString('en-ZA');
-          await connection.query(
-          `INSERT INTO t_notification 
-          (employee_id, message, sent_time, notification_type_id)
-          SELECT 
-            e.employee_id,
-            ?,
-            NOW(),
-            ?
-          FROM t_employee e
-          WHERE e.type_ = 'manager'`, 
-          [`${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}`, 4]
-        );
+            for (const manager of managers) {
+              await connection.query(
+                `INSERT INTO t_notification 
+                 (employee_id, message, sent_time, notification_type_id)
+                 VALUES (?, ?, NOW(), ?)`, 
+                [manager.employee_id, `${shift.first_name} ${shift.last_name} has missed an overtime shift on ${formattedDate}, failed to scan proof QR code. Consider taking disciplinary action`, 4]
+              );
+            }
+          }
         }
       }
     }
+
     await connection.commit();
   } catch (error) {
     await connection.rollback();
@@ -181,11 +310,17 @@ exports.generateQR = async (req, res) => {
         );
       }
 
-      //Get all employees with the selected roles
+      //Get employees who have completed their normal shifts today (both clocked in and scanned proof QR)
       const [employees] = await connection.query(
-        `SELECT employee_id, role_id FROM t_employee 
-         WHERE role_id IN (${roles.map(() => '?').join(',')}) AND status_ != 'On Leave'`,
-        roles
+        `SELECT DISTINCT e.employee_id, e.role_id
+         FROM t_employee e
+         JOIN t_shift s ON e.employee_id = s.employee_id
+         WHERE e.role_id IN (${roles.map(() => '?').join(',')})
+         AND e.status_ != 'On Leave'  
+         AND s.status_ = 'completed'  
+         AND s.shift_type = 'normal'
+         AND s.end_date = CURDATE()`,  
+         roles
       );
 
       //GET RID 

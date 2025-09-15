@@ -33,91 +33,601 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
     <style>
-        /* Custom styles for QR code display */
+        /* Compact Layout Styles */
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
         .qr-container {
             overflow: visible !important;
-            min-height: 400px;
+            min-height: auto;
         }
         
-        .qr-display {
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            padding: 10px 0;
+        }
+        
+        .qr-card {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .qr-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3498DB 0%, #2980B9 100%);
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .qr-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .qr-card-header {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 20px;
-            padding: 20px;
+            margin-bottom: 16px;
+            gap: 10px;
         }
         
-        .qr-code-section {
-            background: #2C3E50;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .qr-code-section img {
-            max-width: 200px;
-            height: auto;
-            background: white;
-            padding: 10px;
+        .qr-card-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        
-        .qr-code-section h5 {
-            color: #3498DB;
-            margin-bottom: 15px;
-        }
-        
-        .qr-code-section p {
-            color: #BDC3C7;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        
-        .qr-placeholder {
-            width: 200px;
-            height: 200px;
-            background: #34495E;
-            border: 2px dashed #7F8C8D;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .qr-card-title {
+            color: #ECF0F1;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .qr-code-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .qr-code-display {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .qr-code-display::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(45deg, #3498DB, #2980B9, #3498DB);
+            border-radius: 13px;
+            z-index: -1;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .qr-code-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+        
+        .qr-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+            border: 2px dashed rgba(127, 140, 141, 0.5);
             border-radius: 8px;
-            color: #BDC3C7;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #95A5A6;
+            gap: 8px;
+        }
+        
+        .qr-placeholder i {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+        
+        .qr-placeholder p {
+            margin: 0;
+            font-size: 0.8rem;
+            text-align: center;
+            line-height: 1.3;
+            padding: 0 8px;
+        }
+        
+        .qr-status {
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .qr-status-active {
+            color: #27AE60;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .qr-status-inactive {
+            color: #95A5A6;
+            font-size: 0.8rem;
+        }
+        
+        .qr-expiry {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            border-radius: 6px;
+            padding: 6px 8px;
+            color: #85C1E9;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #27AE60;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
         }
 
         .overtime-duration {
-            background: #34495E;
-            border-radius: 6px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
+            background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
             border-left: 3px solid #3498DB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .overtime-duration h6 {
             color: #3498DB;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
+            margin-bottom: 2px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .overtime-duration .duration-value {
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 500;
+            color: #ECF0F1;
+            font-size: 1rem;
+            font-weight: 600;
             margin: 0;
+            font-family: 'Roboto', monospace;
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            margin-bottom: 12px;
+        }
+        
+        /* Compact control panel layout */
+        .control-panel .row {
+            margin: 0;
+            align-items: center;
+        }
+        
+        .control-panel .col-md-6 {
+            padding: 0 8px;
+        }
+        
+        .roles-section {
+            max-height: 120px;
+            overflow-y: auto;
+            background: rgba(44, 62, 80, 0.3);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .roles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .duration-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .duration-input {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        /* Duration notice styling */
+        .duration-notice {
+            background: rgba(241, 196, 15, 0.1);
+            border: 1px solid rgba(241, 196, 15, 0.2);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #F1C40F;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .duration-notice i {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .duration-notice:hover {
+            background: rgba(241, 196, 15, 0.15);
+            border-color: rgba(241, 196, 15, 0.3);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 0.9rem;
+            padding: 6px 12px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Compact form controls */
+        .form-check {
+            margin-bottom: 3px;
+            padding-left: 1.25rem;
+        }
+
+        .form-check-input {
+            margin-top: 0.15rem;
+        }
+
+        .form-check-label {
+            font-size: 1rem;
+            color: white;
+            line-height: 1.2;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .form-control {
+            font-size: 0.85rem;
+            padding: 4px 8px;
+            height: auto;
+        }
+
+        .session-controls {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Header adjustments */
+        .bg-secondary.rounded-top {
+            padding: 10px 12px !important;
+            margin-bottom: 0;
+        }
+
+        .bg-secondary h4 {
+            font-size: 1.2rem;
+        }
+
+        /* Container padding adjustments */
+        .container-fluid.pt-4.px-4 {
+            padding-top: 12px !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        .row.g-4 {
+            --bs-gutter-y: 8px;
+        }
+
+        /* Modal adjustments */
+        .modal-content {
+            border-radius: 12px;
+        }
+
+        .modal-header, .modal-body, .modal-footer {
+            padding: 10px 12px;
         }
         
         @media (max-width: 768px) {
-            .qr-code-section img {
-                max-width: 150px;
+            .qr-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
             
-            .qr-placeholder {
-                width: 150px;
-                height: 150px;
+            .qr-code-display {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .qr-card {
+                padding: 14px;
+            }
+
+            .control-panel {
+                padding: 10px;
+            }
+
+            .control-panel .col-md-6 {
+                padding: 0 4px;
+                margin-bottom: 8px;
+            }
+
+            .roles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .duration-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .session-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .session-info {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .overtime-duration .duration-value {
+                font-size: 0.95rem;
+            }
+
+            .container-fluid.pt-4.px-4 {
+                padding: 8px !important;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .qr-grid {
+                grid-template-columns: 1fr 1fr;
+                max-width: 700px;
+                margin: 0 auto;
+            }
+        }
+
+        /* Make sure content doesn't overflow */
+        body, html {
+            overflow-x: hidden;
+        }
+
+        .content {
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* Alert adjustments */
+        .alert {
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .info-section {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #3498DB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+        }
+
+        .info-card h6 {
+            color: #3498DB;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-card .value {
+            color: #ECF0F1;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            font-family: 'Roboto', monospace;
+        }
+
+        .status-active {
+            color: #27AE60 !important;
+        }
+
+        .status-waiting {
+            color: #F39C12 !important;
+        }
+
+        @media (min-width: 768px) {
+            .info-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+        }
+
+        /* Scrollbar styling for roles section */
+        .roles-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .roles-section::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+
+        .roles-section::-webkit-scrollbar-thumb {
+            background: rgba(52, 152, 219, 0.5);
+            border-radius: 2px;
+        }
+
+        .roles-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(52, 152, 219, 0.7);
+        }
+
+        /* Enhanced Error Message Styling */
+        .alert-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            margin-top: 15px;
+            margin-left: 12px;
+            animation: slideIn 0.3s ease-out;
+            width: 98.25%;
+            font-size: 1.0rem;
+        }
+
+        .alert-danger::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            animation: shimmer 2s infinite linear;
+        }
+
+        .alert-danger .close {
+            color: white;
+            opacity: 0.8;
+            text-shadow: none;
+            position: absolute;
+            top: 12px;
+            right: 15px;
+        }
+
+        .alert-danger .close:hover {
+            opacity: 1;
+        }
+
+        .alert-danger i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
             }
         }
     </style>
@@ -132,19 +642,17 @@
             </div>
         </div>
         <!-- Spinner End -->
-<!-- Sidebar Start -->
+
+        <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
-
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                        <div
-                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
-                        </div>
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">Employee Manager Demo</h6>
@@ -152,21 +660,15 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="index.html" class="nav-item nav-link"><i
-                            class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
-                        Shifts</a>
+                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
                     <a href="overtime.html" class="nav-item nav-link active"><i class="fa fa-clock me-2"></i>Overtime QR</a>
                     <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
                     <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
-                                class="fa fa-user-plus me-2"></i>Registration</a>
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
-                            <a href="registration.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-user-edit me-2"></i>New</a>
-                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-info-circle me-2"></i>Status</a> -->
+                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
                         </div>
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
@@ -177,7 +679,6 @@
         </div>
         <!-- Sidebar End -->
 
-
         <!-- Content Start -->
         <div class="content">
             <!-- Navbar Start -->
@@ -187,99 +688,187 @@
             <!-- Overtime QR Start -->
             <div class="container-fluid pt-4 px-4">
                 <div id="overtime-app" class="row g-4">
-                    <!-- QR Code Section -->
+                    <!-- Header Section -->
                     <div class="col-12">
-                        <div class="bg-secondary rounded p-4">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h4 class="mb-4"><i class="fa fa-qrcode me-2"></i>Overtime Shift QR Codes</h4>
-                                    
-                                    <!-- Overtime Duration Display -->
-                                    <div class="overtime-duration" v-if="currentSession">
-                                        <h6><i class="fa fa-clock me-2"></i>Current Duration</h6>
-                                        <p class="duration-value">{{ formattedDuration }}</p>
-                                    </div>
-                                    
-                                    <!-- Session Creation Form -->
-                                    <div v-if="!currentSession">
-                                        <div class="mb-3">
-                                            <label class="form-label">Select Roles:</label>
-                                            <div v-for="role in availableRoles" :key="role.role_id" class="form-check">
-                                                <input class="form-check-input" type="checkbox" 
-                                                       v-model="selectedRoles" :value="role.role_id"
-                                                       :id="'role-'+role.role_id">
-                                                <label class="form-check-label" :for="'role-'+role.role_id">
-                                                    {{ role.title }}
-                                                </label>
+                        <div class="bg-secondary rounded-top p-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0"><i class="fa fa-qrcode me-2"></i>Overtime Shift QR Codes</h4>
+                                <button class="btn btn-primary btn-sm" onclick="openOvertimeEmployeeDisplay()">
+                                    <i class="fa fa-external-link-alt me-2"></i>Open Employee Display
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <i class="fas fa-exclamation-circle"></i>
+    <strong>Error:</strong> {{ errorMessage }}
+</div>
+
+                    <!-- Information Section -->
+                    <div class="col-12">
+                        <div class="info-section">
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <h6><i class="fa fa-calendar"></i>Current Date</h6>
+                                    <p class="value">{{ formatDate(new Date()) }}</p>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="fa fa-clock"></i>Current Time</h6>
+                                    <p class="value">{{ currentTime }}</p>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="fa fa-info-circle"></i>QR Status</h6>
+                                    <p class="value" :class="getStatusClass()">
+                                        {{ getStatusText() }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Control Panel -->
+                    <div class="col-12">
+                        <div class="control-panel">
+                            <!-- Session Creation Form (compact layout) -->
+                            <div v-if="!currentSession">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Select Roles:</label>
+                                        <div class="roles-section">
+                                            <div class="roles-grid">
+                                                <div v-for="role in availableRoles" :key="role.role_id" class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           v-model="selectedRoles" :value="role.role_id"
+                                                           :id="'role-'+role.role_id">
+                                                    <label class="form-check-label" :for="'role-'+role.role_id">
+                                                        {{ role.title }}
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
-                                        
-                                        <div class="mb-3">
-                                            <label class="form-label">Duration (minutes, max 180):</label>
-                                            <input type="number" min="1" max="180" 
-                                                   class="form-control bg-dark text-white"
-                                                   v-model.number="duration">
-                                        </div>
-                                        
-                                        <button class="btn btn-primary" @click="generateQR" :disabled="isLoading">
-                                            <i class="fa fa-qrcode me-2"></i>
-                                            {{ isLoading ? 'Generating...' : 'Generate QR Code' }}
-                                        </button>
                                     </div>
-                                    
-                                    <!-- Session Management -->
-                                    <div v-else>
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-warning me-2" @click="openExtendModal">
-                                                <i class="fa fa-clock me-2"></i>Extend
+                                    <div class="col-md-6">
+                                        <div class="duration-controls">
+                                            <label class="form-label" style="white-space: nowrap;">Duration:</label>
+                                            <input type="number" min="1" max="180" 
+                                                   class="form-control bg-dark text-white duration-input"
+                                                   v-model.number="duration" placeholder="min">
+                                            <button class="btn btn-primary" @click="generateQR" :disabled="isLoading">
+                                                <i class="fa fa-qrcode me-1"></i>
+                                                {{ isLoading ? 'Generating...' : 'Generate' }}
                                             </button>
-                                            <button class="btn btn-danger" @click="openEndModal">
-                                                <i class="fa fa-stop me-2"></i>End Overtime
-                                            </button>
+                                        </div>
+                                        <!-- Duration Notice -->
+                                        <div class="duration-notice">
+                                            <i class="fa fa-info-circle"></i>
+                                            <span>Minimum: 60 mins | Maximum: 180 mins</span>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="col-md-6">
-                                    <!-- <h4 class="mb-4"><i class="fa fa-qrcode me-2"></i>QR Codes</h4> -->
-                                    <div class="qr-container">
-                                        <div class="qr-display">
-                                            <!-- Primary QR Code -->
-                                            <div class="qr-code-section" v-if="qrImage">
-                                                <h5><i class="fa fa-qrcode me-2"></i>Overtime QR</h5>
-                                                <img :src="qrImage" alt="Overtime QR" style="width: 200px; height: 200px;">
-                                                <p class="text-success">Scan this code to start overtime session</p>
-                                                <small class="text-muted">Valid until: {{qrExpiration}}</small>
-                                            </div>
-                                            
-                                            <!-- Placeholder for primary QR -->
-                                            <div class="qr-code-section" v-else>
-                                                <h5><i class="fa fa-qrcode me-2"></i>Overtime QR</h5>
-                                                <div class="qr-placeholder" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; border-radius: 8px;">
-                                                    <div class="text-center">
-                                                        <i class="fa fa-clock fa-3x mb-3 text-muted"></i>
-                                                        <p class="text-muted">QR will appear at start of overtime</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Proof QR Code -->
-                                            <div class="qr-code-section mt-4" v-if="proofImage">
-                                                <h5><i class="fa fa-check-circle me-2"></i>Proof QR</h5>
-                                                <img :src="proofImage" alt="Proof QR Code" style="width: 200px; height: 200px;">
-                                                <p class="text-success">Scan this code to verify overtime completion</p>
-                                                <small class="text-muted">Valid until: {{proofExpiration}}</small>
-                                            </div>
+                            </div>
+                            
+                            <!-- Active Session Layout (compact) -->
+                            <div v-if="currentSession">
+                                <div class="session-info">
+                                    <!-- Overtime Duration Display -->
+                                    <div class="overtime-duration flex-grow-1">
+                                        <h6><i class="fa fa-clock"></i>Duration</h6>
+                                        <p class="duration-value">{{ formattedDuration }}</p>
+                                    </div>
+                                    
+                                    <!-- Session Management Buttons -->
+                                    <div class="session-controls">
+                                        <button class="btn btn-warning btn-sm" @click="openExtendModal">
+                                            <i class="fa fa-clock me-1"></i>Extend
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" @click="openEndModal">
+                                            <i class="fa fa-stop me-1"></i>End
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                            <!-- Placeholder for proof QR -->
-                                            <div class="qr-code-section mt-4" v-else>
-                                                <h5><i class="fa fa-check-circle me-2"></i>Proof QR</h5>
-                                                <div class="qr-placeholder" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; border-radius: 8px;">
-                                                    <div class="text-center">
-                                                        <i class="fa fa-check-circle fa-3x mb-3 text-muted"></i>
-                                                        <p class="text-muted">QR will appear at end of overtime</p>
-                                                    </div>
-                                                </div>
+                    <!-- QR Codes Grid -->
+                    <div class="col-12">
+                        <div class="qr-container">
+                            <div class="qr-grid">
+                                <!-- Overtime QR Card -->
+                                <div class="qr-card">
+                                    <div class="qr-card-header">
+                                        <div class="qr-card-icon">
+                                            <i class="fa fa-qrcode"></i>
+                                        </div>
+                                        <h5 class="qr-card-title">Clock-in QR</h5>
+                                    </div>
+                                    
+                                    <div class="qr-code-wrapper">
+                                        <div class="qr-code-display" v-if="qrImage">
+                                            <img :src="qrImage" alt="Overtime QR">
+                                        </div>
+                                        <div class="qr-code-display" v-else>
+                                            <div class="qr-placeholder">
+                                                <i class="fa fa-clock"></i>
+                                                <p>QR will appear when<br>overtime session starts</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="qr-status" v-if="qrImage">
+                                            <div class="qr-status-active">
+                                                <div class="pulse-dot"></div>
+                                                Scan to start overtime session
+                                            </div>
+                                            <div class="qr-expiry" v-if="qrExpiration">
+                                                <i class="fa fa-clock me-1"></i>
+                                                Valid until: {{qrExpiration}}
+                                            </div>
+                                        </div>
+                                        <div class="qr-status" v-else>
+                                            <div class="qr-status-inactive">
+                                                Awaiting session creation
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Proof QR Card -->
+                                <div class="qr-card">
+                                    <div class="qr-card-header">
+                                        <div class="qr-card-icon">
+                                            <i class="fa fa-check-circle"></i>
+                                        </div>
+                                        <h5 class="qr-card-title">Proof QR</h5>
+                                    </div>
+                                    
+                                    <div class="qr-code-wrapper">
+                                        <div class="qr-code-display" v-if="proofImage">
+                                            <img :src="proofImage" alt="Proof QR Code">
+                                        </div>
+                                        <div class="qr-code-display" v-else>
+                                            <div class="qr-placeholder">
+                                                <i class="fa fa-check-circle"></i>
+                                                <p>QR will appear when<br>overtime session ends</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="qr-status" v-if="proofImage">
+                                            <div class="qr-status-active">
+                                                <div class="pulse-dot"></div>
+                                                Scan to verify completion
+                                            </div>
+                                            <div class="qr-expiry" v-if="proofExpiration">
+                                                <i class="fa fa-clock me-1"></i>
+                                                Valid until: {{proofExpiration}}
+                                            </div>
+                                        </div>
+                                        <div class="qr-status" v-else>
+                                            <div class="qr-status-inactive">
+                                                Awaiting session completion
                                             </div>
                                         </div>
                                     </div>
@@ -288,11 +877,6 @@
                         </div>
                     </div>
                     
-                    <!-- Error Message -->
-                    <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                        {{ errorMessage }}
-                    </div>
-
                     <!-- Extend Modal -->
                     <div v-if="showExtendModal" class="modal d-block" style="background-color: rgba(0,0,0,0.5)">
                         <div class="modal-dialog">
@@ -306,8 +890,8 @@
                                     <input type="number" min="1" max="180" class="form-control bg-dark text-white" v-model.number="extendMinutes">
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" @click="closeExtendModal">Cancel</button>
-                                    <button type="button" class="btn btn-warning" @click="extendOvertime" :disabled="isLoading">
+                                    <button type="button" class="btn btn-secondary btn-sm" @click="closeExtendModal">Cancel</button>
+                                    <button type="button" class="btn btn-warning btn-sm" @click="extendOvertime" :disabled="isLoading">
                                         {{ isLoading ? 'Extending...' : 'Extend' }}
                                     </button>
                                 </div>
@@ -327,8 +911,8 @@
                                     <p>Are you sure you want to end this overtime session?</p>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" @click="closeEndModal">Cancel</button>
-                                    <button type="button" class="btn btn-danger" @click="endOvertime" :disabled="isLoading">
+                                    <button type="button" class="btn btn-secondary btn-sm" @click="closeEndModal">Cancel</button>
+                                    <button type="button" class="btn btn-danger btn-sm" @click="endOvertime" :disabled="isLoading">
                                         {{ isLoading ? 'Ending...' : 'End Overtime' }}
                                     </button>
                                 </div>
@@ -340,7 +924,7 @@
             <!-- Overtime QR End -->
 
             <!-- Footer Start -->
-            <div class="container-fluid pt-4 px-4">
+            <div class="container-fluid pt-4 px-4 mt-auto">
                 <div class="bg-secondary rounded-top p-4">
                     <div class="row">
                         <div class="col-12 col-sm-6 text-center text-sm-start">
@@ -377,6 +961,22 @@
     <!-- Overtime Vue App -->
     <script src="js/overtime.js"></script>
     <script src="js/components.js"></script>
+    
+    <script>
+        function openOvertimeEmployeeDisplay() {
+            const employeeWindow = window.open(
+                'displayOvertimeQR.html', 
+                'overtimeEmployeeDisplay',
+                'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
+            );
+            
+            if (employeeWindow) {
+                employeeWindow.focus();
+            } else {
+                alert('Please allow popups for this site to open the employee display. You can also manually navigate to displayOvertimeQR.html');
+            }
+        }
+    </script>
 </body>
 
 </html>
