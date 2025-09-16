@@ -155,24 +155,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${remaining}/${balance.max_days}`;
       },
 
+      // getLeaveTypeName(typeId, request, employee) {
+      //   if (!this.leaveTypes.length) return 'Loading...';
+      //   const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
+      //   let typeName = type ? type.name_ : 'Unknown';
+        
+      //   // Always show clickable PDF icon for sick leave
+      //   if (typeId == 2) {
+      //     const hasNote = request.sick_note;
+      //     const iconStyle = hasNote ? 
+      //       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
+      //       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
+      //     typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
+      //                   ${iconStyle}
+      //                   onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
+      //   }
+        
+      //   return typeName;
+      // },
+
       getLeaveTypeName(typeId, request, employee) {
-        if (!this.leaveTypes.length) return 'Loading...';
-        const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
-        let typeName = type ? type.name_ : 'Unknown';
-        
-        // Always show clickable PDF icon for sick leave
-        if (typeId == 2) {
-          const hasNote = request.sick_note;
-          const iconStyle = hasNote ? 
-            'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
-            'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
-          typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
-                        ${iconStyle}
-                        onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
-        }
-        
-        return typeName;
-      },
+  if (!this.leaveTypes.length) return 'Loading...';
+  const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
+  let typeName = type ? type.name_ : 'Unknown';
+  
+  // Always show clickable PDF icon for sick leave
+  if (typeId == 2) {
+    const hasNote = request.sick_note;
+    const iconStyle = hasNote ? 
+      'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
+      'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
+    
+    // Use the Supabase URL directly from the database
+    typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
+                  ${iconStyle}
+                  onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
+  }
+  
+  return typeName;
+},
 
       formatDate(dateString) {
         if (!dateString) return 'N/A';

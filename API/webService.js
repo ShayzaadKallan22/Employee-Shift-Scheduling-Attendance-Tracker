@@ -542,7 +542,77 @@ app.get('/view-sick-note.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
 });
 
-//End of Yatin's code
-
 const eventRoutes = require('./eventRoutes');
 app.use('/api', eventRoutes);
+
+// Scheduled task to send event notifications
+const checkEventNotifications = async () => {
+  try {
+    const currentDate = new Date();
+    console.log('Checking for pending event notifications...');
+    
+    // Find notifications that are scheduled for today or earlier but not read yet
+    const [notifications] = await pool.execute(
+      `SELECT n.notification_id, n.employee_id, n.message, e.email, e.first_name
+       FROM t_notification n
+       JOIN t_employee e ON n.employee_id = e.employee_id
+       WHERE n.sent_time <= ? 
+       AND n.read_status = 'unread'
+       AND n.notification_type_id = 7`,
+      [currentDate]
+    );
+    
+    for (const notification of notifications) {
+      console.log(`Event notification ready for employee ${notification.employee_id}: ${notification.message}`);
+      
+      // Here you would implement your actual notification delivery
+      // For example: email, push notification, SMS, etc.
+      // Since we can't modify the schema, we'll rely on the sent_time for scheduling
+      
+      console.log(`Would send notification to ${notification.email}: ${notification.message}`);
+      
+      // In a real implementation, you would:
+      // 1. Send email/push notification
+      // 2. Maybe update a flag if you had one, but we can't modify schema
+    }
+    
+    console.log(`Found ${notifications.length} event notifications ready for delivery`);
+    
+  } catch (err) {
+    console.error('Error in event notification check:', err);
+  }
+};
+
+// Run notification check every hour to catch notifications
+cron.schedule('0 * * * *', checkEventNotifications);
+
+// Also run immediately on server start
+setTimeout(checkEventNotifications, 5000); // Wait 5 seconds after server start
+
+// Run notification check daily at 9:00 AM
+cron.schedule('0 9 * * *', checkEventNotifications);
+
+// Also run immediately on server start
+checkEventNotifications();  
+
+// Add this check on server startup
+const ensureEventNotificationType = async () => {
+  try {
+    const [existing] = await pool.execute(
+      `SELECT * FROM t_notification_type WHERE notification_type_id = 7`
+    );
+    
+    if (existing.length === 0) {
+      await pool.execute(
+        `INSERT INTO t_notification_type (notification_type_id, _name) VALUES (7, 'event')`
+      );
+      console.log('Created event notification type');
+    }
+  } catch (err) {
+    console.error('Error ensuring event notification type:', err);
+  }
+};
+
+// Call this on server startup
+ensureEventNotificationType();
+//End of Yatin's code

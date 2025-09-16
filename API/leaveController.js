@@ -23,11 +23,53 @@ exports.requestLeave = async (req, res) => {
     }
 };
 
-// View all leave requests (manager)
+
+// In leaveController.js, revert to the simpler query
+// exports.getAllLeaveRequests = async (req, res) => {
+//   try {
+//     const [rows] = await db.query(`
+//       SELECT 
+//         l.leave_id, 
+//         l.start_date, 
+//         l.end_date, 
+//         l.status_,
+//         e.first_name, 
+//         e.last_name, 
+//         e.employee_id,
+//         e.role_id,
+//         t.name_ AS leave_type, 
+//         t.max_days_per_year,
+//         DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+//         (SELECT IFNULL(SUM(DATEDIFF(l2.end_date, l2.start_date) + 1), 0)
+//          FROM t_leave l2
+//          WHERE l2.employee_id = e.employee_id
+//          AND l2.leave_type_id = t.leave_type_id
+//          AND l2.status_ = 'approved') AS used_days,
+//         (SELECT COUNT(*) 
+//          FROM t_event_employee ee
+//          JOIN t_event ev ON ee.event_id = ev.event_id
+//          WHERE ee.employee_id = e.employee_id
+//          AND ev.end_date >= l.start_date 
+//          AND ev.start_date <= l.end_date) > 0 AS has_events
+//       FROM t_leave l
+//       JOIN t_employee e ON l.employee_id = e.employee_id
+//       JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
+//       WHERE l.status_ = 'pending'
+//       ORDER BY l.created_at DESC
+//     `);
+
+//     res.status(200).json(rows);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
+// In leaveController.js, update the getAllLeaveRequests function
 exports.getAllLeaveRequests = async (req, res) => {
-    try {
-        const [rows] = await db.query(`
-    SELECT 
+  try {
+    const [rows] = await db.query(`
+      SELECT 
         l.leave_id, 
         l.start_date, 
         l.end_date, 
@@ -35,21 +77,39 @@ exports.getAllLeaveRequests = async (req, res) => {
         e.first_name, 
         e.last_name, 
         e.employee_id,
+        e.role_id,
         t.name_ AS leave_type, 
         t.max_days_per_year,
-        DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested
-    FROM t_leave l
-    JOIN t_employee e ON l.employee_id = e.employee_id
-    JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
-    WHERE l.status_ = 'pending'  -- Only pending requests
-    ORDER BY l.created_at DESC
-`);
+        DATEDIFF(l.end_date, l.start_date) + 1 AS days_requested,
+        (SELECT IFNULL(SUM(DATEDIFF(l2.end_date, l2.start_date) + 1), 0)
+         FROM t_leave l2
+         WHERE l2.employee_id = e.employee_id
+         AND l2.leave_type_id = t.leave_type_id
+         AND l2.status_ = 'approved') AS used_days,
+        (SELECT COUNT(*) 
+         FROM t_event_employee ee
+         JOIN t_event ev ON ee.event_id = ev.event_id
+         WHERE ee.employee_id = e.employee_id
+         AND ev.end_date >= l.start_date 
+         AND ev.start_date <= l.end_date) > 0 AS has_events,
+        (SELECT GROUP_CONCAT(CONCAT(ev.event_name, ' (', ev.start_date, ' to ', ev.end_date, ')') SEPARATOR '; ')
+         FROM t_event_employee ee
+         JOIN t_event ev ON ee.event_id = ev.event_id
+         WHERE ee.employee_id = e.employee_id
+         AND ev.end_date >= l.start_date 
+         AND ev.start_date <= l.end_date) AS event_names
+      FROM t_leave l
+      JOIN t_employee e ON l.employee_id = e.employee_id
+      JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
+      WHERE l.status_ = 'pending'
+      ORDER BY l.created_at DESC
+    `);
 
-        res.status(200).json(rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
-    }
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // Editted By Yatin
@@ -173,4 +233,67 @@ exports.getMyLeaveRequests = async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+// Check standby availability for leave period
+// Update the checkStandbyAvailability function
+exports.checkStandbyAvailability = async (req, res) => {
+  const { employee_id, start_date, end_date } = req.body;
+
+  if (!employee_id || !start_date || !end_date) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    // Get the employee's role to find suitable standby employees
+    const [employeeData] = await db.execute(
+      `SELECT role_id FROM t_employee WHERE employee_id = ?`,
+      [employee_id]
+    );
+    
+    if (employeeData.length === 0) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+    
+    const role_id = employeeData[0].role_id;
+    
+    // Find available standby employees with the same role who are not on leave
+    // during the requested period
+    const [availableStandby] = await db.execute(`
+      SELECT 
+        e.employee_id,
+        e.first_name,
+        e.last_name,
+        e.status_
+      FROM t_employee e
+      WHERE e.role_id = ?
+      AND e.employee_id != ?
+      AND e.status_ != 'On Leave'
+      AND NOT EXISTS (
+        SELECT 1 
+        FROM t_leave l 
+        WHERE l.employee_id = e.employee_id 
+        AND l.status_ = 'approved'
+        AND l.start_date <= ? 
+        AND l.end_date >= ?
+      )
+    `, [role_id, employee_id, end_date, start_date]);
+    
+    // Count total standby employees with the same role (regardless of availability)
+    const [totalStandby] = await db.execute(`
+      SELECT COUNT(*) as total_count
+      FROM t_employee
+      WHERE role_id = ?
+      AND employee_id != ?
+    `, [role_id, employee_id]);
+    
+    res.status(200).json({
+      available: availableStandby.length,
+      total: totalStandby[0].total_count,
+      standbyEmployees: availableStandby
+    });
+  } catch (err) {
+    console.error('Error checking standby availability:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 };

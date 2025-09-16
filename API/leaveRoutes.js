@@ -339,5 +339,6 @@ router.post('/request', leaveController.requestLeave);
 router.get('/all', leaveController.getAllLeaveRequests);
 router.post('/respond', leaveController.respondToLeave);
 router.get('/my/:employee_id', leaveController.getMyLeaveRequests);
+router.post('/check-standby', leaveController.checkStandbyAvailability);
 
 module.exports = router;
