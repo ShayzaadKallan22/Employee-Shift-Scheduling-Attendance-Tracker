@@ -4,37 +4,22 @@
     <meta charset="utf-8" />
     <title>Azania - Employee Status</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta
-      content="Employee Management, Status, Staff Management"
-      name="keywords"
-    />
+    <meta content="Employee Management, Status, Staff Management" name="keywords" />
     <meta content="Employee status tracking system" name="description" />
     <link href="img/favicon.ico" rel="icon" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet" />
 
     <!-- Icon Fonts -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
 
     <!-- Libraries -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
-    <link
-      href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css"
-      rel="stylesheet"
-    />
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -42,6 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <style>
+    
     #employeeSearch {
       color: #fff;
       background-color: #2a3038 !important;
@@ -59,6 +45,95 @@
       background-color: #0b5ed7;
       border-color: #0a58ca;
     }
+    .status-badge {
+      width: 140px;
+      height: 32px;
+      padding-top: 10px;
+      text-align: center;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .list-group-item {
+      min-height: 60px;
+    }
+    .aligned-section {
+      padding: 0 10px;
+    }
+    .button-badge-group {
+      gap: 10px;
+    }
+    .list-group-item {
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .list-group-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: #4e5d6c;
+    }
+    .info-icon {
+      margin-left: 5px;
+      color: #adb5bd;
+    }
+    .info-icon:hover {
+      color: #fff;
+    }
+    .initials-avatar {
+      width:80px;
+      height: 80px;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    #roleFilter{
+      color: #fff;
+      background-color: #2a3038 !important;
+      border-color: #3a424b !important;
+    }
+
+    #statusFilter{
+      color: #fff;
+      background-color: #2a3038 !important;
+      border-color: #3a424b !important;
+    }
+
+    #roleFilter:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      border-color: #4e5d6c;
+    }
+
+    #statusFilter:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      border-color: #4e5d6c;
+    }
+
+
+    #roleFilterButton{
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    
+    #roleFilterButton:hover{
+      background-color: #0b5ed7;
+      border-color: #0a58ca;
+    }
+
+    #statusFilterButton{
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    #statusFilterButton:hover{
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    
+
+    
   </style>
   <body>
     <div class="container-fluid position-relative d-flex p-0">
@@ -66,23 +141,17 @@
       <div class="sidebar pe-4 pb-3">
         <nav class="navbar bg-secondary navbar-dark">
           <a href="index.html" class="navbar-brand mx-4 mb-3">
-            <img
-              src="img/AzaniaWhite.png"
-              alt="Azania Logo"
-              style="height: 45px"
-            />
+            <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px" />
           </a>
           <div class="d-flex align-items-center ms-4 mb-4">
             <div class="position-relative">
-              <img
+                <img
                 class="rounded-circle"
                 src="img/user.jpg"
                 alt=""
                 style="width: 40px; height: 40px"
               />
-              <div
-                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"
-              ></div>
+              <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
             </div>
             <div class="ms-3">
               <h6 class="mb-0">Employee Manager Demo</h6>
@@ -90,47 +159,20 @@
             </div>
           </div>
           <div class="navbar-nav w-100">
-            <a href="index.html" class="nav-item nav-link"
-              ><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a
-            >
-            <a href="view-shifts.html" class="nav-item nav-link"
-              ><i class="fa fa-calendar me-2"></i>View Shifts</a
-            >
-            <a href="overtime.html" class="nav-item nav-link"
-              ><i class="fa fa-clock me-2"></i>Overtime QR</a
-            >
-            <a href="normalQR.html" class="nav-item nav-link"
-              ><i class="fas fa-qrcode me-2"></i>Normal QR</a
-            >
-            <a href="payroll.html" class="nav-item nav-link"
-              ><i class="fa fa-money-bill me-2"></i>Payroll</a
-            >
+            <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+            <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+            <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+            <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
             <div class="nav-item dropdown">
-              <a
-                href="#"
-                class="nav-link dropdown-toggle"
-                data-bs-toggle="dropdown"
-                ><i class="fa fa-user-plus me-2"></i>Registration</a
-              >
-              <div
-                class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3"
-              >
-                <a href="registration.html" class="dropdown-item ps-5"
-                  ><i class="fa fa-user-edit me-2"></i>New</a
-                >
-                <!-- <a href="status.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-info-circle me-2"></i>Status</a> -->
+              <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+              <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
               </div>
             </div>
-            <a href="status.html" class="nav-item nav-link active"
-              ><i class="fa fa-sign-out-alt me-2"></i>Status</a
-            >
-            <a href="leave.html" class="nav-item nav-link"
-              ><i class="fa fa-sign-out-alt me-2"></i>Leave</a
-            >
-            <a href="reports.html" class="nav-item nav-link"
-              ><i class="fa fa-chart-bar me-2"></i>Reports</a
-            >
+            <a href="status.html" class="nav-item nav-link active"><i class="fa fa-info-circle me-2"></i>Status</a>
+            <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+            <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
           </div>
         </nav>
       </div>
@@ -151,8 +193,63 @@
                   <i class="fa fa-info-circle me-2"></i>Employee Status
                 </h4>
 
-                <div id="employee-status-app">
-                  <employee-status-panel></employee-status-panel>
+                <div class="row mb-4">
+                  <div class="col-md-4">
+                    <div class="bg-dark rounded p-3 text-center">
+                      <h5 class="mb-0">Working</h5>
+                      <h2 id="activeCount" class="text-success mt-2"></h2>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="bg-dark rounded p-3 text-center">
+                      <h5 class="mb-0">Not Working</h5>
+                      <h2 id="inactiveCount" class="text-danger mt-2"></h2>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="bg-dark rounded p-3 text-center">
+                      <h5 class="mb-0">On Leave</h5>
+                      <h2 id="onLeaveCount" class="text-warning mt-2"></h2>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded p-4 mb-4" style="background:rgba(0,123,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(0,123,255,0.2);border-radius:.5rem;">
+                  <h5 class="mb-3 text-light">Employee Status Ratio</h5>
+                  <div style="position:relative;height:300px;width:100%">
+                    <canvas id="statusPieChart"></canvas>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <div class="row g-2">
+                    <div class="col-md-4">
+                      <div class="input-group">
+                        <input id="employeeSearch" type="text" class="form-control" placeholder="Search employees by name..." />
+                        <button id="searchButton" class="btn btn-primary"><i class="fa fa-search"></i></button>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="input-group">
+                        <select id="roleFilter" class="form-select">
+                          <option value="">All Roles</option>
+                        </select>
+                        <button id="roleFilterButton" class="btn btn-primary"><i class="fa fa-search"></i></button>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="input-group">
+                        <select id="statusFilter" class="form-select">
+                          <option value="">All Statuses</option>
+                        </select>
+                        <button id="statusFilterButton" class="btn btn-primary"><i class="fa fa-search"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-dark rounded p-4">
+                  <div id="employeeStatusList" class="list-group list-group-flush"></div>
                 </div>
               </div>
             </div>
@@ -165,7 +262,7 @@
           <div class="bg-secondary rounded-top p-4">
             <div class="row">
               <div class="col-12 col-sm-6 text-center text-sm-start">
-                &copy; <a href="#">Azania</a>, All Rights Reserved.
+                &copy; <a href="#">Azania</a>, All Right Reserved.
               </div>
               <div class="col-12 col-sm-6 text-center text-sm-end">
                 Designed By <a href="#">Code Connoisseurs</a>
@@ -192,301 +289,6 @@
     <script src="js/main.js"></script>
     <script src="js/components.js"></script>
     <script src="js/session.js"></script>
-
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script>
-      const { createApp, ref, computed, onMounted } = Vue;
-
-      createApp({
-        components: {
-          "employee-status-panel": {
-            template: `
-          <div>
-            <!-- Status Cards -->
-            <div class="row mb-4">
-              <div class="col-md-4" v-for="(count, label) in statusCounts" :key="label">
-                <div class="bg-dark rounded p-3 text-center">
-                  <h5 class="mb-0">{{ label }}</h5>
-                  <h2 :class="statusColors[label] + ' mt-2'">
-                    {{ count }}
-                    <br />
-                    <small class="text-muted">{{ getPercentage(count) }}% of total</small>
-                  </h2>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pie Chart -->
-            <div class="rounded p-4 mb-4" style="background:rgba(0,123,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(0,123,255,0.2);border-radius:.5rem;">
-              <h5 class="mb-3 text-light">Employee Status Ratio</h5>
-              <div style="position:relative;height:300px;width:100%">
-                <canvas id="statusPieChart"></canvas>
-              </div>
-            </div>
-
-            <!-- Filters -->
-            <div class="mb-4">
-              <div class="row g-2">
-                <div class="col-md-8">
-                  <div class="input-group">
-                    <input v-model="searchTerm" @keyup.enter="filterEmployees" type="text" class="form-control bg-dark border-secondary" placeholder="Search employees by name..." />
-                    <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="input-group">
-                    <select v-model="selectedRole" class="form-select bg-dark border-secondary text-white">
-                      <option value="">All Roles</option>
-                      <option v-for="role in roles" :value="role">{{ role }}</option>
-                    </select>
-                    <button class="btn btn-primary" @click="filterEmployees"><i class="fa fa-search"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Employee List -->
-            <div class="bg-dark rounded p-4">
-              <div class="list-group list-group-flush">
-                <div v-if="filteredEmployees.length === 0" class="alert alert-info">No employees match your search criteria.</div>
-                <div v-for="emp in filteredEmployees" :key="emp.id" class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center">
-                  <div class="d-flex align-items-center">
-                    <div class="position-relative me-3">
-                      <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 30px; height: 30px" />
-                      <div :class="'bg-' + statusBadgeColor(emp.status) + ' rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1'"></div>
-                    </div>
-                    <div>
-                      <h6 class="mb-0">{{ emp.name }}</h6>
-                      <small class="text-muted">{{ emp.role }}</small>
-                    </div>
-                  </div>
-                  <span :class="'badge ' + statusBadgeClass(emp.status)">{{ emp.status }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        `,
-            setup() {
-              const employees = ref([]);
-              const roles = ref([]);
-              const searchTerm = ref("");
-              const selectedRole = ref("");
-
-              const statusCounts = ref({
-                Working: 0,
-                "Not Working": 0,
-                "On Leave": 0,
-              });
-
-              const statusColors = {
-                Working: "text-success",
-                "Not Working": "text-danger",
-                "On Leave": "text-warning",
-              };
-
-              const fetchEmployees = async () => {
-                try {
-                  const res = await fetch(
-                    "http://localhost:3000/api/status/employees"
-                  );
-                  if (!res.ok) throw new Error("Failed to fetch employees");
-                  const data = await res.json();
-                  employees.value = data;
-                  updateStatusCounts();
-                  initPieChart();
-                } catch (error) {
-                  console.error("Error fetching employees:", error);
-                }
-              };
-
-              const fetchRoles = async () => {
-                try {
-                  const res = await fetch(
-                    "http://localhost:3000/api/status/roles"
-                  );
-                  if (!res.ok) throw new Error("Failed to fetch roles");
-                  const data = await res.json();
-                  // Ensure roles is an array and has values
-                  console.log("Roles data:", data);
-                  roles.value = Array.isArray(data) ? data : [];
-                } catch (error) {
-                  console.error("Error fetching roles:", error);
-                  roles.value = [];
-                }
-              };
-
-              const updateStatusCounts = () => {
-                const total = employees.value.length;
-                statusCounts.value.Working = employees.value.filter(
-                  (e) => e.status === "Working"
-                ).length;
-                statusCounts.value["Not Working"] = employees.value.filter(
-                  (e) => e.status === "Not Working"
-                ).length;
-                statusCounts.value["On Leave"] = employees.value.filter(
-                  (e) => e.status === "On Leave"
-                ).length;
-              };
-
-              const getPercentage = (count) => {
-                const total = employees.value.length;
-                return total ? Math.round((count / total) * 100) : 0;
-              };
-
-              const statusBadgeColor = (status) => {
-                return status === "Working"
-                  ? "success"
-                  : status === "On Leave"
-                  ? "warning"
-                  : "danger";
-              };
-
-              const statusBadgeClass = (status) => {
-                return status === "Working"
-                  ? "bg-success"
-                  : status === "On Leave"
-                  ? "bg-warning text-dark"
-                  : "bg-danger";
-              };
-
-              const filteredEmployees = computed(() => {
-                return employees.value.filter((emp) => {
-                  const matchesName = emp.name
-                    .toLowerCase()
-                    .includes(searchTerm.value.toLowerCase());
-                  const matchesRole = selectedRole.value
-                    ? emp.role === selectedRole.value
-                    : true;
-                  return matchesName && matchesRole;
-                });
-              });
-
-              const filterEmployees = () => {
-                const app = new Vue({
-                  el: "#app",
-                  data: {
-                    employees: [],
-                    roles: [],
-                    searchTerm: "",
-                    selectedRole: "",
-                  },
-                  mounted() {
-                    this.fetchRoles();
-                    this.fetchEmployees();
-                  },
-                  methods: {
-                    fetchRoles() {
-                      fetch("http://localhost:3000/api/status/roles")
-                        .then((res) => res.json())
-                        .then((data) => (this.roles = ["All Roles", ...data]));
-                    },
-                    fetchEmployees() {
-                      fetch("http://localhost:3000/api/status/employees")
-                        .then((res) => res.json())
-                        .then((data) => (this.employees = data));
-                    },
-                  },
-                  computed: {
-                    filteredEmployees() {
-                      return this.employees.filter((emp) => {
-                        const matchesName =
-                          emp.name
-                            .toLowerCase()
-                            .includes(this.searchTerm.toLowerCase()) ||
-                          emp.email
-                            .toLowerCase()
-                            .includes(this.searchTerm.toLowerCase());
-                        const matchesRole = this.selectedRole
-                          ? emp.role === this.selectedRole
-                          : true;
-                        return matchesName && matchesRole;
-                      });
-                    },
-                  },
-                });
-              };
-
-              const initPieChart = () => {
-                const ctx = document
-                  .getElementById("statusPieChart")
-                  .getContext("2d");
-                if (window.employeePieChart) window.employeePieChart.destroy();
-                window.employeePieChart = new Chart(ctx, {
-                  type: "pie",
-                  data: {
-                    labels: ["Working", "Not Working", "On Leave"],
-                    datasets: [
-                      {
-                        data: [
-                          statusCounts.value.Working,
-                          statusCounts.value["Not Working"],
-                          statusCounts.value["On Leave"],
-                        ],
-                        backgroundColor: [
-                          "rgba(0,200,83,0.8)",
-                          "rgba(244,67,54,0.8)",
-                          "rgba(255,152,0,0.8)",
-                        ],
-                        borderColor: [
-                          "rgba(0,200,83,1)",
-                          "rgba(244,67,54,1)",
-                          "rgba(255,152,0,1)",
-                        ],
-                        borderWidth: 1,
-                      },
-                    ],
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: "bottom",
-                        labels: {
-                          color: "#fff",
-                          font: { size: 14 },
-                        },
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: (context) => {
-                            const label = context.label || "";
-                            const value = context.raw || 0;
-                            const total = employees.value.length;
-                            const percentage = Math.round(
-                              (value / total) * 100
-                            );
-                            return `${label}: ${value} (${percentage}%)`;
-                          },
-                        },
-                      },
-                    },
-                  },
-                });
-              };
-
-              onMounted(() => {
-                fetchEmployees();
-                fetchRoles();
-              });
-
-              return {
-                employees,
-                roles,
-                searchTerm,
-                selectedRole,
-                statusCounts,
-                statusColors,
-                filteredEmployees,
-                getPercentage,
-                statusBadgeColor,
-                statusBadgeClass,
-                filterEmployees,
-              };
-            },
-          },
-        },
-      }).mount("#employee-status-app");
-    </script>
+    <script src="js/status.js"></script>
   </body>
 </html>
