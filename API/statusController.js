@@ -1,4 +1,3 @@
-// Author: Katlego Mmadi
 const pool = require('./db');
 
 // Get all employees with their status
@@ -39,7 +38,32 @@ const getRoles = async (req, res) => {
   }
 };
 
+// Get shifts for a specific employee
+const getEmployeeShifts = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        s.shift_id,
+        s.date_ AS start_date,
+        s.end_date,
+        s.start_time,
+        s.end_time,
+        s.status_ AS status_
+      FROM t_shift s
+      WHERE s.employee_id = ?
+      ORDER BY s.date_
+    `, [id]);
+    
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Failed to fetch employee shifts:', err);
+    res.status(500).json({ error: 'Failed to fetch employee shifts' });
+  }
+};
+
 module.exports = {
   getEmployees,
-  getRoles
+  getRoles,
+  getEmployeeShifts
 };
