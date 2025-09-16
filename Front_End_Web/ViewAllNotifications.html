@@ -311,7 +311,7 @@
         border: 1px solid #2563eb;
         padding: 6px 12px;
         border-radius: 6px;
-        font-size: 0.75rem;
+        font-size: 14px;
         cursor: pointer;
         transition: background-color 0.2s, color 0.2s;
         text-decoration: none;
@@ -433,13 +433,23 @@
       }
 
       .btn-mark-as-read {
-            width: 130px; /* Fixed width to accommodate both "Mark as Read" and "Mark as Unread" */
-            height: 40px;
-            max-width: 130px;
-            min-width: 130px;
-            text-align: center; /* Center text */
-            white-space: nowrap; /* Prevent text wrapping */
-        }
+          display: flex; /* Use flexbox for centering */
+          justify-content: center; /* Center horizontally */
+          align-items: center; /* Center vertically */
+          background-color: #2563eb;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 5px;
+          font-size: 14px;
+          width: 130px; /* Fixed width */
+          height: 40px; /* Fixed height */
+          max-width: 130px;
+          min-width: 130px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          white-space: nowrap; /* Prevent text wrapping */
+      }
 
 
     </style>
@@ -597,7 +607,7 @@
             <div>
               <div class="stats">
                 <p class="number-notifications">Notifications</p>
-                <button class="btn-mark-as-read" @click="markAllAsRead">Mark All as Read</button>
+                <button class="btn-mark-as-read" @click="markAllAsRead" style="text-align: center;">Mark All As Read </button>
               </div>
               <div class="filter-card mb-4">
                 <div class="filter-content">

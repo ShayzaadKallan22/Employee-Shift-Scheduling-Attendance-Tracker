@@ -124,9 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Check for alert: Current shift but status is not "Working"
         const hasCurrentShiftButNotWorking = currShift && emp.status !== "Working";
-        const alertIcon = hasCurrentShiftButNotWorking ? '<i class="fa fa-exclamation-triangle text-warning me-1"></i>' : '';
-        const workingCheckmark = emp.status === "Working" ? '<i class="fas fa-check-circle working-checkmark"></i>' : '';
-        const onLeaveIcon = emp.status === "On Leave" ? '<i class="fas fa-bed on-leave-icon"></i>' : '';
+        const alertIcon = hasCurrentShiftButNotWorking ? '<span style="color:orange; font-size:14px;"><i class="fa fa-exclamation-triangle text-warning me-1"></i>Should be working</span>' : '';
+        const workingCheckmark = emp.status === "Working" ? '<span style="color:#198754; font-size:14px;"><i class="fas fa-check-circle working-checkmark"></i></span>' : '';
+        const onLeaveIcon = emp.status === "On Leave" ? '<span style="color:#ffc107"><i class="fas fa-bed on-leave-icon"></i> </span>' : '';
 
         item.innerHTML = `
           <div class="d-flex align-items-center flex-grow-1">
