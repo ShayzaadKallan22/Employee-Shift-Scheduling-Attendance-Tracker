@@ -4,19 +4,20 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - MYSQL_HOST=host.docker.internal  # Connect to your local machine's MySQL
+      - MYSQL_HOST=host.docker.internal
       - MYSQL_USER=root
       - MYSQL_PASSWORD=7860
       - MYSQL_DATABASE=azania
       - JWT_SECRET=secret
       - TZ=Africa/Johannesburg
-    # Removed depends_on since we're not using Docker MySQL anymore
+      - MYSQL_CONNECTION_LIMIT=50  
+      - MYSQL_ACQUIRE_TIMEOUT=30000  
+      - MYSQL_TIMEOUT=30000  
+      - MYSQL_IDLE_TIMEOUT=300000  
+      - MYSQL_QUEUE_LIMIT=0  
     networks:
       - app-network
 
-# Removed the db service entirely since we're using your local MySQL
 networks:
   app-network:
     driver: bridge
-
-# Removed volumes section since we're not using Docker MySQL
