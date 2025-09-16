@@ -130,7 +130,7 @@
                             <button class="btn btn-primary" onclick="goBack()">
                                 <i class="fa fa-arrow-left me-2"></i>Back to Leave Management
                             </button>
-                            <button class="btn btn-success" id="messageEmployeeBtn">
+                            <button class="btn btn-info" id="messageEmployeeBtn">
                                 <i class="fa fa-comment me-2"></i>Message Employee
                             </button>
                         </div>
@@ -198,87 +198,187 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const notePath = urlParams.get('note');
-            const employeeId = urlParams.get('employeeId');
-            const startDate = urlParams.get('startDate');
-            const endDate = urlParams.get('endDate');
-            const employeeName = urlParams.get('employeeName');
-            const daysTaken = urlParams.get('daysTaken');
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     const urlParams = new URLSearchParams(window.location.search);
+        //     const notePath = urlParams.get('note');
+        //     const employeeId = urlParams.get('employeeId');
+        //     const startDate = urlParams.get('startDate');
+        //     const endDate = urlParams.get('endDate');
+        //     const employeeName = urlParams.get('employeeName');
+        //     const daysTaken = urlParams.get('daysTaken');
             
-            const container = document.getElementById('pdf-container');
-            const employeeNameElement = document.getElementById('employeeName');
-            const leaveDurationElement = document.getElementById('leaveDuration');
-            const messageEmployeeBtn = document.getElementById('messageEmployeeBtn');
+        //     const container = document.getElementById('pdf-container');
+        //     const employeeNameElement = document.getElementById('employeeName');
+        //     const leaveDurationElement = document.getElementById('leaveDuration');
+        //     const messageEmployeeBtn = document.getElementById('messageEmployeeBtn');
 
-            // Format dates
-            const formatDate = (dateString) => {
-                if (!dateString) return 'N/A';
-                const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                return new Date(dateString).toLocaleDateString('en-GB', options);
-            };
+        //     // Format dates
+        //     const formatDate = (dateString) => {
+        //         if (!dateString) return 'N/A';
+        //         const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        //         return new Date(dateString).toLocaleDateString('en-GB', options);
+        //     };
 
-            // Set employee info
-            if (employeeName) {
-                employeeNameElement.textContent = `Employee: ${decodeURIComponent(employeeName)} (ID: ${employeeId || 'N/A'})`;
-            } else {
-                employeeNameElement.textContent = 'Employee: Information not available';
-            }
+        //     // Set employee info
+        //     if (employeeName) {
+        //         employeeNameElement.textContent = `Employee: ${decodeURIComponent(employeeName)} (ID: ${employeeId || 'N/A'})`;
+        //     } else {
+        //         employeeNameElement.textContent = 'Employee: Information not available';
+        //     }
 
-            if (startDate && endDate) {
-                const days = daysTaken || Math.ceil((new Date(endDate) - new Date(startDate))) / (1000 * 60 * 60 * 24) + 1;
-                leaveDurationElement.textContent = 
-                    `Leave Period: ${formatDate(startDate)} to ${formatDate(endDate)} (${days} days)`;
-            } else {
-                leaveDurationElement.textContent = 'Leave Period: Information not available';
-            }
+        //     if (startDate && endDate) {
+        //         const days = daysTaken || Math.ceil((new Date(endDate) - new Date(startDate))) / (1000 * 60 * 60 * 24) + 1;
+        //         leaveDurationElement.textContent = 
+        //             `Leave Period: ${formatDate(startDate)} to ${formatDate(endDate)} (${days} days)`;
+        //     } else {
+        //         leaveDurationElement.textContent = 'Leave Period: Information not available';
+        //     }
 
-            // Set up message button
-            if (employeeId) {
-                messageEmployeeBtn.disabled = false;
-                messageEmployeeBtn.classList.remove('btn-secondary');
-                messageEmployeeBtn.classList.add('btn-success');
-                messageEmployeeBtn.onclick = () => {
-                    window.location.href = `message-employee.html?employeeId=${employeeId}`;
-                };
-            } else {
-                messageEmployeeBtn.disabled = true;
-                messageEmployeeBtn.classList.remove('btn-success');
-                messageEmployeeBtn.classList.add('btn-secondary');
-                messageEmployeeBtn.title = "Employee information not available";
-            }
+        //     // Set up message button
+        //     if (employeeId) {
+        //         messageEmployeeBtn.disabled = false;
+        //         messageEmployeeBtn.classList.remove('btn-secondary');
+        //         messageEmployeeBtn.classList.add('btn-success');
+        //         messageEmployeeBtn.onclick = () => {
+        //             window.location.href = `message-employee.html?employeeId=${employeeId}`;
+        //         };
+        //     } else {
+        //         messageEmployeeBtn.disabled = true;
+        //         messageEmployeeBtn.classList.remove('btn-success');
+        //         messageEmployeeBtn.classList.add('btn-secondary');
+        //         messageEmployeeBtn.title = "Employee information not available";
+        //     }
             
-            if (notePath) {
-                const pdfUrl = `http://localhost:3000/uploads/${notePath}`;
+        //     if (notePath) {
+        //         const pdfUrl = `http://localhost:3000/uploads/${notePath}`;
                 
-                fetch(pdfUrl)
-                    .then(response => {
-                        if (response.ok) {
-                            container.innerHTML = '<iframe></iframe>';
-                            const pdfViewer = container.querySelector('iframe');
-                            pdfViewer.src = pdfUrl;
-                        } else {
-                            showNoNoteMessage('Sick note file not found on server');
-                        }
-                    })
-                    .catch(error => {
-                        showNoNoteMessage('Error loading sick note');
-                        console.error('Error loading PDF:', error);
-                    });
-            } else {
-                showNoNoteMessage('No sick note was attached to this leave request');
-            }
+        //         fetch(pdfUrl)
+        //             .then(response => {
+        //                 if (response.ok) {
+        //                     container.innerHTML = '<iframe></iframe>';
+        //                     const pdfViewer = container.querySelector('iframe');
+        //                     pdfViewer.src = pdfUrl;
+        //                 } else {
+        //                     showNoNoteMessage('Sick note file not found on server');
+        //                 }
+        //             })
+        //             .catch(error => {
+        //                 showNoNoteMessage('Error loading sick note');
+        //                 console.error('Error loading PDF:', error);
+        //             });
+        //     } else {
+        //         showNoNoteMessage('No sick note was attached to this leave request');
+        //     }
             
-            function showNoNoteMessage(message) {
-                container.innerHTML = `
-                    <div class="no-note">
-                        <i class="fas fa-file-pdf fa-3x mb-3"></i>
-                        <h5 class="text-white">${message || 'No sick note available'}</h5>
-                        <p class="text-muted">The employee did not upload a sick note for this leave period.</p>
-                    </div>`;
-            }
+        //     function showNoNoteMessage(message) {
+        //         container.innerHTML = `
+        //             <div class="no-note">
+        //                 <i class="fas fa-file-pdf fa-3x mb-3"></i>
+        //                 <h5 class="text-white">${message || 'No sick note available'}</h5>
+        //                 <p class="text-muted">The employee did not upload a sick note for this leave period.</p>
+        //             </div>`;
+        //     }
+        // });
+
+        document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const noteUrl = urlParams.get('note'); // This will be the Supabase URL
+  const employeeId = urlParams.get('employeeId');
+  const startDate = urlParams.get('startDate');
+  const endDate = urlParams.get('endDate');
+  const employeeName = urlParams.get('employeeName');
+  const daysTaken = urlParams.get('daysTaken');
+  
+  const container = document.getElementById('pdf-container');
+  const employeeNameElement = document.getElementById('employeeName');
+  const leaveDurationElement = document.getElementById('leaveDuration');
+  const messageEmployeeBtn = document.getElementById('messageEmployeeBtn');
+
+  // Format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-GB', options);
+  };
+
+  // Set employee info
+  if (employeeName) {
+    employeeNameElement.textContent = `Employee: ${decodeURIComponent(employeeName)} (ID: ${employeeId || 'N/A'})`;
+  } else {
+    employeeNameElement.textContent = 'Employee: Information not available';
+  }
+
+  if (startDate && endDate) {
+    const days = daysTaken || Math.ceil((new Date(endDate) - new Date(startDate))) / (1000 * 60 * 60 * 24) + 1;
+    leaveDurationElement.textContent = 
+      `Leave Period: ${formatDate(startDate)} to ${formatDate(endDate)} (${days} days)`;
+  } else {
+    leaveDurationElement.textContent = 'Leave Period: Information not available';
+  }
+
+  // Set up message button
+  if (employeeId) {
+    messageEmployeeBtn.disabled = false;
+    messageEmployeeBtn.classList.remove('btn-secondary');
+    messageEmployeeBtn.classList.add('btn-success');
+    messageEmployeeBtn.onclick = () => {
+      window.location.href = `message-employee.html?employeeId=${employeeId}`;
+    };
+  } else {
+    messageEmployeeBtn.disabled = true;
+    messageEmployeeBtn.classList.remove('btn-success');
+    messageEmployeeBtn.classList.add('btn-secondary');
+    messageEmployeeBtn.title = "Employee information not available";
+  }
+  
+  if (noteUrl) {
+    // Check if it's a valid URL (Supabase URL)
+    try {
+      const url = new URL(noteUrl);
+      
+      // For Supabase URLs, we can use them directly
+      container.innerHTML = '<iframe></iframe>';
+      const pdfViewer = container.querySelector('iframe');
+      pdfViewer.src = noteUrl;
+      
+      // Add an event listener for iframe errors
+      pdfViewer.onerror = () => {
+        showNoNoteMessage('Unable to load sick note. The file may have been removed.');
+      };
+    } catch (e) {
+      // If it's not a valid URL, try the old method (for backward compatibility)
+      const pdfUrl = `http://localhost:3000/uploads/${noteUrl}`;
+      
+      fetch(pdfUrl)
+        .then(response => {
+          if (response.ok) {
+            container.innerHTML = '<iframe></iframe>';
+            const pdfViewer = container.querySelector('iframe');
+            pdfViewer.src = pdfUrl;
+          } else {
+            showNoNoteMessage('Sick note file not found');
+          }
+        })
+        .catch(error => {
+          showNoNoteMessage('Error loading sick note');
+          console.error('Error loading PDF:', error);
         });
+    }
+  } else {
+    showNoNoteMessage('No sick note was attached to this leave request');
+  }
+  
+  function showNoNoteMessage(message) {
+    container.innerHTML = `
+      <div class="no-note">
+        <i class="fas fa-file-pdf fa-3x mb-3"></i>
+        <h5 class="text-white">${message || 'No sick note available'}</h5>
+        <p class="text-muted">The employee did not upload a sick note for this leave period.</p>
+      </div>`;
+  }
+});
+
+        
     </script>
     <script src="js/components.js"></script>
 </body>

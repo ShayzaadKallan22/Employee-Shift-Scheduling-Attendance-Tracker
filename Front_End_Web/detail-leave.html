@@ -209,7 +209,7 @@
         <td>
           <span class="badge" :class="{
             'bg-success': employee.status_ === 'Working',
-            'bg-warning': employee.status_ === 'On Leave',
+            'text-warning': employee.status_ === 'On Leave',
             'bg-secondary': employee.status_ === 'Not Working'
           }">
             {{ employee.status_ }}

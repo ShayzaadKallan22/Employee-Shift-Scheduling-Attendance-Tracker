@@ -310,6 +310,108 @@
     .month-navigation button:hover {
       background-color: #4e73df;
     }
+
+    .standby-info {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .standby-info:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+
+    /* Add these styles to your existing CSS */
+.calendar-day.leave-day {
+  background-color: rgba(255, 193, 7, 0.3) !important;
+  border: 1px solid #ffc107 !important;
+}
+
+.calendar-day.leave-day.has-event {
+  background-color: rgba(255, 193, 7, 0.5) !important;
+  border: 1px solid #ffc107 !important;
+  box-shadow: 0 0 5px rgba(255, 193, 7, 0.8);
+}
+
+.calendar-day.leave-day .day-number {
+  font-weight: bold;
+  color: #ffc107;
+}
+
+.calendar-day.leave-day.today {
+  border: 2px solid #ff6b6b !important;
+  box-shadow: 0 0 5px rgba(255, 107, 107, 0.8);
+}
+
+/* Legend for the calendar */
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.legend-leave {
+  background-color: rgba(255, 193, 7, 0.3);
+  border: 1px solid #ffc107;
+}
+
+.legend-event {
+  background-color: rgba(78, 115, 223, 0.2);
+  border: 1px solid #4e73df;
+}
+
+.legend-today {
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 2px solid #ff6b6b;
+}
+
+/* Add these styles */
+tr.recommendation-row {
+  border-left: 4px solid transparent;
+}
+
+tr.recommendation-row.text-danger {
+  border-left-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+tr.recommendation-row.text-success {
+  border-left-color: #198754;
+  background-color: rgba(25, 135, 84, 0.05);
+}
+
+tr.recommendation-row.text-warning {
+  border-left-color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.05);
+}
+
+tr.recommendation-row.text-info {
+  border-left-color: #0dcaf0;
+  background-color: rgba(13, 202, 240, 0.05);
+}
+
+.ai-recommendation {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 5px 0;
+}
   </style>
 </head>
 
@@ -380,54 +482,81 @@
                   <div class="bg-dark rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                       <h5 class="mb-0">Leave Requests</h5>
+                      <div>
+    <button @click="fetchLeaveRequests" class="btn btn-sm btn-outline-info me-2" 
+            :disabled="isLoading">
+      <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i> Refresh
+    </button>
                       <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
                         Leave</a>
                     </div>
+                    </div>
 
                     <div class="table-responsive">
-                      <table class="table text-start align-middle table-bordered table-hover mb-0">
-                        <thead>
-                          <tr class="text-white">
-                            <th scope="col">Employee</th>
-                            <th scope="col">Date Range</th>
-                            <th scope="col">Type & Days Remaining</th>
-                            <th scope="col">Decision</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <!--show loading message while data is being fetched -->
-                          <tr v-if="isLoading">
-                            <td colspan="4" class="text-center">Loading leave requests...</td>
-                          </tr>
-                          <!--show empty state when no requests exist -->
-                          <tr v-else-if="leaveRequests.length === 0">
-                            <td colspan="4" class="text-center">No pending leave requests</td>
-                          </tr>
-                          <!--dynamic Rows -->
-                          <tr v-for="request in leaveRequests" :key="request.leave_id">
-                            <td>
-                              <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
-                                {{ request.first_name }} {{ request.last_name }} (EMP-{{ request.employee_id }})
-                              </a>
-                              <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
-                                @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
-                                :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
-                              </i>
-                            </td>
-                            <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
-                            <td>
-                              <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request)
-                                }})</span>
-                            </td>
-                            <td>
-                              <button @click="respondToLeave(request.leave_id, 'approved')"
-                                class="btn btn-sm btn-success me-1">Approve</button>
-                              <button @click="respondToLeave(request.leave_id, 'rejected')"
-                                class="btn btn-sm btn-danger">Reject</button>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      
+<table class="table text-start align-middle table-bordered table-hover mb-0">
+  <thead>
+    <tr class="text-white">
+      <th scope="col">Employee</th>
+      <th scope="col">Date Range</th>
+      <th scope="col">Type & Days Remaining</th>
+      <th scope="col">Standby Availability</th>
+      <th scope="col">Decision</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-if="isLoading">
+      <td colspan="5" class="text-center">Loading leave requests...</td>
+    </tr>
+    <tr v-else-if="leaveRequests.length === 0">
+      <td colspan="5" class="text-center">No pending leave requests</td>
+    </tr>
+    <template v-else v-for="request in leaveRequests" :key="request.leave_id">
+      <!-- Main request row -->
+      <tr>
+        <td>
+          <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+            {{ request.first_name }} {{ request.last_name }} 
+          </a>
+          <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
+            @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
+            :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
+          </i>
+        </td>
+        <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+        <td>
+          <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
+        </td>
+        <td>
+          <span :class="getStandbyClass(request)" class="standby-info" 
+                @click="showStandbyDetails(request)" style="cursor: pointer;" 
+                title="Click for details">
+            <i class="fas fa-users me-1"></i>
+            {{ getStandbyInfo(request) }}
+          </span>
+        </td>
+        <td>
+          <button @click="respondToLeave(request.leave_id, 'approved')"
+                  class="btn btn-sm btn-success me-1">Approve</button>
+          <button @click="respondToLeave(request.leave_id, 'rejected')"
+                  class="btn btn-sm btn-danger">Reject</button>
+        </td>
+      </tr>
+      <!-- Recommendation row -->
+      <tr>
+        <td colspan="5" :class="getRecommendationClass(request)" class="p-2">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-robot me-2"></i>
+            <div>
+              <strong>System Recommendation:</strong> {{ generateRecommendation(request) }}
+              <div class="small mt-1">{{ getEventDetails(request) }}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </template>
+  </tbody>
+</table>
                     </div>
                   </div>
 
@@ -480,6 +609,43 @@
                       </div>
                     </div>
                   </div>
+                  <div class="modal fade" id="standbyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header">
+          <h5 class="modal-title">Standby Details for {{ standbyDetails.employee }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>Availability:</strong> 
+            <span :class="standbyDetails.available > 0 ? 'text-success' : 'text-danger'">
+              {{ standbyDetails.available }}/{{ standbyDetails.total }} standby employees available
+            </span>
+          </p>
+          
+          <div v-if="standbyDetails.employees.length > 0">
+            <h6>Available Standby Employees:</h6>
+            <ul class="list-group">
+              <li v-for="employee in standbyDetails.employees" :key="employee.employee_id" 
+                  class="list-group-item bg-secondary text-white">
+                {{ employee.first_name }} {{ employee.last_name }} (ID: {{ employee.employee_id }})
+                - Status: {{ employee.status_ }}
+              </li>
+            </ul>
+          </div>
+          
+          <div v-else>
+            <p class="text-warning">No standby employees available during this period.</p>
+            <p class="text-muted">All standby employees are either on leave or have conflicting schedules.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
                 </div>
               </div>
             </div>
@@ -530,6 +696,46 @@
       </div>
     </div>
   </div>
+
+  <!-- Update the modal in leave.html -->
+  <!-- <div class="modal fade" id="standbyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title">Standby Details for {{ standbyDetails.employee }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <strong>Availability:</strong> 
+          <span :class="standbyDetails.available > 0 ? 'text-success' : 'text-danger'">
+            {{ standbyDetails.available }}/{{ standbyDetails.total }} standby employees available
+          </span>
+        </p>
+        
+        <div v-if="standbyDetails.employees.length > 0">
+          <h6>Available Standby Employees:</h6>
+          <ul class="list-group">
+            <li v-for="employee in standbyDetails.employees" :key="employee.employee_id" 
+                class="list-group-item bg-secondary text-white">
+              {{ employee.first_name }} {{ employee.last_name }} (ID: {{ employee.employee_id }})
+              - Status: {{ employee.status_ }}
+            </li>
+          </ul>
+        </div>
+        
+        <div v-else>
+          <p class="text-warning">No standby employees available during this period.</p>
+          <p class="text-muted">All standby employees are either on leave or have conflicting schedules.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> -->
+
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <!-- JavaScript Libraries -->
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
