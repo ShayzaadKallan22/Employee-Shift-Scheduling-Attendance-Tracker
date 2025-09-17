@@ -98,14 +98,24 @@
         white-space: nowrap;
       }
       .btn-mark-as-read {
-        background-color: #2563eb;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 5px;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
+          background-color: #2563eb;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 5px;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          /* Add these properties to center the text */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          width: 130px; /* Fixed width to accommodate both "Mark as Read" and "Mark as Unread" */
+          height: 40px;
+          max-width: 130px;
+          min-width: 130px;
+          white-space: nowrap; /* Prevent text wrapping */
       }
       .btn-mark-as-read:hover {
         background-color: #1d4ed8;
@@ -595,7 +605,7 @@
               props: ["managerId"],
               template: `
             <div>
-              <div class="stats">
+              <div class="stats">mark-as-read
                 <p class="number-notifications">Notifications</p>
                 <button class="btn-mark-as-read" @click="markAllAsRead">Mark All as Read</button>
               </div>
