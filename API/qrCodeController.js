@@ -35,10 +35,10 @@ exports.scanQR = async (req, res) => {
     }
 
     //Mark QR code as used
-    await db.execute(
-      `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
-      [qr.qr_id]
-    );
+    // await db.execute(
+    //   `UPDATE t_qr_code SET status_ = 'used' WHERE qr_id = ?`,
+    //   [qr.qr_id]
+    // );
 
     //Determine shift type based on QR purpose
     let shiftType = '';
@@ -119,6 +119,8 @@ exports.scanQR = async (req, res) => {
         `UPDATE t_employee SET status_ = ?
          WHERE employee_id = ?`, ['Working', employee_id]
       );
+
+      return res.status(200).json({ message: `QR code has been accepted for ${qr.Purpose}` });
       
     } else if (qr.purpose === 'attendanceNormal' || qr.purpose === 'attendance') {
 
@@ -148,9 +150,9 @@ exports.scanQR = async (req, res) => {
           VALUES (?, ?, NOW(), ?, ?)`,
           [employee_id, 'Your proof of attendance has been recorded.', 'unread', 4]
       );
-    }
 
-    return res.status(200).json({ message: `QR code has been accepted for ${qr.purpose}` });
+      return res.status(200).json({ message: `QR code has been accepted for attendance` });
+    }
 
   } catch (err) {
     console.error(err);
