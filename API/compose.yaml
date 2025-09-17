@@ -9,6 +9,8 @@ services:
       - MYSQL_PASSWORD=7860
       - MYSQL_DATABASE=azania
       - JWT_SECRET=secret
+      - SUPABASE_URL=https://vnedzjklbydlvjbcqlsh.supabase.co
+      - SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuZWR6amtsYnlkbHZqYmNxbHNoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzkzMDQxMCwiZXhwIjoyMDczNTA2NDEwfQ.8cC_ttUN3yiAxj59eM3t_SsCCdzkfs56fpD9jkSOB7s
       - TZ=Africa/Johannesburg
       - MYSQL_CONNECTION_LIMIT=50  
       - MYSQL_ACQUIRE_TIMEOUT=30000  

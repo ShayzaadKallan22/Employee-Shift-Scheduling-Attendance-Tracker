@@ -75,6 +75,7 @@ app.use(express.json()); //For API JSON payloads
 //Serve static files from the 'uploads' directory
 app.use('/uploads', express.static('uploads')); //Added by Cletus.
 
+
 //Method to handle leave status updates.
 // async function updateLeaveStatuses() {
 //   try {
@@ -297,10 +298,11 @@ app.get('/api/employees/search', async (req, res) => {
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '/Front_End_Web', 'index.html'));
+  res.sendFile(path.join(__dirname, 'Front_End_Web', 'index.html'));
 });
 
-app.use(express.static(path.join(__dirname, '/Front_End_Web')));
+app.use(express.static(path.join(__dirname, 'Front_End_Web')));
+app.use('/lib', express.static(path.join(__dirname, 'node_modules')));
 //---------------------------------------------------------------------------------------------------
 
 // app.use('/api/reports', (req, res, next) => {   //Added by Yatin, still in progress...
