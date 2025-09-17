@@ -59,14 +59,16 @@ const Shift = () => {
         if (!employee_id) throw new Error('Employee id could not be found');
         
         const res = await axios.get(`${API_URL}/api/schedule/employee/${employee_id}/shifts`);
-        const shiftData = res.data.map(({date_, start_time, end_time, role}) => ({
+        const shiftData = res.data.map(({date_, start_time, end_time, event_title, event_description}) => ({
           date: new Date(date_).getDate().toString().padStart(2,'0'),
           fullDate: new Date(date_).toLocaleDateString('en-CA'),
-          role: role,
           start: start_time,
-          end: end_time
+          end: end_time,
+          eventName: event_title,
+          eventDesc: event_description
         }));
         setShifts(shiftData);
+        console.log(shiftData);
       } catch(err) {
         Alert.alert('Failed to fetch shifts:', err);
       }
@@ -447,6 +449,11 @@ const Shift = () => {
                       <Text style={styles.detailLabel}>End Time:</Text>
                       <Text style={styles.detailValue}>{selectedShift.end?.split(':').slice(0, 2).join(':')}</Text>
                     </View>
+                     <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Event:</Text>
+                      <Text style={styles.detailValue}>{selectedShift.eventName}</Text>
+                    </View>
+
                     <TouchableOpacity 
                       style={styles.requestSwapButton}
                       onPress={() => {
