@@ -34,6 +34,7 @@ const ClockInScreen = () => {
   const [cancelReason, setCancelReason] = useState('sick');
   const [cancelNotes, setCancelNotes] = useState('');
   const [strikeCount, setStrikeCount] = useState(0);
+  const [endTime, setEndTime] = useState(null);
   //Animation values
   const pulseAnim = new Animated.Value(1);
   const buttonScale = new Animated.Value(1);
@@ -172,7 +173,7 @@ const ClockInScreen = () => {
       const dateOnly = dateField.split('T')[0]; // Get YYYY-MM-DD part
       const timeOnly = nextShift.start_time; // Get HH:MM:SS part
       const shiftTime = new Date(dateOnly + 'T' + timeOnly);
-      
+      const end_Time = nextShift.end_time;
       const diff = shiftTime - now;
       
       // console.log('Countdown update:');
@@ -182,6 +183,7 @@ const ClockInScreen = () => {
       
       if (diff <= 0) {
         setCountdown('Shift started');
+        setEndTime(end_Time);
         if (countdownIntervalRef.current) {
           clearInterval(countdownIntervalRef.current);
         }
@@ -356,20 +358,20 @@ const ClockInScreen = () => {
     const timeOnly = nextShift.start_time;
     const shiftTime = new Date(dateOnly + 'T' + timeOnly);
 
-    //Check if shift is today and within 2 hours window.
+    //Check if shift is today and within 3 hours window.
     const isToday = shiftTime.toDateString() === now.toDateString();
     if(!isToday) return false;  
     const timeDiff = shiftTime - now;
-    const twoHoursInMs = 2 * 60 * 60 * 1000;
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
 
-    return isToday && timeDiff > twoHoursInMs && timeDiff > 0;
+    return isToday && timeDiff > threeHoursInMs && timeDiff > 0;
   }
 
   //Handle notification to manager
   const handleNotifyManager = async () => {
 
     if(!canCancelShift()) {
-      Alert.alert('Cannot cancel', 'You can only cancel your shift 2 hours before your shift start time.');
+      Alert.alert('Cannot cancel', 'You can only cancel your shift 3 hours before your shift start time.');
       return;
     }
     // const employeeId = await AsyncStorage.getItem('employee_id');
@@ -420,14 +422,14 @@ const ClockInScreen = () => {
       setCancelReason('sick');
       setCancelNotes('');
     }catch (error){
-      //console.error('Error notifying manager:', error);
+      console.error('Error notifying manager:', error);
       Alert.alert('Error', 'Could not notify manager. Please try again later.');
     }
   };
 
   //Render the cancel shift button.
   const renderNotifyManagerButton = () => {
-     if (!nextShift || attendanceStatus === 'Working' || !canCancelShift()) {
+     if (!canCancelShift()) {
     return null;
   }
 
@@ -453,7 +455,7 @@ const ClockInScreen = () => {
         pulse: true
       },
       'Not Working': { 
-        color: '#007bff',
+        color: '#489cf7ff',
         icon: 'time-outline', 
         message: 'You are currently clocked out.',
         pulse: false
@@ -514,11 +516,25 @@ const ClockInScreen = () => {
         </View>
       );
     }
+    if(attendanceStatus === 'Working') {
+     return (
+        <View style={styles.countdownCard}>
+          <View style={styles.countdownHeader}>
+            <Icon name="calendar-outline" size={20} color="#4CAF50" />
+            <Text style={[styles.countdownTitle, { color: '#4CAF50' }]}>Shift started</Text>
+          </View>
+          <Text style={[styles.countdownText, { color: '#4CAF50' }]}>
+            Ends at: 
+          </Text>
+          <Text style={[styles.countdownTimer , { color: '#4CAF50' }]}>{endTime}</Text>
+        </View>
+      );
+    }
     
     return (
       <View style={styles.countdownCard}>
         <View style={styles.countdownHeader}>
-          <Icon name="time-outline" size={20} color="#007bff" />
+          <Icon name="time-outline" size={20} color="#489cf7ff" />
           <Text style={styles.countdownTitle}>Next Shift</Text>
         </View>
         <Text style={styles.countdownText}>
@@ -540,9 +556,9 @@ const ClockInScreen = () => {
          {/* Location Status */}
         <View style={styles.locationStatus}>
           <Icon 
-            name={locationStatus.includes('error') ? 'location' : 'location'} 
+            name={locationStatus.includes('verified') ? 'location' : 'location'} 
             size={16} 
-            color={locationStatus.includes('error') ? '#FF4444' : '#4CAF50'} 
+            color={locationStatus.includes('verified') ? '#4CAF50' : '#FF4444'} 
           />
           {/* <Text style={[
             styles.locationStatusText,
@@ -766,7 +782,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   countdownTitle: {
-    color: '#007bff',
+    color: '#489cf7ff',
     fontSize: 15,
     fontWeight: 'bold',
     marginLeft: 8,
@@ -793,7 +809,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   countdownTimer: {
-    color: '#007bff',
+    color: '#489cf7ff',
     fontSize: 15,
     fontWeight: 'bold',
     marginVertical: 4,
