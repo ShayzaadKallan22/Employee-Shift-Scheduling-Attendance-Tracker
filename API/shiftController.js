@@ -157,14 +157,14 @@ exports.cancelShift = async (req, res) => {
         
         //Check if within 2-hour cancellation window
         const timeDiff = shiftDateTime - now;
-        const twoHoursInMs = 2 * 60 * 60 * 1000;
+        const threeHoursInMs = 3 * 60 * 60 * 1000;
         
         if (timeDiff <= 0) {
             return res.status(400).json({ error: 'Shift has already started or completed' });
         }
         
-        if (timeDiff > twoHoursInMs ) {
-            return res.status(400).json({ error: 'Can only cancel shifts 2 hours before start time' });
+        if (timeDiff < threeHoursInMs ) {
+            return res.status(400).json({ error: 'Can only cancel shifts 3 hours before start time' });
         }
 
         //Check if already cancelled
@@ -228,12 +228,22 @@ exports.cancelShift = async (req, res) => {
                 4
             ]);
 
+            console.log(notificationValues);
             await db.query(
                 `INSERT INTO t_notification 
                  (employee_id, message, sent_time, read_status, notification_type_id)
                  VALUES ?`,
                 [notificationValues]
             );
+            for(const mgr of managerRows) {
+                console.log(`Notified manager ${mgr.first_name} ${mgr.last_name} (${mgr.email}) about shift cancellation.`);
+                 await db.query(
+                `INSERT INTO t_message 
+                 (sender_id, receiver_id, content, sent_time, read_status)
+                 VALUES (?, ?, ?, NOW(), 'unread')`,
+                [employee_id,mgr.employee_id, notes]
+            );
+            } 
         }
 
         res.json({ 

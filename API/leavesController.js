@@ -5,6 +5,7 @@
 
 const db = require('./db');
 const multer = require('multer');   //For handling file uploads.
+const supabase = require('./supabase'); //Supabase client for file storage.
 const path = require('path');   //For handling file paths.
 const fs = require('fs');
 const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB limit for sick note uploads.
@@ -13,7 +14,7 @@ const { type } = require('os');
 
 //Cron job to update leave status at midnight
 //This job runs every day at midnight to update leave statuses
-cron.schedule('0 * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   try {
     //Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0];
@@ -24,7 +25,7 @@ cron.schedule('0 * * * *', async () => {
        FROM t_leave l
        JOIN t_employee e ON l.employee_id = e.employee_id
        WHERE l.status_ = 'approved' 
-       AND l.start_date >= ?
+       AND l.start_date = ?
        AND e.status_ != 'On Leave'`,
       [currentDate]
     );
@@ -124,21 +125,8 @@ cron.schedule('0 * * * *', async () => {
 });
 
 //Configure file upload with size limit and PDF validation
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = 'uploads/';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+const storage = multer.memoryStorage();
 
-//Filter to allow only PDF files.
 const fileFilter = (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
         cb(null, true);
@@ -147,7 +135,6 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-//Set up multer with storage, file filter, and size limit.
 const upload = multer({ 
     storage,
     fileFilter,
@@ -203,7 +190,7 @@ exports.getRemainingLeaveDays = async (req, res) => {
 //Handle employee sick note uploads.
 exports.uploadSickNote = async (req, res) => {
     const { leave_id } = req.params;
-    
+
     try {
         if (!req.file) {
             return res.status(400).json({ 
@@ -212,94 +199,101 @@ exports.uploadSickNote = async (req, res) => {
             });
         }
 
-        //Verify the leave exists and is approved
+        //Verify leave exists & is approved
         const [leave] = await db.execute(
             `SELECT status_ FROM t_leave WHERE leave_id = ?`,
             [leave_id]
         );
 
         if (!leave.length) {
-            //Clean up the uploaded file if leave doesn't exist
-            fs.unlinkSync(req.file.path);
             return res.status(404).json({ message: 'Leave not found' });
         }
 
         if (leave[0].status_ !== 'approved') {
-            //Clean up the uploaded file if leave isn't approved
-            fs.unlinkSync(req.file.path);
             return res.status(400).json({ 
                 message: 'Sick notes can only be uploaded for approved leaves' 
             });
         }
 
-        //If there was a previous sick note, delete it
+        //If previous sick note exists, delete it from Supabase
         const [existing] = await db.execute(
             `SELECT sick_note FROM t_leave WHERE leave_id = ?`,
             [leave_id]
         );
 
         if (existing[0].sick_note) {
-            try {
-                fs.unlinkSync(path.join('uploads', existing[0].sick_note));
-            } catch (err) {
-                console.error('Error deleting old sick note:', err);
-            }
+            await supabase.storage
+                .from('Azania_app_sick_notes')
+                .remove([existing[0].sick_note]);
         }
 
+        //Upload new PDF to Supabase
+        const fileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(req.file.originalname)}`;
+        const { error: uploadError } = await supabase.storage
+            .from('Azania_app_sick_notes')
+            .upload(fileName, req.file.buffer, {
+                contentType: req.file.mimetype,
+                upsert: true,
+            });
+
+        if (uploadError) throw uploadError;
+
+       const { data: publicUrlData } = supabase.storage
+        .from('Azania_app_sick_notes')
+        .getPublicUrl(fileName);
+
+        const fileUrl = publicUrlData.publicUrl;
+        //console.log('File uploaded to Supabase at path:', path);
+        //Save Supabase path to DB
         await db.execute(
             `UPDATE t_leave SET sick_note = ? WHERE leave_id = ?`,
-            [req.file.filename, leave_id]
+            [fileUrl, leave_id]
         );
 
-        //Add notification about sick note upload
-       const [leaveRecord] = await db.execute(
-         `SELECT employee_id FROM t_leave WHERE leave_id = ?`,
-         [leave_id]
-       );
+        //Insert notifications for employee and manager
+        const [leaveRecord] = await db.execute(
+            `SELECT employee_id FROM t_leave WHERE leave_id = ?`,
+            [leave_id]
+        );
 
-       await db.execute(
-         `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
-         VALUES (?, ?, NOW(), ?, ?)`,
-         [leaveRecord[0].employee_id, `Sick note uploaded for leave #${leave_id}`, 'unread', 1]
-       );
-       
-       //Notify the manager about the sick note upload
-       const [manager] = await db.execute(
-        `SELECT employee_id FROM t_employee 
-         WHERE type_ = 'manager'
-        `
-       );
-         if (manager.length === 0) {
-              return res.status(404).json({ message: 'Manager not found' });
-         }
+        await db.execute(
+            `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
+             VALUES (?, ?, NOW(), ?, ?)`,
+            [leaveRecord[0].employee_id, `Sick note uploaded for leave #${leave_id}`, 'unread', 1]
+        );
 
-        //Get the employee's name for the notification.
+        const [manager] = await db.execute(
+            `SELECT employee_id FROM t_employee WHERE type_ = 'manager'`
+        );
+
+        if (manager.length === 0) {
+            return res.status(404).json({ message: 'Manager not found' });
+        }
+
         const [employee] = await db.execute(
             `SELECT CONCAT(first_name, last_name) As name
-             FROM t_employee WHERE employee_id = ?`,   [leaveRecord[0].employee_id]
+             FROM t_employee WHERE employee_id = ?`, [leaveRecord[0].employee_id]
         );
 
-       //Insert notification for manager
-       await db.execute(
-        `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
-         VALUES (?, ?, NOW(), ?, ?)`,       
-        [manager[0].employee_id, `${employee[0].name} uploaded a sick note for sick leave #${leave_id}`, 'unread', 1]
-       );
+        for (const mgr of manager) {
+            console.log('Notifying manager ID:', mgr.employee_id);
 
+            await db.execute(
+            `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
+             VALUES (?, ?, NOW(), ?, ?)`,       
+            [mgr.employee_id, `${employee[0].name} uploaded a sick note for sick leave #${leave_id}`, 'unread', 1]
+            );
+
+        }
+       
         res.status(200).json({ 
             success: true,
             message: 'Sick note uploaded successfully',
-            filename: req.file.filename
+            filePath: fileName
         });
+
     } catch (err) {
         console.error('Error uploading sick note:', err);
-        if (req.file) {
-            try {
-                fs.unlinkSync(req.file.path);
-            } catch (cleanupErr) {
-                console.error('Error cleaning up uploaded file:', cleanupErr);
-            }
-        }
         res.status(500).json({ 
             success: false,
             message: err.message || 'Server error during sick note upload'
