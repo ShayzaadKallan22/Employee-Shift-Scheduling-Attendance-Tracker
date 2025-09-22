@@ -413,11 +413,13 @@ const ClockInScreen = () => {
         notes: cancelNotes
       });
 
+      updateCountdown(); //Update countdown in case shift was cancelled.
+      
       Alert.alert('Notification sent', 'Manager has been notified of your absence.');
       
       setCancelModalVisible(false);
       //fetchData(); //Refresh data to reflect any changes
-
+      
       //Reset reason and notes
       setCancelReason('sick');
       setCancelNotes('');

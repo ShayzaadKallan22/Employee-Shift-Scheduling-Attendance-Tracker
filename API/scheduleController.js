@@ -30,7 +30,6 @@ exports.getEmpShifts = async( req, res) => {
             AND NOT EXISTS (
                 SELECT 1 FROM t_shift_cancellations sc 
                 WHERE sc.shift_id = s.shift_id 
-                AND sc.status_ = 'approved'
             )
             ORDER BY s.date_ ASC
             LIMIT 30`, [employee_id]

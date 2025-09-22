@@ -65,7 +65,9 @@ const Shift = () => {
           start: start_time,
           end: end_time,
           eventName: event_title,
-          eventDesc: event_description
+          eventDesc: event_description,
+          hasEvent: !!event_title, //Simple flag to check if event exists
+          eventType: event_title ? (event_description?.length > 50 ? 'detailed' : 'standard') : 'none' //Categorize events
         }));
         setShifts(shiftData);
         console.log(shiftData);
@@ -211,15 +213,31 @@ const Shift = () => {
 
   //Mark dates for schedule calendar
   const markedDates = shifts.reduce((acc, shift) => {
-    acc[shift.fullDate] = {
-      marked: true,
-      dotColor: '#007bff',
-      selected: shift.fullDate === selectedDate,
-      selectedColor: '#007bff',
-      selectedTextColor: '#fff'
-    };
-    return acc;
-  }, {});
+  const hasEvent = shift.hasEvent;
+  
+  acc[shift.fullDate] = {
+    marked: true,
+    dotColor: hasEvent ? '#ff6b6b' : '#007bff', //Different colors for events
+    selected: shift.fullDate === selectedDate,
+    selectedColor: hasEvent ? '#ff6b6b' : '#007bff',
+    selectedTextColor: '#fff',
+    
+    //Styling for events
+    customStyles: {
+      container: {
+        backgroundColor: hasEvent ? 'rgba(255, 107, 107, 0.1)' : 'transparent',
+        borderRadius: 8,
+        borderWidth: hasEvent ? 1 : 0,
+        borderColor: hasEvent ? '#ff6b6b' : 'transparent',
+      },
+      text: {
+        color: hasEvent ? '#ff6b6b' : '#ffffff',
+        fontWeight: hasEvent ? '600' : 'normal',
+      }
+    }
+  };
+  return acc;
+}, {});
 
   //Handle swap request submission.
   const handleSubmitRequest = async () => {
@@ -425,6 +443,7 @@ const Shift = () => {
             <Calendar
               onDayPress={day => setSelectedDate(day.dateString)}
               markedDates={markedDates}
+              markingType={'custom'}
               theme={{
                 calendarBackground: '#1a1a1a',
                 dayTextColor: '#ffffff',
@@ -433,6 +452,52 @@ const Shift = () => {
                 arrowColor: '#ffffff',
                 selectedDayTextColor: '#ffffff',
                 selectedDayBackgroundColor: '#007bff',
+                todayTextColor: '#ff6b6b',
+                dotStyle: {
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                }
+              }}
+
+              dayComponent={({date, state, marking}) => {
+                const shift = shifts.find(s => s.fullDate === date.dateString);
+                const hasEvent = shift?.eventName;
+                
+                return (
+                   <TouchableOpacity 
+                      style={styles.dayContainer}
+                      onPress={() => setSelectedDate(date.dateString)}
+                      disabled={state === 'disabled'}
+                    >
+                    <Text style={[
+                      styles.dayText,
+                      state === 'disabled' && styles.disabledDayText,
+                      marking?.selected && styles.selectedDayText,
+                      hasEvent && styles.eventDayText
+                    ]}>
+                      {date.day}
+                    </Text>
+                    
+                    {/* Event Indicator Badge */}
+                    {hasEvent && (
+                      <View style={[
+                        styles.eventBadge,
+                        marking?.selected && styles.eventBadgeSelected
+                      ]}>
+                        <Text style={styles.eventBadgeText}>●</Text>
+                      </View>
+                    )}
+                    
+                    {/* Shift dot indicator */}
+                    {marking?.marked && (
+                      <View style={[
+                        styles.dot,
+                        { backgroundColor: marking.dotColor }
+                      ]} />
+                    )}
+                  </TouchableOpacity>
+                );
               }}
             />
 
@@ -868,7 +933,61 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     fontWeight: 'bold',
     marginTop: 10
-  }
+  },
+  dayContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    width: 40,
+    position: 'relative',
+  },
+  dayText: {
+    fontSize: 16,
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  disabledDayText: {
+    color: '#555',
+  },
+  selectedDayText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  eventDayText: {
+    fontWeight: '600',
+  },
+  
+  //Event Badge Styles
+  eventBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: '#ff6b6b',
+    borderRadius: 6,
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1a1a1a',
+  },
+  eventBadgeSelected: {
+    borderColor: '#ffffff',
+    backgroundColor: '#ff5252',
+  },
+  eventBadgeText: {
+    color: '#fff',
+    fontSize: 6,
+    fontWeight: 'bold',
+  },
+  //Dot indicator
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 4,
+  },
 });
 
 export default Shift;
