@@ -64,7 +64,7 @@ const Shift = () => {
           fullDate: new Date(date_).toLocaleDateString('en-CA'),
           start: start_time,
           end: end_time,
-          eventName: event_title,
+          eventName: event_title ? event_title : 'No events',
           eventDesc: event_description,
           hasEvent: !!event_title, //Simple flag to check if event exists
           eventType: event_title ? (event_description?.length > 50 ? 'detailed' : 'standard') : 'none' //Categorize events
@@ -950,7 +950,7 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   selectedDayText: {
-    color: '#ffffff',
+    color: '#007bff',
     fontWeight: 'bold',
   },
   eventDayText: {
@@ -960,12 +960,12 @@ const styles = StyleSheet.create({
   //Event Badge Styles
   eventBadge: {
     position: 'absolute',
-    top: 2,
+    top: -15,
     right: 2,
-    backgroundColor: '#ff6b6b',
+    backgroundColor: 'transparent',
     borderRadius: 6,
-    width: 12,
-    height: 12,
+    width: 35,
+    height: 25,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
   },
   eventBadgeSelected: {
     borderColor: '#ffffff',
-    backgroundColor: '#ff5252',
+    backgroundColor: 'transparent',
   },
   eventBadgeText: {
     color: '#fff',
