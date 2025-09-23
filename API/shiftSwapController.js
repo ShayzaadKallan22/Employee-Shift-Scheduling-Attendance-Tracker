@@ -19,6 +19,10 @@ exports.getShiftID = async (req, res) => {
       `SELECT shift_id FROM t_shift
        WHERE employee_id = ?
        AND ? BETWEEN date_ AND end_date
+       AND NOT EXISTS (
+             SELECT 1 FROM t_shift_cancellations sc 
+             WHERE sc.shift_id = s.shift_id
+        )
        LIMIT 1`,
       [employee_id, date]
     );

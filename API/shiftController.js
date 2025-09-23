@@ -28,8 +28,7 @@ exports.getUpcomingShifts = async (req, res) => {
          )
          AND NOT EXISTS (
              SELECT 1 FROM t_shift_cancellations sc 
-             WHERE sc.shift_id = s.shift_id 
-             AND sc.status_ = 'approved'
+             WHERE sc.shift_id = s.shift_id
          )
          ORDER BY s.date_ ASC, s.start_time ASC
          LIMIT 3`, [employeeId]
@@ -195,7 +194,7 @@ exports.cancelShift = async (req, res) => {
         const [result] = await db.query(
             `INSERT INTO t_shift_cancellations 
              (shift_id, employee_id, requested_at, reason, notes, status_, count)
-             VALUES (?, ?, NOW(), ?, ?, 'approved', ?)`,
+             VALUES (?, ?, NOW(), ?, ?, 'pending', ?)`,
             [shift_id, employee_id, reason, notes || '', newCount]
         );
 
