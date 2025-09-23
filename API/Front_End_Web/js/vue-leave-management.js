@@ -753,11 +753,11 @@ generateRecommendation(request) {
   }
   
   if (hasEvents && availableStandby > 0) {
-    return `⚠️ CONDITIONAL APPROVAL: Employee has ${eventCount} event(s) but ${availableStandby} standby available.`;
+    return `⚠️ ATTENTION: Employee has ${eventCount} event(s) but ${availableStandby} standby available.`;
   }
   
   if (!hasEvents && availableStandby === 0 && totalStandby > 0) {
-    return `⚠️ CONDITIONAL APPROVAL: No events scheduled but all ${totalStandby} standby employees are unavailable. Ensure coverage can be managed.`;
+    return `⚠️ ATTENTION: No events scheduled but all ${totalStandby} standby employees are unavailable. Ensure coverage can be managed.`;
   }
   
   if (!hasEvents && availableStandby > 0) {
@@ -765,7 +765,7 @@ generateRecommendation(request) {
   }
   
   if (!hasEvents && totalStandby === 0) {
-    return `⚠️ CONDITIONAL APPROVAL: No events scheduled but no standby employees for this role. Ensure department can operate with reduced staff.`;
+    return `⚠️ ATTENTION: No events scheduled but no standby employees for this role. Ensure department can operate with reduced staff.`;
   }
   
   return 'Review required: Unable to generate recommendation.';
