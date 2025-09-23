@@ -14,6 +14,10 @@ createApp({
             filteredEmployeeRates: [],
             roleSearchQuery: '',
             filteredRoleRates: [],
+            projectedTotal: 0,
+        budgetExceeded: false,
+        budgetExcess: 0,
+        
 
             //Summary statistics for the current payroll period
             payrollSummary: {
@@ -49,6 +53,102 @@ createApp({
     },
 
     methods: {
+        // Calculate projected total payroll based on current form values
+    // Calculate projected total payroll based on current form values
+calculateProjectedTotal() {
+    let total = 0;
+    
+    if (this.showEmployeeModal) {
+        // Calculate for employee rate changes
+        for (const employee of this.employeeRates) {
+            // Find corresponding payment details for this employee
+            const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
+            
+            if (paymentData) {
+                const regularHours = parseFloat(paymentData.regular_hours) || 0;
+                const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
+                const baseRate = parseFloat(employee.base_hourly_rate) || 0;
+                const overtimeRate = parseFloat(employee.overtime_hourly_rate) || 0;
+                
+                total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
+            }
+        }
+    } else if (this.showRoleModal) {
+        // Calculate for role rate changes - affects all employees using those roles
+        for (const employee of this.employeeRates) {
+            const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
+            
+            if (paymentData) {
+                const regularHours = parseFloat(paymentData.regular_hours) || 0;
+                const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
+                
+                // Find the role for this employee
+                const role = this.roleRates.find(r => r.title === employee.role_title);
+                
+                if (role) {
+                    // Check if employee has custom rates (different from role defaults)
+                    // You may need to adjust these field names based on your actual data structure
+                    const hasCustomBaseRate = employee.base_hourly_rate !== employee.role_base_rate;
+                    const hasCustomOvertimeRate = employee.overtime_hourly_rate !== employee.role_overtime_rate;
+                    
+                    // Use employee custom rate if exists, otherwise use updated role rate
+                    const baseRate = hasCustomBaseRate ? 
+                        parseFloat(employee.base_hourly_rate) : 
+                        parseFloat(role.base_hourly_rate) || 0;
+                    const overtimeRate = hasCustomOvertimeRate ? 
+                        parseFloat(employee.overtime_hourly_rate) : 
+                        parseFloat(role.overtime_hourly_rate) || 0;
+                    
+                    total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
+                }
+            }
+        }
+    }
+    
+    this.projectedTotal = total;
+    this.budgetExceeded = total > this.globalBudget;
+    this.budgetExcess = Math.max(0, total - this.globalBudget);
+    
+    return total;
+},
+
+    // Format currency for display
+    formatProjectedCurrency(value) {
+        return this.formatCurrency(value);
+    },
+
+    // Enhanced save methods with budget confirmation
+    async saveRoleRatesWithBudgetCheck() {
+        this.calculateProjectedTotal();
+        
+        if (this.budgetExceeded) {
+            const confirmed = confirm(
+                `Warning: These changes will exceed the weekly budget by ${this.formatCurrency(this.budgetExcess)}. Are you sure you want to proceed?`
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+        }
+        
+        await this.saveRoleRates();
+    },
+
+    async saveEmployeeRatesWithBudgetCheck() {
+        this.calculateProjectedTotal();
+        
+        if (this.budgetExceeded) {
+            const confirmed = confirm(
+                `Warning: These changes will exceed the weekly budget by ${this.formatCurrency(this.budgetExcess)}. Are you sure you want to proceed?`
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+        }
+        
+        await this.saveEmployeeRates();
+    },
 
          async fetchBudgetComparison(date) {
         try {
@@ -219,36 +319,42 @@ createApp({
         //Calculate most recent Tuesday
         //Fixed getMostRecentTuesday method - more explicit and debuggable
         getMostRecentTuesday() {
-            const today = new Date();
-            const dayOfWeek = today.getDay(); //0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-            
-            console.log('Today is:', today.toDateString(), 'Day of week:', dayOfWeek);
-            
-            let daysToSubtract;
-            switch (dayOfWeek) {
-                case 0: //Sunday
-                    daysToSubtract = 5; // Go back 5 days to Tuesday
-                    break;
-                case 1: //Monday  
-                    daysToSubtract = 6; // Go back 6 days to Tuesday
-                    break;
-                case 2: //Tuesday
-                    daysToSubtract = 0; // Today is Tuesday
-                    break;
-                default: //Wednesday through Saturday
-                    daysToSubtract = dayOfWeek - 2; //Go back to this week's Tuesday
-            }
-            
-            console.log('Days to subtract:', daysToSubtract);
-            
-            const mostRecentTuesday = new Date(today);
-            mostRecentTuesday.setDate(today.getDate() - daysToSubtract);
-            
-            const result = mostRecentTuesday.toISOString().split('T')[0];
-            console.log('Most recent Tuesday:', result);
-            
-            return result;
-        },
+    const today = new Date();
+    const dayOfWeek = today.getDay(); //0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+    
+    console.log('Today is:', today.toDateString(), 'Day of week:', dayOfWeek);
+    
+    let daysToSubtract;
+    switch (dayOfWeek) {
+        case 0: //Sunday
+            daysToSubtract = 5; // Go back 5 days to Tuesday
+            break;
+        case 1: //Monday  
+            daysToSubtract = 6; // Go back 6 days to Tuesday
+            break;
+        case 2: //Tuesday
+            daysToSubtract = 0; // Today is Tuesday
+            break;
+        default: //Wednesday through Saturday
+            daysToSubtract = dayOfWeek - 2; //Go back to this week's Tuesday
+    }
+    
+    console.log('Days to subtract:', daysToSubtract);
+    
+    const mostRecentTuesday = new Date(today);
+    mostRecentTuesday.setDate(today.getDate() - daysToSubtract);
+    
+    // Fix the date formatting to ensure correct timezone handling
+    const year = mostRecentTuesday.getFullYear();
+    const month = String(mostRecentTuesday.getMonth() + 1).padStart(2, '0');
+    const day = String(mostRecentTuesday.getDate()).padStart(2, '0');
+    const result = `${year}-${month}-${day}`;
+    
+    console.log('Most recent Tuesday:', result);
+    console.log('Verification - that date is a:', new Date(result + 'T12:00:00').toDateString());
+    
+    return result;
+},
 
         //Fetch all required data simultaneously using Promise.all
         async fetchAllData() {
@@ -659,6 +765,43 @@ createApp({
             this.showBudgetModal = false;
         }
     },
+
+    watch: {
+    showEmployeeModal(newVal) {
+        if (newVal) {
+            this.$nextTick(() => {
+                this.calculateProjectedTotal();
+            });
+        }
+    },
+    
+    showRoleModal(newVal) {
+        if (newVal) {
+            this.$nextTick(() => {
+                this.calculateProjectedTotal();
+            });
+        }
+    },
+    
+    // Keep your existing watchers too
+    employeeRates: {
+        handler() {
+            if (this.showEmployeeModal) {
+                this.calculateProjectedTotal();
+            }
+        },
+        deep: true
+    },
+    
+    roleRates: {
+        handler() {
+            if (this.showRoleModal) {
+                this.calculateProjectedTotal();
+            }
+        },
+        deep: true
+    }
+},
 
     //Component lifecycle hook - runs when component is mounted to DOM
     async mounted() {
