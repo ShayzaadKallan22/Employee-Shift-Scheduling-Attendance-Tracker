@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Azania - Message Employee</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Employee Management, Messaging" name="keywords">
+    <meta content="Messaging interface for employee communication" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <style>
+        .message-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #2a2e38;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #191c24;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        .message.sent {
+            background-color: #2563eb !important;
+            color: white !important;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.received {
+            background-color: #2a2e38 !important;
+            color: white !important;
+            align-self: flex-start;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-info {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .message.received .message-info {
+            text-align: left;
+        }
+        
+        .message-input {
+            border-radius: 20px;
+            padding: 10px 15px;
+            background-color: #2a2e38;
+            border: 1px solid #2a2e38;
+            color: white;
+        }
+        
+        .send-btn {
+            border-radius: 50%;
+            width: 40px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+        }
+        
+        .employee-info {
+            padding: 15px;
+            border-bottom: 1px solid #2a2e38;
+            background-color: #191c24;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .typing-indicator {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-left: 10px;
+            font-style: italic;
+        }
+
+        .message-input, .message-input:focus {
+        color: white !important;
+        }
+
+        .unread-indicator {
+    position: relative;
+}
+
+.unread-indicator::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 60px;
+    background-color: #2563eb;
+    border-radius: 2px;
+}
+
+.unread-row {
+    background-color: rgba(37, 99, 235, 0.1) !important;
+}
+
+.unread-badge {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+}
+
+.employee-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+    text-transform: uppercase;
+}
+
+.employee-avatar-lg {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+}
+
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2a2e38;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+/* Cancellation Styles */
+.cancellation-card {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 4px solid #f59e0b;
+    margin: 10px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cancellation-card.status-approved {
+    border-left-color: #10b981;
+}
+
+.cancellation-card.status-rejected {
+    border-left-color: #ef4444;
+}
+
+.cancellation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cancellation-title {
+    font-weight: 600;
+    color: #fbbf24;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 6px;
+}
+
+.detail-label {
+    font-weight: 600;
+    min-width: 120px;
+    color: #94a3b8;
+}
+
+.detail-value {
+    flex: 1;
+}
+
+.cancellation-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Backdrop Fix */
+.modal-backdrop {
+    z-index: 1040;
+}
+.modal {
+    z-index: 1050;
+}
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Sidebar Start -->
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-secondary navbar-dark">
+                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                    <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
+                    <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
+                    <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
+                        <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
+                            <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
+                        </div>
+                    </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-info-circle me-2"></i>Status</a>
+                    <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    
+                    <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                </div>
+            </nav>
+        </div>
+        <!-- Sidebar End -->
+
+        <!-- Content Start -->
+        <div class="content">
+            <!-- Navbar Start -->
+           <div id="navbar-container"></div>
+            <!-- Navbar End -->
+
+            <!-- Message Employee Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="bg-secondary rounded p-4">
+                            <div id="vue-messaging">
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <h4 class="mb-0"><i class="fa fa-comments me-2"></i>Message Employee</h4>
+                                    <button class="btn btn-secondary" @click="backToList" v-if="selectedEmployee">
+                                        <i class="fa fa-arrow-left me-2"></i> Back to Message List
+                                    </button>
+                                </div>
+
+                                <div v-if="loading" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading...</p>
+                                </div>
+
+                                <div v-if="error" class="alert alert-danger">
+                                    Error: {{ error }}
+                                </div>
+
+                                <div v-if="!selectedEmployee">
+                                    <div class="input-group mb-4">
+                                        <input type="text" class="form-control bg-dark border-0" 
+                                            placeholder="Search employees..." v-model="searchQuery"
+                                            @input="filterEmployees">
+                                        <button class="btn btn-info">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="text-white">
+                                                <tr>
+                                                    <th>Employee</th>
+                                                    <th>Role</th>
+                                                    <th>Status</th>
+                                                    <th>Last Message</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="employee in filteredEmployees" :key="employee.employee_id" 
+    :class="{ 'unread-row': employee.last_message && employee.last_message.is_unread }">
+    <td>
+    <div class="d-flex align-items-center" :class="{ 'unread-indicator': employee.last_message && employee.last_message.is_unread }">
+        <div class="employee-avatar me-2">
+            {{ getEmployeeInitials(employee) }}
+        </div>
+        <div>
+            <h6 class="mb-0">
+                {{ employee.first_name }} {{ employee.last_name }}
+                
+                <span v-if="employee.last_message && employee.last_message.is_unread" 
+                      class="unread-badge"></span>
+            </h6>
+            <!-- <small>EMP-{{ employee.employee_id }}</small> -->
+        </div>
+    </div>
+</td>
+    <td>{{ employee.role_title }}</td>
+    <td>
+        <span class="badge" :class="{
+            'bg-success': employee.status_ === 'Working',
+            'bg-secondary': employee.status_ !== 'Working'
+        }">
+            {{ employee.status_ }}
+        </span>
+        <span v-if="employee.cancellation_count > 0" class="badge bg-warning ms-1">
+                    {{ employee.cancellation_count }}
+                </span>
+    </td>
+    <td>
+        <div v-if="employee.last_message">
+            <div class="text-truncate" style="max-width: 150px;">
+                {{ employee.last_message.content }}
+            </div>
+            <small class="text-muted">{{ formatTime(employee.last_message.time) }}</small>
+        </div>
+        <div v-else>
+            <small class="text-muted">No messages yet</small>
+        </div>
+    </td>
+    <td>
+        <button class="btn btn-sm btn-info me-2" @click="selectEmployee(employee)">
+            <i class="fa fa-comment me-1"></i> Message
+        </button>
+    </td>
+</tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div v-else class="bg-dark rounded p-4">
+                                    <div class="employee-info d-flex align-items-center">
+                                        <div class="employee-avatar employee-avatar-lg me-3">
+                                            {{ getEmployeeInitials(selectedEmployee) }}
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">{{ selectedEmployee.first_name }} {{ selectedEmployee.last_name }}</h5>
+                                            <small class="text-muted">{{ selectedEmployee.role_title }}</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="message-container mt-3 mb-3" ref="messageContainer">
+    <div v-for="message in messages" :key="message.message_id || message.cancellation_id || message.temp_id">
+        <!-- Normal Message -->
+        <div v-if="message && (!message.type || message.type === 'text')" :class="['message', message.sender_id == currentUser.employee_id ? 'sent' : 'received']">
+            <div>{{ message.content }}</div>
+            <div class="message-info">
+                {{ formatTime(message.sent_time) }}
+                <i class="fas fa-check-double ms-2" v-if="message.read_status === 'read' && message.sender_id == currentUser.employee_id"></i>
+            </div>
+        </div>
+        
+        <!-- Cancellation Request Message -->
+        <div v-else-if="message && message.type === 'cancellation'" class="message received">
+            <div class="cancellation-card" :class="'status-' + (message.status || 'pending')">
+                <div class="cancellation-header">
+                    <div class="cancellation-title">
+                        <i class="fas fa-calendar-times me-2"></i>Shift Cancellation
+                        <span class="badge ms-2" :class="{
+                            'bg-warning': (message.status || 'pending') === 'pending',
+                            'bg-success': (message.status || 'pending') === 'approved',
+                            'bg-danger': (message.status || 'pending') === 'rejected'
+                        }">
+                            {{ message.status || 'pending' }}
+                        </span>
+                    </div>
+                    <small class="text-muted">{{ formatTime(message.sent_time || message.requested_at) }}</small>
+                </div>
+                
+                <div class="cancellation-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Shift Date:</span>
+                        <span class="detail-value">{{ formatDate(message.shift_date) }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Time:</span>
+                        <span class="detail-value">{{ message.start_time || 'N/A' }} - {{ message.end_time || 'N/A' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reason:</span>
+                        <span class="detail-value">{{ message.reason || 'No reason provided' }}</span>
+                    </div>
+                    <div v-if="message.notes" class="detail-row">
+                        <span class="detail-label">Additional Notes: </span>
+                        <span class="detail-value">{{ message.notes }}</span>
+                    </div>
+                    
+                    <div v-if="message.response_notes" class="detail-row">
+                        <span class="detail-label">Manager Response:</span>
+                        <span class="detail-value">{{ message.response_notes }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="(message.status || 'pending') === 'pending'" class="cancellation-actions">
+                    <button class="btn btn-success btn-sm me-2" 
+                            @click="approveCancellation(message)">
+                        <i class="fas fa-check me-1"></i> Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm" 
+                            @click="denyCancellation(message)">
+                        <i class="fas fa-times me-1"></i> Disaprove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                                    <div class="input-group">
+                                        <input type="text" class="form-control message-input" 
+                                            placeholder="Type your message here..." v-model="newMessage"
+                                            @keyup.enter="sendMessage">
+                                        <button class="btn send-btn" @click="sendMessage">
+                                            <i class="fa fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Cancellation Response Modal -->
+<div class="modal fade" id="cancellationResponseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span v-text="responseAction === 'approve' ? 'Approve' : 'Deny'"></span> Cancellation Request
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div v-if="activeCancellation" class="mb-3">
+                    <p><strong>Shift:</strong> <span v-text="formatDate(activeCancellation.shift_date)"></span> (<span v-text="activeCancellation.start_time"></span> - <span v-text="activeCancellation.end_time"></span>)</p>
+                    <p><strong>Reason:</strong> <span v-text="activeCancellation.reason"></span></p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Response Notes</label>
+                    <textarea class="form-control bg-secondary text-light" v-model="responseNotes" 
+                              rows="3" placeholder="Add any notes for the employee..."></textarea>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        This employee has <span v-text="selectedEmployee ? selectedEmployee.cancellation_count || 0 : 0"></span> 
+                        previous cancellation(s).
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" 
+                        :class="responseAction === 'approve' ? 'btn-success' : 'btn-danger'"
+                        @click="submitCancellationResponse">
+                    <span v-text="responseAction === 'approve' ? 'Approve' : 'Deny'"></span> Request
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Message Employee End -->
+
+            <!-- Footer Start -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-secondary rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-center text-sm-start">
+                            &copy; <a href="#">Azania</a>, All Rights Reserved.
+                        </div>
+                        <div class="col-12 col-sm-6 text-center text-sm-end">
+                            Designed By <a href="#">Code Connoisseurs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+        </div>
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <!-- Cancellation Response Modal -->
+    <!-- <div class="modal fade" id="cancellationResponseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {{ responseAction === 'approve' ? 'Approve' : 'Deny' }} Cancellation Request
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="activeCancellation" class="mb-3">
+                        <p><strong>Shift:</strong> {{ formatDate(activeCancellation.shift_date) }} ({{ activeCancellation.start_time }} - {{ activeCancellation.end_time }})</p>
+                        <p><strong>Reason:</strong> {{ activeCancellation.reason }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Response Notes</label>
+                        <textarea class="form-control bg-secondary text-light" v-model="responseNotes" 
+                                  rows="3" placeholder="Add any notes for the employee..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            This employee has {{ selectedEmployee.cancellation_count || 0 }} 
+                            previous cancellation(s).
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" 
+                            :class="responseAction === 'approve' ? 'btn-success' : 'btn-danger'"
+                            @click="submitCancellationResponse">
+                        {{ responseAction === 'approve' ? 'Approve' : 'Deny' }} Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/chart/chart.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script src="js/vue-messaging.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+            console.error('No user data found in localStorage');
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const app = MessageApp.createApp().mount('#vue-messaging');
+        
+        // Initialize Bootstrap modal
+        const responseModal = new bootstrap.Modal(document.getElementById('cancellationResponseModal'));
+        
+        // Watch for modal show/hide
+        app.$watch('showResponseModal', (newVal) => {
+            if (newVal) {
+                responseModal.show();
+            } else {
+                responseModal.hide();
+            }
+        });
+        
+        // Handle modal hidden event
+        document.getElementById('cancellationResponseModal').addEventListener('hidden.bs.modal', () => {
+            app.showResponseModal = false;
+        });
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const employeeId = urlParams.get('employeeId');
+        
+        const checkAndSelect = () => {
+            if (employeeId && app.employees.length) {
+                const employee = app.employees.find(e => e.employee_id == employeeId);
+                if (employee) {
+                    app.selectEmployee(employee);
+                }
+            } else if (app.employees.length === 0) {
+                setTimeout(checkAndSelect, 100);
+            }
+        };
+        
+        checkAndSelect();
+    });
+    </script>
+    <script src="js/components.js"></script>
+</body>
+</html>

@@ -8,6 +8,7 @@ const normalQRController = require('./normalController');
 router.get('/current', normalQRController.getCurrentNormalQR);
 
 //Get proof QR by ID
-router.get('/proof/:qrId', normalQRController.getProofQR);
+//Get current proof QR
+router.get('/proof/current', normalQRController.getProofQR);
 
 module.exports = router;

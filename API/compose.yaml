@@ -4,28 +4,22 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - MYSQL_HOST=db  
+      - MYSQL_HOST=host.docker.internal
       - MYSQL_USER=root
       - MYSQL_PASSWORD=7860
       - MYSQL_DATABASE=azania
-    depends_on:
-      db:
-        condition: service_healthy
+      - JWT_SECRET=secret
+      - SUPABASE_URL=https://vnedzjklbydlvjbcqlsh.supabase.co
+      - SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuZWR6amtsYnlkbHZqYmNxbHNoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzkzMDQxMCwiZXhwIjoyMDczNTA2NDEwfQ.8cC_ttUN3yiAxj59eM3t_SsCCdzkfs56fpD9jkSOB7s
+      - TZ=Africa/Johannesburg
+      - MYSQL_CONNECTION_LIMIT=50  
+      - MYSQL_ACQUIRE_TIMEOUT=30000  
+      - MYSQL_TIMEOUT=30000  
+      - MYSQL_IDLE_TIMEOUT=300000  
+      - MYSQL_QUEUE_LIMIT=0  
+    networks:
+      - app-network
 
-  db:  
-    image: mysql:8.0
-    command: --lower-case-table-names=1 --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: 7860
-      MYSQL_DATABASE: azania
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./Dock_Dump.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
-
-volumes:
-  mysql_data:
+networks:
+  app-network:
+    driver: bridge

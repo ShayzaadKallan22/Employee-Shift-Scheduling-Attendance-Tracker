@@ -34,6 +34,129 @@
 
     <!-- Vue CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+    .event-calendar {
+        background-color: #2a3042;
+        border-radius: 0.4rem;
+        padding: 12px;
+        margin-bottom: 10px;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .calendar-nav-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 3px 6px;
+    }
+
+    .calendar-nav-btn:hover {
+        color: #4e73df;
+    }
+
+    .calendar-title {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        margin-bottom: 5px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .calendar-weekday {
+        color: #6c757d;
+        padding: 3px 1px;
+    }
+
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .calendar-day {
+        height: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #2a3042;
+        border: 1px solid #3a4052;
+        border-radius: 2px;
+        cursor: pointer;
+        padding: 1px;
+        font-size: 0.75rem;
+    }
+
+    .calendar-day:hover {
+        background-color: #3a4052;
+    }
+
+    .calendar-day.empty {
+        background-color: transparent;
+        border: none;
+        cursor: default;
+    }
+
+    .calendar-day.today {
+        border: 1px solid #ff6b6b;
+        background-color: rgba(255, 107, 107, 0.1);
+    }
+
+    .calendar-day.has-events {
+        background-color: rgba(78, 115, 223, 0.15);
+        border-color: #4e73df;
+    }
+
+    .calendar-day.selected {
+        background-color: rgba(78, 115, 223, 0.3);
+        box-shadow: 0 0 0 1px #4e73df;
+    }
+
+    .day-number {
+        color: white;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .event-dots {
+        display: flex;
+        justify-content: center;
+        gap: 1px;
+        margin-top: 1px;
+    }
+
+    .event-dot {
+        width: 3px;
+        height: 3px;
+        background-color: #4e73df;
+        border-radius: 50%;
+    }
+
+    .event-more {
+        font-size: 0.6rem;
+        color: #4e73df;
+    }
+</style>
 </head>
 
 <body>
@@ -54,7 +177,7 @@
 
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
+                <!-- <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
                         <div
@@ -65,7 +188,23 @@
                         <h6 class="mb-0">Employee Manager Demo</h6>
                         <span>Admin</span>
                     </div>
-                </div>
+                </div> -->
+                
+
+<div class="d-flex align-items-center ms-4 mb-4">
+    <div class="position-relative">
+        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+    </div>
+    <div class="ms-3">
+        <h6 class="mb-0" id="profile-name">
+            <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+            </a>
+        </h6>
+        <span>Manager</span>
+    </div>
+</div>
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link active"><i
                             class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
@@ -86,7 +225,9 @@
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    
                 </div>
             </nav>
         </div>
@@ -213,44 +354,113 @@
                 </div>
             </div>
 
-            <!-- Widgets Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="row g-4">
-
-                    <div class="col-sm-12 col-md-6 col-xl-4">
-                        <div class="h-100 bg-secondary rounded p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Calendar</h6>
+<!-- Widgets Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-12 col-md-6 col-xl-4">
+            <div class="h-100 bg-secondary rounded p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Events Calendar</h6>
+                    <a href="events.html">Manage Events</a>
+                </div>
+                <div id="calendar-app">
+                    <div class="event-calendar">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" @click="prevMonth">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h5 class="calendar-title">{{ calendarMonth }} {{ calendarYear }}</h5>
+                            <button class="calendar-nav-btn" @click="nextMonth">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-weekdays">
+                            <div class="calendar-weekday">Sun</div>
+                            <div class="calendar-weekday">Mon</div>
+                            <div class="calendar-weekday">Tue</div>
+                            <div class="calendar-weekday">Wed</div>
+                            <div class="calendar-weekday">Thu</div>
+                            <div class="calendar-weekday">Fri</div>
+                            <div class="calendar-weekday">Sat</div>
+                        </div>
+                        
+                        <div class="calendar-days">
+                            <div v-for="day in calendarDays" :key="day.id" 
+                                 :class="['calendar-day', 
+                                         day.isEmpty ? 'empty' : '',
+                                         day.isToday ? 'today' : '',
+                                         day.hasEvents ? 'has-events' : '',
+                                         day.isSelected ? 'selected' : '']"
+                                 @click="selectDate(day)">
+                                <span class="day-number">{{ day.isEmpty ? '' : day.date }}</span>
+                                <div v-if="day.eventsCount > 0" class="event-dots">
+                                    <span v-for="n in Math.min(day.eventsCount, 3)" :key="n" class="event-dot"></span>
+                                    <span v-if="day.eventsCount > 3" class="event-more">+{{ day.eventsCount - 3 }}</span>
+                                </div>
                             </div>
-                            <div id="calender"></div>
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-6 col-xl-8">
-                        <div class="h-100 bg-secondary rounded p-4" id="vue-dashboard-leave">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Leave Requests</h6>
-                                <a href="leave.html">Show All</a>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom py-2" v-for="request in leaveRequests"
-                                :key="request.leave_id">
-                                <div class="w-100">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span>{{ request.first_name }} {{ request.last_name }} (EMP-{{
-                                            request.employee_id }}): {{ request.leave_type }}</span>
-                                        <div>
-                                            <button @click="respondToLeave(request.leave_id, 'approved')"
-                                                class="btn btn-sm btn-success me-2">Approve</button>
-                                            <button @click="respondToLeave(request.leave_id, 'rejected')"
-                                                class="btn btn-sm btn-danger">Deny</button>
+
+                    <!-- Event Details Modal - Moved inside Vue app -->
+                    <div class="modal fade" id="dateEventsModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Events on {{ selectedDateFormatted }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div v-if="selectedDateEvents.length > 0">
+                                        <div v-for="event in selectedDateEvents" :key="event.event_id" 
+                                             class="bg-secondary p-3 rounded mb-2">
+                                            <h6 class="text-white">{{ event.event_name }}</h6>
+                                            <p class="text-muted mb-1">{{ event.start_time }} - {{ event.end_time }}</p>
+                                            <p class="text-muted mb-2">{{ event.location }}</p>
+                                            <p class="text-muted">{{ event.description || 'No description' }}</p>
                                         </div>
                                     </div>
+                                    <div v-else class="text-center text-muted py-3">
+                                        No events scheduled for this date
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" @click="redirectToEvents">Manage Events</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Widgets End -->
+        </div>
+        <div class="col-sm-12 col-md-6 col-xl-8">
+            <div class="h-100 bg-secondary rounded p-4" id="vue-dashboard-leave">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Leave Requests</h6>
+                    <a href="leave.html">Show All</a>
+                </div>
+                <div class="d-flex align-items-center border-bottom py-2" v-for="request in leaveRequests"
+                    :key="request.leave_id">
+                    <div class="w-100">
+                        <div class="d-flex w-100 align-items-center justify-content-between">
+                            <span>{{ request.first_name }} {{ request.last_name }} : {{ request.leave_type }}</span>
+                            <div>
+                                <button @click="respondToLeave(request.leave_id, 'approved')"
+                                    class="btn btn-sm btn-success me-2">Approve</button>
+                                <button @click="respondToLeave(request.leave_id, 'rejected')"
+                                    class="btn btn-sm btn-danger">Deny</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Widgets End -->
 
             <!-- Footer Start -->
             <div class="container-fluid pt-4 px-4">
@@ -272,6 +482,38 @@
         <!-- Back to Top -->
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
+
+<!-- Event Details Modal -->
+<!-- <div class="modal fade" id="dateEventsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Events on {{ selectedDateFormatted }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div v-if="selectedDateEvents.length > 0">
+                    <div v-for="event in selectedDateEvents" :key="event.event_id" 
+                         class="bg-secondary p-3 rounded mb-2">
+                        <h6 class="text-white">{{ event.event_name }}</h6>
+                        <p class="text-muted mb-1">{{ event.start_time }} - {{ event.end_time }}</p>
+                        <p class="text-muted mb-2">{{ event.location }}</p>
+                        <p class="text-muted">{{ event.description || 'No description' }}</p>
+                    </div>
+                </div>
+                <div v-else class="text-center text-muted py-3">
+                    No events scheduled for this date
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" @click="redirectToEvents">Manage Events</button>
+            </div>
+        </div>
+    </div>
+</div> -->
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -338,6 +580,50 @@
 
     <script src="js/todaysShifts.js"></script>
     <script src="js/components.js"></script>
+
+    <script>
+        
+document.addEventListener('DOMContentLoaded', function() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        const user = JSON.parse(userData);
+        const sidebarNameElement = document.getElementById('sidebar-profile-name');
+        if (sidebarNameElement) {
+            sidebarNameElement.textContent = `${user.first_name} ${user.last_name}`;
+        }
+        
+        const navProfileName = document.getElementById('nav-profile-name');
+        if (navProfileName) {
+            navProfileName.textContent = `${user.first_name} ${user.last_name}`;
+        }
+    }
+});
+    </script>
+
+    <script>
+// Add this script to index.html to handle the profile name
+document.addEventListener('DOMContentLoaded', function() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        try {
+            const user = JSON.parse(userData);
+            
+            // Update the sidebar profile name in index.html
+            const sidebarProfileElement = document.querySelector('.sidebar .ms-3 h6.mb-0');
+            if (sidebarProfileElement) {
+                sidebarProfileElement.textContent = `${user.first_name} ${user.last_name}`;
+                // Make it a link if it's not already
+                if (!sidebarProfileElement.querySelector('a')) {
+                    sidebarProfileElement.innerHTML = `<a href="my-profile.html" style="color: inherit; text-decoration: none;">${user.first_name} ${user.last_name}</a>`;
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing user data:', e);
+        }
+    }
+});
+</script>
+<script src="js/calendar.js"></script>
 
 </body>
 

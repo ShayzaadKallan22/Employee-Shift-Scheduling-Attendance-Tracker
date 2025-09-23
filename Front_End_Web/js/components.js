@@ -1,4 +1,4 @@
-// Author: Katlego Mmadi / Yatin Fakir
+// Author: Katlego Mmadi / Yatin Fakir - Updated for profile integration
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize navbar
   const navbarContainer = document.getElementById("navbar-container");
@@ -58,9 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
               <img class="rounded-circle me-lg-2" src="img/user.jpg" alt="" style="width: 40px; height: 40px" />
-              <span class="d-none d-lg-inline-flex">Admin User</span>
+              <span class="d-none d-lg-inline-flex" id="nav-profile-name">Admin User</span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+              <a href="my-profile.html" class="dropdown-item">My Profile</a>
               <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
             </div>
           </div>
@@ -73,12 +74,68 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeMessageSystem();
     setupSidebarToggle();
     setupLogoutButton();
+    
+    // Update user data in navbar and sidebar
+    updateUserData();
   }
 });
 
 // Create a broadcast channel for real-time updates
 const notificationChannel = new BroadcastChannel('notificationChannel');
 const messageChannel = new BroadcastChannel('messageChannel');
+
+// In components.js, update the updateUserData function:
+// In components.js, update the updateUserData function
+async function updateUserData() {
+  const userData = localStorage.getItem('user');
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      
+      let firstName = user.first_name;
+      let lastName = user.last_name;
+      
+      // If names are missing, fetch them from the API
+      if (!firstName || !lastName) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/manager/profile/${user.id}`);
+          if (response.ok) {
+            const managerProfile = await response.json();
+            firstName = managerProfile.first_name;
+            lastName = managerProfile.last_name;
+            
+            // Update localStorage with the complete data
+            localStorage.setItem('user', JSON.stringify({
+              ...user,
+              first_name: firstName,
+              last_name: lastName
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+      
+      // Update navbar profile name
+      const navProfileName = document.getElementById('nav-profile-name');
+      if (navProfileName && firstName && lastName) {
+        navProfileName.textContent = `${firstName} ${lastName}`;
+      }
+      
+      // Update sidebar profile name if exists
+      const sidebarProfileName = document.getElementById('profile-name');
+      if (sidebarProfileName && firstName && lastName) {
+        sidebarProfileName.textContent = `${firstName} ${lastName}`;
+        sidebarProfileName.innerHTML = `<a href="my-profile.html" style="color: inherit; text-decoration: none;">${firstName} ${lastName}</a>`;
+      }
+      
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+    }
+  } else {
+    console.warn('No user data found in localStorage');
+  }
+}
 
 function setupLogoutButton() {
   const logoutBtn = document.getElementById('logoutBtn');
@@ -90,6 +147,7 @@ function setupLogoutButton() {
     const token = localStorage.getItem('token');
     localStorage.removeItem('token');
     localStorage.removeItem('employeeId');
+    localStorage.removeItem('user'); // Added: Remove user data
     sessionStorage.clear();
 
     if (window.notificationRefreshInterval) {
@@ -111,6 +169,7 @@ function setupLogoutButton() {
       window.location.href = '/signin.html?logout=success&t=' + Date.now();
     } catch (error) {
       console.log('Logout API call failed, proceeding anyway:', error);
+      window.location.href = '/signin.html?logout=success&t=' + Date.now();
     }
   });
 }
@@ -140,11 +199,11 @@ function initializeMessageSystem() {
   loadRecentMessages();
   updateMessageCount();
 
-  // Polling as a fallback (every 30 seconds)
+  // Polling as a fallback (every 5 seconds)
   window.messageRefreshInterval = setInterval(() => {
     loadRecentMessages();
     updateMessageCount();
-  }, 30000);
+  }, 5000);
 
   // Listen for real-time updates from the broadcast channel
   messageChannel.onmessage = (event) => {
@@ -160,6 +219,10 @@ async function loadRecentMessages() {
     const employeeId = getEmployeeId();
     if (!employeeId) {
       console.warn("No employeeId found for messages");
+      const container = document.getElementById('recent-messages');
+      if (container) {
+        container.innerHTML = `<div class="px-3 py-2 text-center text-muted">Please log in to view messages</div>`;
+      }
       return;
     }
 
@@ -168,6 +231,7 @@ async function loadRecentMessages() {
 
     const messages = await response.json();
     const container = document.getElementById('recent-messages');
+    if (!container) return;
 
     if (!messages || messages.length === 0) {
       container.innerHTML = `<div class="px-3 py-2 text-center text-muted">No messages</div>`;
@@ -189,11 +253,14 @@ async function loadRecentMessages() {
     `).join('');
   } catch (error) {
     console.error('Message load error:', error);
-    document.getElementById('recent-messages').innerHTML = `
-      <div class="px-3 py-2 text-center text-danger">
-        Failed to load messages
-      </div>
-    `;
+    const container = document.getElementById('recent-messages');
+    if (container) {
+      container.innerHTML = `
+        <div class="px-3 py-2 text-center text-danger">
+          Failed to load messages
+        </div>
+      `;
+    }
   }
 }
 
@@ -223,6 +290,7 @@ async function updateMessageCount() {
 }
 
 function truncateMessage(message, maxLength) {
+  if (!message) return '';
   return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
 }
 // END: Message System
@@ -238,8 +306,13 @@ function getEmployeeId() {
 async function loadRecentNotifications() {
   try {
     const employeeId = getEmployeeId();
+    const container = document.getElementById('recent-notifications');
+    
     if (!employeeId) {
       console.warn("No employeeId found");
+      if (container) {
+        container.innerHTML = `<div class="px-3 py-2 text-center text-muted">Please log in to view notifications</div>`;
+      }
       return;
     }
 
@@ -247,7 +320,7 @@ async function loadRecentNotifications() {
     if (!response.ok) throw new Error('Failed to fetch notifications');
 
     const notifications = await response.json();
-    const container = document.getElementById('recent-notifications');
+    if (!container) return;
 
     container.innerHTML = notifications.length ?
       notifications.map((n, i) => `
@@ -260,11 +333,14 @@ async function loadRecentNotifications() {
       `<div class="px-3 py-2 text-center text-muted">No notifications</div>`;
   } catch (error) {
     console.error('Notification load error:', error);
-    document.getElementById('recent-notifications').innerHTML = `
-      <div class="px-3 py-2 text-center text-danger">
-        Failed to load notifications
-      </div>
-    `;
+    const container = document.getElementById('recent-notifications');
+    if (container) {
+      container.innerHTML = `
+        <div class="px-3 py-2 text-center text-danger">
+          Failed to load notifications
+        </div>
+      `;
+    }
   }
 }
 
@@ -292,7 +368,12 @@ async function updateNotificationCount() {
 
 // Utility functions
 function formatTime(timeString) {
-  return timeString ? new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  if (!timeString) return '';
+  try {
+    return new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return '';
+  }
 }
 
 function setupSidebarToggle() {
