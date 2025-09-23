@@ -412,6 +412,53 @@ tr.recommendation-row.text-info {
   border-radius: 4px;
   margin: 5px 0;
 }
+
+/* Simple spacer row between leave requests */
+.request-spacer {
+  height: 12px;
+  background-color: #1b42b5 !important; /* Dark background color */
+  /* background-color: #1a1f2e !important; Dark background color */
+}
+
+.request-spacer td {
+  padding: 0 !important;
+  border: none !important;
+  background-color: #191C24 !important; /* Dark background color */
+}
+
+/* Ensure proper spacing */
+.request-main-row {
+  border-bottom: none;
+}
+
+.recommendation-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Keep existing recommendation styling */
+tr.recommendation-row {
+  border-left: 4px solid transparent;
+}
+
+tr.recommendation-row.text-danger {
+  border-left-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+tr.recommendation-row.text-success {
+  border-left-color: #198754;
+  background-color: rgba(25, 135, 84, 0.05);
+}
+
+tr.recommendation-row.text-warning {
+  border-left-color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.05);
+}
+
+tr.recommendation-row.text-info {
+  border-left-color: #0dcaf0;
+  background-color: rgba(13, 202, 240, 0.05);
+}
   </style>
 </head>
 
@@ -432,7 +479,7 @@ tr.recommendation-row.text-info {
         <a href="index.html" class="navbar-brand mx-4 mb-3">
           <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
         </a>
-        <div class="d-flex align-items-center ms-4 mb-4">
+        <!-- <div class="d-flex align-items-center ms-4 mb-4">
           <div class="position-relative">
             <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
             <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
@@ -442,7 +489,8 @@ tr.recommendation-row.text-info {
             <h6 class="mb-0">Employee Manager Demo</h6>
             <span>Admin</span>
           </div>
-        </div>
+        </div> -->
+        
         <div class="navbar-nav w-100">
           <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
           <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
@@ -459,6 +507,7 @@ tr.recommendation-row.text-info {
           </div>
           <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
           <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+          <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
           <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
         </div>
       </nav>
@@ -492,72 +541,78 @@ tr.recommendation-row.text-info {
                     </div>
                     </div>
 
-                    <div class="table-responsive">
-                      
-<table class="table text-start align-middle table-bordered table-hover mb-0">
-  <thead>
-    <tr class="text-white">
-      <th scope="col">Employee</th>
-      <th scope="col">Date Range</th>
-      <th scope="col">Type & Days Remaining</th>
-      <th scope="col">Standby Availability</th>
-      <th scope="col">Decision</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-if="isLoading">
-      <td colspan="5" class="text-center">Loading leave requests...</td>
-    </tr>
-    <tr v-else-if="leaveRequests.length === 0">
-      <td colspan="5" class="text-center">No pending leave requests</td>
-    </tr>
-    <template v-else v-for="request in leaveRequests" :key="request.leave_id">
-      <!-- Main request row -->
-      <tr>
-        <td>
-          <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
-            {{ request.first_name }} {{ request.last_name }} 
-          </a>
-          <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
-            @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
-            :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
-          </i>
-        </td>
-        <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
-        <td>
-          <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
-        </td>
-        <td>
-          <span :class="getStandbyClass(request)" class="standby-info" 
-                @click="showStandbyDetails(request)" style="cursor: pointer;" 
-                title="Click for details">
-            <i class="fas fa-users me-1"></i>
-            {{ getStandbyInfo(request) }}
-          </span>
-        </td>
-        <td>
-          <button @click="respondToLeave(request.leave_id, 'approved')"
-                  class="btn btn-sm btn-success me-1">Approve</button>
-          <button @click="respondToLeave(request.leave_id, 'rejected')"
-                  class="btn btn-sm btn-danger">Reject</button>
-        </td>
+                    <!-- In leave.html, replace the table section with this code -->
+
+<div class="table-responsive">
+  <table class="table text-start align-middle table-bordered table-hover mb-0">
+    <thead>
+      <tr class="text-white">
+        <th scope="col">Employee</th>
+        <th scope="col">Date Range</th>
+        <th scope="col">Type & Days Remaining</th>
+        <th scope="col">Standby Availability</th>
+        <th scope="col">Decision</th>
       </tr>
-      <!-- Recommendation row -->
-      <tr>
-        <td colspan="5" :class="getRecommendationClass(request)" class="p-2">
-          <div class="d-flex align-items-center">
-            <i class="fas fa-robot me-2"></i>
-            <div>
-              <strong>System Recommendation:</strong> {{ generateRecommendation(request) }}
-              <div class="small mt-1">{{ getEventDetails(request) }}</div>
+    </thead>
+    <tbody>
+      <tr v-if="isLoading">
+        <td colspan="5" class="text-center">Loading leave requests...</td>
+      </tr>
+      <tr v-else-if="leaveRequests.length === 0">
+        <td colspan="5" class="text-center">No pending leave requests</td>
+      </tr>
+      <template v-else v-for="(request, index) in leaveRequests" :key="request.leave_id">
+        <!-- Spacer row between requests -->
+        <tr v-if="index > 0" class="request-spacer">
+          <td colspan="5" class="p-2 bg-dark"></td>
+        </tr>
+        
+        <!-- Main request row -->
+        <tr class="request-main-row">
+          <td>
+            <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+              {{ request.first_name }} {{ request.last_name }} 
+            </a>
+            <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
+              @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
+              :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
+            </i>
+          </td>
+          <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+          <td>
+            <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
+          </td>
+          <td>
+            <span :class="getStandbyClass(request)" class="standby-info" 
+                  @click="showStandbyDetails(request)" style="cursor: pointer;" 
+                  title="Click for details">
+              <i class="fas fa-users me-1"></i>
+              {{ getStandbyInfo(request) }}
+            </span>
+          </td>
+          <td>
+            <button @click="respondToLeave(request.leave_id, 'approved')"
+                    class="btn btn-sm btn-success me-1">Approve</button>
+            <button @click="respondToLeave(request.leave_id, 'rejected')"
+                    class="btn btn-sm btn-danger">Reject</button>
+          </td>
+        </tr>
+        <!-- Recommendation row -->
+        <tr class="recommendation-row" :class="getRecommendationClass(request)">
+          <td colspan="5" class="p-2">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-robot me-2"></i>
+              <div>
+                <strong>System Recommendation:</strong> {{ generateRecommendation(request) }}
+                <div class="small mt-1">{{ getEventDetails(request) }}</div>
+              </div>
             </div>
-          </div>
-        </td>
-      </tr>
-    </template>
-  </tbody>
-</table>
-                    </div>
+          </td>
+        </tr>
+      </template>
+    </tbody>
+  </table>
+</div>
                   </div>
 
                   <!-- Employee Leave History Modal -->
@@ -629,7 +684,7 @@ tr.recommendation-row.text-info {
             <ul class="list-group">
               <li v-for="employee in standbyDetails.employees" :key="employee.employee_id" 
                   class="list-group-item bg-secondary text-white">
-                {{ employee.first_name }} {{ employee.last_name }} (ID: {{ employee.employee_id }})
+                {{ employee.first_name }} {{ employee.last_name }} 
                 - Status: {{ employee.status_ }}
               </li>
             </ul>

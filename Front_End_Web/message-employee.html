@@ -151,7 +151,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #2563eb;
+    background-color: #00a4e0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -260,7 +260,7 @@
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
+                <!-- <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
                         <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
@@ -270,7 +270,21 @@
                         <h6 class="mb-0">Employee Manager Demo</h6>
                         <span>Admin</span>
                     </div>
-                </div>
+                </div> -->
+                <div class="d-flex align-items-center ms-4 mb-4">
+    <div class="position-relative">
+        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+    </div>
+    <div class="ms-3">
+        <h6 class="mb-0" id="profile-name">
+            <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+            </a>
+        </h6>
+        <span>Manager</span>
+    </div>
+</div>
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
@@ -285,7 +299,7 @@
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-info-circle me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-                    
+                    <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -327,9 +341,11 @@
                                         <input type="text" class="form-control bg-dark border-0" 
                                             placeholder="Search employees..." v-model="searchQuery"
                                             @input="filterEmployees">
-                                        <button class="btn btn-info">
-                                            <i class="fa fa-search"></i>
-                                        </button>
+                                        <button class="btn btn-info" 
+        style="background-color: #00a4e0; border-color: #00a4e0; color: #000;">
+    <i class="fa fa-search"></i>
+</button>
+
                                     </div>
 
                                     <div class="table-responsive">
@@ -386,9 +402,15 @@
         </div>
     </td>
     <td>
-        <button class="btn btn-sm btn-info me-2" @click="selectEmployee(employee)">
+        <!-- <button class="btn btn-sm btn-info me-2" @click="selectEmployee(employee)">
             <i class="fa fa-comment me-1"></i> Message
-        </button>
+        </button> -->
+        <button class="btn btn-sm btn-info me-2" 
+        style="background-color: #00a4e0; border-color: #00a4e0; color: #000;" 
+        @click="selectEmployee(employee)">
+    <i class="fa fa-comment me-1"></i> Message
+</button>
+
     </td>
 </tr>
                                             </tbody>
@@ -449,7 +471,7 @@
                         <span class="detail-value">{{ message.reason || 'No reason provided' }}</span>
                     </div>
                     <div v-if="message.notes" class="detail-row">
-                        <span class="detail-label">Additional Notes: </span>
+                        <span class="detail-label">Additional Notes:&nbsp; </span>
                         <span class="detail-value">{{ message.notes }}</span>
                     </div>
                     

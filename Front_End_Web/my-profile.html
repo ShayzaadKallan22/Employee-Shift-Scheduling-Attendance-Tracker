@@ -72,15 +72,17 @@
                     <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View Shifts</a>
                     <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
+                    <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
                     <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user-plus me-2"></i>Registration</a>
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
                             <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
-                            <a href="status.html" class="dropdown-item ps-5"><i class="fa fa-info-circle me-2"></i>Status</a>
                         </div>
                     </div>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -121,17 +123,17 @@
                                             <p class="text-info mb-0">{{ manager.role_title }}</p>
                                             <p class="text-muted mb-3">Employee ID: EMP-{{ manager.employee_id }}</p>
                                             
-                                            <div class="d-flex justify-content-center">
+                                            <!-- <div class="d-flex justify-content-center">
                                                 <button class="btn btn-sm btn-primary me-2">
                                                     <i class="fa fa-edit me-1"></i> Edit Profile
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-light">
                                                     <i class="fa fa-camera me-1"></i> Change Photo
                                                 </button>
-                                            </div>
+                                            </div> -->
                                         </div>
                                         
-                                        <div class="bg-dark rounded p-4 mb-4">
+                                        <!-- <div class="bg-dark rounded p-4 mb-4">
                                             <h5 class="mb-3"><i class="fa fa-info-circle me-2"></i>Quick Stats</h5>
                                             <div class="d-flex justify-content-between py-2 border-bottom">
                                                 <span>Employees Managed:</span>
@@ -145,7 +147,7 @@
                                                 <span>Years at Azania:</span>
                                                 <strong>{{ manager.years_at_company || 2 }}</strong>
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     
                                     <div class="col-md-8">
@@ -236,7 +238,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Footer End -->
+        <!-- Footer End -->
         </div>
         <!-- Content End -->
 

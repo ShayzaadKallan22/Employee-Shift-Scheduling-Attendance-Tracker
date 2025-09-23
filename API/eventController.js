@@ -100,15 +100,35 @@ exports.deleteEvent = async (req, res) => {
 };
 
 // Get staff assigned to an event
+// exports.getEventStaff = async (req, res) => {
+//   const { eventId } = req.params;
+  
+//   try {
+//     const [staff] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.last_name, r.title, ee.role
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        JOIN t_role r ON e.role_id = r.role_id
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
+    
+//     res.status(200).json(staff);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
 exports.getEventStaff = async (req, res) => {
   const { eventId } = req.params;
   
   try {
     const [staff] = await db.query(
-      `SELECT e.employee_id, e.first_name, e.last_name, r.title, ee.role
+      `SELECT e.employee_id, e.first_name, e.last_name, r.title, r.role_id
        FROM t_event_employee ee
        JOIN t_employee e ON ee.employee_id = e.employee_id
-       JOIN t_role r ON e.role_id = r.role_id
+       JOIN t_role r ON ee.role_id = r.role_id
        WHERE ee.event_id = ?`,
       [eventId]
     );

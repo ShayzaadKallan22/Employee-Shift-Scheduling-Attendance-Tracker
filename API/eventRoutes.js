@@ -37,8 +37,84 @@ const validateEventDates = (req, res, next) => {
   next();
 };
 
+
 // Create new event
-// Create new event
+// router.post('/events', validateEventDates, async (req, res) => {
+//   // Get organizer_id from body or session
+//   let organizer_id = req.body.organizer_id;
+  
+//   // If not provided in body, try to get from session
+//   if (!organizer_id && req.session.user) {
+//     organizer_id = req.session.user.employee_id;
+//   }
+  
+//   // If still not available, return error
+//   if (!organizer_id) {
+//     return res.status(400).json({ message: 'Organizer ID is required' });
+//   }
+  
+//   const { event_name, description, start_date, end_date, start_time, end_time, location, expected_attendance } = req.body;
+  
+//   try {
+//     const [result] = await db.execute(
+//       `INSERT INTO t_event 
+//        (event_name, description, start_date, end_date, start_time, end_time, location, expected_attendance, organizer_id)
+//        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+//       [
+//         event_name || '', 
+//         description || '', 
+//         start_date || null, 
+//         end_date || null, 
+//         start_time || null, 
+//         end_time || null, 
+//         location || 'Night Lounge', 
+//         expected_attendance || null, 
+//         organizer_id
+//       ]
+//     );
+
+//     // If roles are provided in the request, assign staff and schedule notifications
+//     if (req.body.roleIds && req.body.roleIds.length > 0) {
+//       await db.execute('DELETE FROM t_event_employee WHERE event_id = ?', [result.insertId]);
+      
+//       // Get employees with selected roles
+//       const [employees] = await db.query(
+//         `SELECT employee_id FROM t_employee WHERE role_id IN (?)`,
+//         [req.body.roleIds]
+//       );
+      
+//       // Assign employees
+//       for (const employee of employees) {
+//         const [roleData] = await db.query(
+//           `SELECT title FROM t_role WHERE role_id = (
+//             SELECT role_id FROM t_employee WHERE employee_id = ?
+//           )`,
+//           [employee.employee_id]
+//         );
+        
+//         const roleTitle = roleData[0]?.title?.toLowerCase() || 'staff';
+        
+//         await db.execute(
+//           `INSERT INTO t_event_employee (event_id, employee_id, role_id) 
+//            VALUES (?, ?, ?)`,
+//           [result.insertId, employee.employee_id, roleTitle]
+//         );
+//       }
+      
+//       // Schedule notifications
+//       await sendEventNotifications(result.insertId);
+//     }
+    
+//     res.status(201).json({ 
+//       message: 'Event created successfully',
+//       event_id: result.insertId 
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
 router.post('/events', validateEventDates, async (req, res) => {
   // Get organizer_id from body or session
   let organizer_id = req.body.organizer_id;
@@ -79,25 +155,16 @@ router.post('/events', validateEventDates, async (req, res) => {
       
       // Get employees with selected roles
       const [employees] = await db.query(
-        `SELECT employee_id FROM t_employee WHERE role_id IN (?)`,
+        `SELECT employee_id, role_id FROM t_employee WHERE role_id IN (?)`, // ← Get role_id directly
         [req.body.roleIds]
       );
       
-      // Assign employees
+      // Assign employees - FIXED VERSION
       for (const employee of employees) {
-        const [roleData] = await db.query(
-          `SELECT title FROM t_role WHERE role_id = (
-            SELECT role_id FROM t_employee WHERE employee_id = ?
-          )`,
-          [employee.employee_id]
-        );
-        
-        const roleTitle = roleData[0]?.title?.toLowerCase() || 'staff';
-        
         await db.execute(
-          `INSERT INTO t_event_employee (event_id, employee_id, role) 
+          `INSERT INTO t_event_employee (event_id, employee_id, role_id) 
            VALUES (?, ?, ?)`,
-          [result.insertId, employee.employee_id, roleTitle]
+          [result.insertId, employee.employee_id, employee.role_id] // ← Use the role_id from the employee
         );
       }
       
@@ -247,24 +314,111 @@ router.delete('/:eventId', async (req, res) => {
 });
 
 // Get staff assigned to an event
-router.get('/:eventId/staff', async (req, res) => {
-    const { eventId } = req.params;
+// router.get('/:eventId/staff', async (req, res) => {
+//     const { eventId } = req.params;
     
-    try {
-        const [staff] = await db.query(
-            `SELECT e.employee_id, e.first_name, e.last_name, r.title, ee.role
-             FROM t_event_employee ee
-             JOIN t_employee e ON ee.employee_id = e.employee_id
-             JOIN t_role r ON e.role_id = r.role_id
-             WHERE ee.event_id = ?`,
-            [eventId]
-        );
+//     try {
+//         const [staff] = await db.query(
+//             `SELECT e.employee_id, e.first_name, e.last_name, r.title, ee.role
+//              FROM t_event_employee ee
+//              JOIN t_employee e ON ee.employee_id = e.employee_id
+//              JOIN t_role r ON e.role_id = r.role_id
+//              WHERE ee.event_id = ?`,
+//             [eventId]
+//         );
         
-        res.status(200).json(staff);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+//         res.status(200).json(staff);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+
+// router.get('/:eventId/staff', async (req, res) => {
+//   const { eventId } = req.params;
+  
+//   try {
+//     const [staff] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.last_name, r.title, r.role_id
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        JOIN t_role r ON ee.role_id = r.role_id
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
+    
+//     res.status(200).json(staff);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Get staff assigned to an event - UPDATED
+// router.get('/:eventId/staff', async (req, res) => {
+//   const { eventId } = req.params;
+  
+//   try {
+//     const [staff] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.last_name, r.title as role_name, r.role_id
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        JOIN t_role r ON ee.role_id = r.role_id  
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
+    
+//     res.status(200).json(staff);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// Get staff assigned to an event with shift information
+router.get('/:eventId/staff', async (req, res) => {
+  const { eventId } = req.params;
+  
+  try {
+    // First get the event dates
+    const [event] = await db.query(
+      `SELECT start_date, end_date FROM t_event WHERE event_id = ?`,
+      [eventId]
+    );
+    
+    if (event.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
     }
+    
+    const eventStart = event[0].start_date;
+    const eventEnd = event[0].end_date;
+    
+    // Get staff with shift information
+    const [staff] = await db.query(
+      `SELECT 
+         e.employee_id, 
+         e.first_name, 
+         e.last_name, 
+         r.title as role_name,
+         r.role_id,
+         EXISTS(
+           SELECT 1 FROM t_shift s 
+           WHERE s.employee_id = e.employee_id 
+           AND s.date_ BETWEEN ? AND ?
+           AND s.status_ = 'scheduled'
+         ) as has_shift_during_event
+       FROM t_event_employee ee
+       JOIN t_employee e ON ee.employee_id = e.employee_id
+       JOIN t_role r ON ee.role_id = r.role_id
+       WHERE ee.event_id = ?`,
+      [eventStart, eventEnd, eventId]
+    );
+    
+    res.status(200).json(staff);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get count of staff assigned to an event
@@ -287,33 +441,75 @@ router.get('/:eventId/staff-count', async (req, res) => {
 });
 
 // Assign staff to an event
-router.post('/:eventId/staff/:staffId', async (req, res) => {
-    const { eventId, staffId } = req.params;
-    const { role } = req.body;
+// router.post('/:eventId/staff/:staffId', async (req, res) => {
+//     const { eventId, staffId } = req.params;
+//     const { role } = req.body;
     
-    try {
-        // Check if staff is already assigned to this event
-        const [existing] = await db.query(
-            `SELECT * FROM t_event_employee 
-             WHERE event_id = ? AND employee_id = ?`,
-            [eventId, staffId]
-        );
+//     try {
+//         // Check if staff is already assigned to this event
+//         const [existing] = await db.query(
+//             `SELECT * FROM t_event_employee 
+//              WHERE event_id = ? AND employee_id = ?`,
+//             [eventId, staffId]
+//         );
         
-        if (existing.length > 0) {
-            return res.status(400).json({ message: 'Staff already assigned to this event' });
-        }
+//         if (existing.length > 0) {
+//             return res.status(400).json({ message: 'Staff already assigned to this event' });
+//         }
         
-        await db.execute(
-            `INSERT INTO t_event_employee (event_id, employee_id, role)
-             VALUES (?, ?, ?)`,
-            [eventId, staffId, role || 'staff']
-        );
+//         await db.execute(
+//             `INSERT INTO t_event_employee (event_id, employee_id, role)
+//              VALUES (?, ?, ?)`,
+//             [eventId, staffId, role || 'staff']
+//         );
         
-        res.status(200).json({ message: 'Staff assigned to event successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+//         res.status(200).json({ message: 'Staff assigned to event successfully' });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+
+// Assign staff to an event - UPDATED
+router.post('/:eventId/staff/:staffId', async (req, res) => {
+  const { eventId, staffId } = req.params;
+  const { role_id } = req.body; // Changed from 'role' to 'role_id'
+  
+  try {
+    // Check if staff is already assigned to this event
+    const [existing] = await db.query(
+      `SELECT * FROM t_event_employee 
+       WHERE event_id = ? AND employee_id = ?`,
+      [eventId, staffId]
+    );
+    
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'Staff already assigned to this event' });
     }
+    
+    // Get the employee's role_id from t_employee
+    const [employeeData] = await db.query(
+      `SELECT role_id FROM t_employee WHERE employee_id = ?`,
+      [staffId]
+    );
+    
+    const employeeRoleId = employeeData[0]?.role_id;
+    
+    if (!employeeRoleId) {
+      return res.status(400).json({ message: 'Employee role not found' });
+    }
+    
+    await db.execute(
+      `INSERT INTO t_event_employee (event_id, employee_id, role_id)
+       VALUES (?, ?, ?)`,
+      [eventId, staffId, employeeRoleId]
+    );
+    
+    res.status(200).json({ message: 'Staff assigned to event successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Remove staff from an event
@@ -377,19 +573,24 @@ router.get('/employees/available', async (req, res) => {
     }
 });
 
-// Get required roles for an event
+// In your eventRoutes.js - update the roles endpoint
 router.get('/:eventId/roles', async (req, res) => {
   const { eventId } = req.params;
   
   try {
     const [roles] = await db.query(
-      `SELECT DISTINCT role 
-       FROM t_event_employee 
-       WHERE event_id = ?`,
+      `SELECT DISTINCT r.role_id 
+       FROM t_event_employee ee
+       JOIN t_employee e ON ee.employee_id = e.employee_id
+       JOIN t_role r ON ee.role_id = r.role_id
+       WHERE ee.event_id = ?`,
       [eventId]
     );
     
-    res.status(200).json({ roles: roles.map(r => r.role) });
+    // Extract just the role IDs and filter out any nulls
+    const roleIds = roles.map(r => r.role_id).filter(id => id !== null);
+    
+    res.status(200).json({ roles: roleIds });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -411,75 +612,94 @@ router.post('/:eventId/roles', async (req, res) => {
   }
 });
 
-router.get('/employees/role/:role', async (req, res) => {
-  const { role } = req.params;
+// router.get('/employees/role/:role', async (req, res) => {
+//   const { role } = req.params;
   
-  try {
-    // Map role to title (adjust this based on your database structure)
-    const roleTitleMap = {
-      'bartender': 'Bartender',
-      'sparkler_girl': 'Sparkler Girl',
-      'waiter': 'Waiter',
-      'cleaner': 'Cleaner',
-      'bouncer': 'Bouncer',
-      'runner': 'Runner',
-      'leader': 'Manager'
-    };
+//   try {
+//     // Map role to title (adjust this based on your database structure)
+//     const roleTitleMap = {
+//       'bartender': 'Bartender',
+//       'sparkler_girl': 'Sparkler Girl',
+//       'waiter': 'Waiter',
+//       'cleaner': 'Cleaner',
+//       'bouncer': 'Bouncer',
+//       'runner': 'Runner',
+//       'leader': 'Manager'
+//     };
     
-    const title = roleTitleMap[role];
+//     const title = roleTitleMap[role];
     
-    if (!title) {
-      return res.status(400).json({ message: 'Invalid role' });
-    }
+//     if (!title) {
+//       return res.status(400).json({ message: 'Invalid role' });
+//     }
     
-    const [employees] = await db.query(
-      `SELECT e.employee_id, e.first_name, e.last_name, r.title
-       FROM t_employee e
-       JOIN t_role r ON e.role_id = r.role_id
-       WHERE r.title = ? AND e.status_ = 'Working'`,
-      [title]
-    );
+//     const [employees] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.last_name, r.title
+//        FROM t_employee e
+//        JOIN t_role r ON e.role_id = r.role_id
+//        WHERE r.title = ? AND e.status_ = 'Working'`,
+//       [title]
+//     );
     
-    res.status(200).json(employees);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+//     res.status(200).json(employees);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
 
-router.get('/role/:roleTitle', async (req, res) => {
-  const { roleTitle } = req.params;
+// router.get('/role/:roleTitle', async (req, res) => {
+//   const { roleTitle } = req.params;
+  
+//   try {
+//     console.log('Searching for employees with role title:', roleTitle);
+    
+//     // Map frontend role names to database role titles
+//     const roleTitleMap = {
+//       'bartender': 'Bartender',
+//       'sparkler_girl': 'Sparkler Girl', 
+//       'waiter': 'Waiter',
+//       'cleaner': 'Cleaner',
+//       'bouncer': 'Bouncer',
+//       'runner': 'Runners',  // Your DB has "Runners" (plural)
+//       'manager': 'Leader'   // Your DB has "Leader" not "Manager"
+//     };
+    
+//     const dbRoleTitle = roleTitleMap[roleTitle.toLowerCase()] || roleTitle;
+//     console.log('Mapped to database role title:', dbRoleTitle);
+    
+//     // FIXED QUERY: Include all statuses except "On Leave"
+//     const [employees] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.last_name, r.title, e.status_
+//        FROM t_employee e
+//        JOIN t_role r ON e.role_id = r.role_id
+//        WHERE r.title = ? AND e.status_ != 'On Leave'`,  // Changed this line
+//       [dbRoleTitle]
+//     );
+    
+//     console.log('Found employees:', employees);
+//     res.status(200).json(employees);
+//   } catch (err) {
+//     console.error('Error fetching employees by role:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+router.get('/employees/role-id/:roleId', async (req, res) => {
+  const { roleId } = req.params;
   
   try {
-    console.log('Searching for employees with role title:', roleTitle);
-    
-    // Map frontend role names to database role titles
-    const roleTitleMap = {
-      'bartender': 'Bartender',
-      'sparkler_girl': 'Sparkler Girl', 
-      'waiter': 'Waiter',
-      'cleaner': 'Cleaner',
-      'bouncer': 'Bouncer',
-      'runner': 'Runners',  // Your DB has "Runners" (plural)
-      'manager': 'Leader'   // Your DB has "Leader" not "Manager"
-    };
-    
-    const dbRoleTitle = roleTitleMap[roleTitle.toLowerCase()] || roleTitle;
-    console.log('Mapped to database role title:', dbRoleTitle);
-    
-    // FIXED QUERY: Include all statuses except "On Leave"
     const [employees] = await db.query(
       `SELECT e.employee_id, e.first_name, e.last_name, r.title, e.status_
        FROM t_employee e
        JOIN t_role r ON e.role_id = r.role_id
-       WHERE r.title = ? AND e.status_ != 'On Leave'`,  // Changed this line
-      [dbRoleTitle]
+       WHERE e.role_id = ? AND e.status_ != 'On Leave'`,
+      [roleId]
     );
     
-    console.log('Found employees:', employees);
     res.status(200).json(employees);
   } catch (err) {
-    console.error('Error fetching employees by role:', err);
+    console.error('Error fetching employees by role ID:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -523,6 +743,54 @@ router.get('/events', async (req, res) => {
 });
 
 // Assign staff by role to event
+// router.post('/:eventId/assign-by-role', async (req, res) => {
+//   const { eventId } = req.params;
+//   const { roleIds } = req.body;
+  
+//   try {
+//     // First remove all existing staff from this event
+//     await db.execute('DELETE FROM t_event_employee WHERE event_id = ?', [eventId]);
+    
+//     if (!roleIds || roleIds.length === 0) {
+//       return res.status(200).json({ message: 'No roles selected, all staff removed' });
+//     }
+    
+//     // Get all employees with the selected role IDs
+//     const [employees] = await db.query(
+//       `SELECT employee_id FROM t_employee WHERE role_id IN (?)`,
+//       [roleIds]
+//     );
+    
+//     // Assign each employee to the event
+//     for (const employee of employees) {
+//       // Get the role title for this employee
+//       const [roleData] = await db.query(
+//         `SELECT title FROM t_role WHERE role_id = (
+//           SELECT role_id FROM t_employee WHERE employee_id = ?
+//         )`,
+//         [employee.employee_id]
+//       );
+      
+//       const roleTitle = roleData[0]?.title?.toLowerCase() || 'staff';
+      
+//       await db.execute(
+//         `INSERT INTO t_event_employee (event_id, employee_id, role) 
+//          VALUES (?, ?, ?)`,
+//         [eventId, employee.employee_id, roleTitle]
+//       );
+//     }
+//     // await sendEventNotifications(eventId);
+//     await sendImmediateEventNotifications(eventId, 'assignment');
+//     res.status(200).json({ 
+//       message: `Assigned ${employees.length} employees to event and scheduled notifications` 
+//     });
+    
+//   } catch (err) {
+//     console.error('Error assigning by role:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
 router.post('/:eventId/assign-by-role', async (req, res) => {
   const { eventId } = req.params;
   const { roleIds } = req.body;
@@ -541,28 +809,28 @@ router.post('/:eventId/assign-by-role', async (req, res) => {
       [roleIds]
     );
     
-    // Assign each employee to the event
+    // Assign each employee to the event with their role_id
     for (const employee of employees) {
-      // Get the role title for this employee
-      const [roleData] = await db.query(
-        `SELECT title FROM t_role WHERE role_id = (
-          SELECT role_id FROM t_employee WHERE employee_id = ?
-        )`,
+      // Get the employee's role_id from t_employee
+      const [employeeData] = await db.query(
+        `SELECT role_id FROM t_employee WHERE employee_id = ?`,
         [employee.employee_id]
       );
       
-      const roleTitle = roleData[0]?.title?.toLowerCase() || 'staff';
+      const employeeRoleId = employeeData[0]?.role_id;
       
-      await db.execute(
-        `INSERT INTO t_event_employee (event_id, employee_id, role) 
-         VALUES (?, ?, ?)`,
-        [eventId, employee.employee_id, roleTitle]
-      );
+      if (employeeRoleId) {
+        await db.execute(
+          `INSERT INTO t_event_employee (event_id, employee_id, role_id) 
+           VALUES (?, ?, ?)`,
+          [eventId, employee.employee_id, employeeRoleId]
+        );
+      }
     }
-    // await sendEventNotifications(eventId);
+    
     await sendImmediateEventNotifications(eventId, 'assignment');
     res.status(200).json({ 
-      message: `Assigned ${employees.length} employees to event and scheduled notifications` 
+      message: `Assigned ${employees.length} employees to event` 
     });
     
   } catch (err) {
@@ -572,6 +840,49 @@ router.post('/:eventId/assign-by-role', async (req, res) => {
 });
 
 // Get required roles for event
+// router.get('/:eventId/required-roles', async (req, res) => {
+//   const { eventId } = req.params;
+  
+//   try {
+//     // Get unique role IDs from assigned staff
+//     const [roles] = await db.query(
+//       `SELECT DISTINCT r.role_id, r.title 
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        JOIN t_role r ON e.role_id = r.role_id
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
+    
+//     res.status(200).json(roles);
+//   } catch (err) {
+//     console.error('Error fetching required roles:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// router.get('/:eventId/required-roles', async (req, res) => {
+//   const { eventId } = req.params;
+  
+//   try {
+//     // Get unique role IDs from assigned staff
+//     const [roles] = await db.query(
+//       `SELECT DISTINCT r.role_id, r.title 
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        JOIN t_role r ON ee.role_id = r.role_id
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
+    
+//     res.status(200).json(roles);
+//   } catch (err) {
+//     console.error('Error fetching required roles:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// Update the required roles endpoint
 router.get('/:eventId/required-roles', async (req, res) => {
   const { eventId } = req.params;
   
@@ -581,12 +892,18 @@ router.get('/:eventId/required-roles', async (req, res) => {
       `SELECT DISTINCT r.role_id, r.title 
        FROM t_event_employee ee
        JOIN t_employee e ON ee.employee_id = e.employee_id
-       JOIN t_role r ON e.role_id = r.role_id
+       JOIN t_role r ON ee.role_id = r.role_id
        WHERE ee.event_id = ?`,
       [eventId]
     );
     
-    res.status(200).json(roles);
+    // Ensure role_id is returned as number
+    const rolesWithNumbers = roles.map(role => ({
+      ...role,
+      role_id: parseInt(role.role_id) // Convert to number
+    }));
+    
+    res.status(200).json(rolesWithNumbers);
   } catch (err) {
     console.error('Error fetching required roles:', err);
     res.status(500).json({ message: 'Server error' });
@@ -699,11 +1016,20 @@ const sendImmediateEventNotifications = async (eventId, messageType = 'assignmen
     const eventData = event[0];
     console.log(`Found event: ${eventData.event_name}`);
     
-    // Get all employees assigned to this event
+    // // Get all employees assigned to this event
+    // const [assignedEmployees] = await db.query(
+    //   `SELECT e.employee_id, e.first_name, e.email 
+    //    FROM t_event_employee ee
+    //    JOIN t_employee e ON ee.employee_id = e.employee_id
+    //    WHERE ee.event_id = ?`,
+    //   [eventId]
+    // );
+
     const [assignedEmployees] = await db.query(
-      `SELECT e.employee_id, e.first_name, e.email 
+      `SELECT e.employee_id, e.first_name, e.email, r.title as role_title
        FROM t_event_employee ee
        JOIN t_employee e ON ee.employee_id = e.employee_id
+       JOIN t_role r ON ee.role_id = r.role_id
        WHERE ee.event_id = ?`,
       [eventId]
     );
@@ -837,6 +1163,26 @@ router.post('/:eventId/debug-notifications', async (req, res) => {
   } catch (err) {
     console.error('Debug error:', err);
     res.status(500).json({ message: 'Debug failed', error: err.message });
+  }
+});
+
+// Get shifts for a specific employee
+router.get('/employee/:employeeId/shifts', async (req, res) => {
+  const { employeeId } = req.params;
+  
+  try {
+    const [shifts] = await db.query(
+      `SELECT date_, start_time, end_time, shift_type, status_
+       FROM t_shift 
+       WHERE employee_id = ? 
+       ORDER BY date_`,
+      [employeeId]
+    );
+    
+    res.status(200).json(shifts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
