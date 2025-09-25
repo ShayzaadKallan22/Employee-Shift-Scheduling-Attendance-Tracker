@@ -163,6 +163,14 @@ cron.schedule('* * * * * *', async () => {
   try {
     await connection.beginTransaction();
 
+    //Get expired clock-in QR codes before updating them
+    const [expiredClockInQRs] = await connection.query(
+      `SELECT qr_id, code_value, generation_time FROM t_qr_code 
+       WHERE status_ = 'active' 
+       AND expiration_time < NOW() 
+       AND purpose = 'clock-in'`
+    );
+
     //Update expired normal (clock-in) QR codes 
     await connection.query(
       `UPDATE t_qr_code 
@@ -171,6 +179,285 @@ cron.schedule('* * * * * *', async () => {
        AND expiration_time < NOW() 
        AND purpose = 'clock-in'`
     );
+
+    //NEW LOGIC: Check attendance for expired clock-in QRs
+    for (const qr of expiredClockInQRs) {
+      const qrGenerationTime = new Date(qr.generation_time);
+      const qrGenerationDate = qrGenerationTime.toLocaleDateString('en-ZA', 
+      { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      });
+      
+      const currentDate = new Date().toLocaleDateString('en-ZA', 
+      {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      //Only process QRs that were generated today
+      if (qrGenerationDate === currentDate) {
+        //Get the start time from the QR generation time
+        const startTime = qrGenerationTime.toTimeString().slice(0, 8);
+
+        //Find all shifts that started at this time today
+        const [shiftsAtThisTime] = await connection.query(
+          `SELECT s.shift_id, s.employee_id, s.start_time, s.end_time, s.date_, s.end_date, 
+                  s.shift_type, s.schedule_id, e.first_name, e.last_name, e.role_id, r.title as role_title
+          FROM t_shift s
+          JOIN t_employee e ON s.employee_id = e.employee_id
+          JOIN t_role r ON e.role_id = r.role_id
+          WHERE s.status_ = 'scheduled' 
+          AND s.shift_type = 'normal'
+          AND s.date_ = ?
+          AND s.is_replacement = FALSE
+          AND s.start_time = ?`,
+          [currentDate, startTime]
+        );
+
+        //Check each shift to see if employee clocked in
+        for (const shift of shiftsAtThisTime) {
+          //Check if this employee has an attendance record for this shift
+          const [attendanceRecord] = await connection.query(
+            `SELECT attendance_id FROM t_attendance 
+            WHERE employee_id = ? AND shift_id = ?`,
+            [shift.employee_id, shift.shift_id]
+          );
+
+          //If no attendance record exists, mark shift as missed and find replacement
+          if (attendanceRecord.length === 0) {
+            //Mark shift as missed
+            await connection.query(
+              `UPDATE t_shift 
+              SET status_ = 'missed'
+              WHERE shift_id = ?`,
+              [shift.shift_id]
+            );
+
+            //Get all managers for notifications
+            const [managers] = await connection.query(
+              `SELECT 
+                  employee_id,
+                  first_name,
+                  last_name,
+                  email,
+                  phone_number,
+                  status_,
+                  role_id
+              FROM t_employee 
+              WHERE type_ = 'manager'`
+            );
+
+            //Send initial notification about missed clock-in
+            const formattedDate = new Date().toLocaleDateString('en-ZA');
+            for (const manager of managers) {
+              await connection.query(
+                `INSERT INTO t_notification 
+                (employee_id, message, sent_time, notification_type_id)
+                VALUES (?, ?, NOW(), ?)`, 
+                [manager.employee_id, `${shift.first_name} ${shift.last_name} failed to clock in for their shift starting at ${startTime} on ${formattedDate} with no reason. Consider taking disciplinary action`, 4]
+              );
+            }
+
+            console.log(`Marked shift ${shift.shift_id} as missed - employee ${shift.employee_id} did not clock in`);
+
+            //REPLACEMENT LOGIC: Find standby employee with same role
+            console.log(`Finding replacement for missed ${shift.role_title} shift`);
+
+            //Find all available standby employees with same role
+            const [standbyEmployees] = await connection.query(`
+              SELECT 
+                  employee_id,
+                  first_name,
+                  last_name,
+                  email,
+                  phone_number
+              FROM t_employee 
+              WHERE role_id = ? 
+              AND standby = 'standby' 
+              AND status_ = 'Not Working'
+              AND employee_id != ?
+              ORDER BY employee_id
+            `, [shift.role_id, shift.employee_id]);
+
+            if (standbyEmployees.length === 0) {
+              console.log(`No available standby employee found for role: ${shift.role_title}`);
+              
+              //Send notification to manager about no standby available
+              for (const manager of managers) {
+                await connection.query(
+                  `INSERT INTO t_notification (
+                      employee_id,
+                      message,
+                      sent_time,
+                      read_status,
+                      notification_type_id
+                  ) VALUES (?, ?, NOW(), 'unread', 4)`,
+                  [manager.employee_id, `Shift Replacement Failed: No standby employee available for missed ${shift.role_title} shift on ${formattedDate} at ${startTime}. Contingency plan needed`]
+                );
+              }
+              continue; //Move to next shift
+            }
+
+            //Try each standby employee until we find one without conflicts
+            let replacementEmployee = null;
+            let employeeFound = false;
+
+            for (const employee of standbyEmployees) {
+              console.log(`Checking replacement candidate: ${employee.first_name} ${employee.last_name}`);
+
+              //Check if this employee already has a shift at the same time
+              const [conflictingShifts] = await connection.query(`
+                  SELECT shift_id 
+                  FROM t_shift 
+                  WHERE employee_id = ? 
+                  AND date_ = ? 
+                  AND (
+                      (start_time <= ? AND end_time > ?) OR
+                      (start_time < ? AND end_time >= ?) OR
+                      (start_time >= ? AND end_time <= ?)
+                  )
+                  AND status_ IN ('scheduled', 'completed')
+              `, [
+                  employee.employee_id,
+                  shift.date_,
+                  shift.start_time, shift.start_time,
+                  shift.end_time, shift.end_time,
+                  shift.start_time, shift.end_time
+              ]);
+
+              if (conflictingShifts.length === 0) {
+                  replacementEmployee = employee;
+                  employeeFound = true;
+                  console.log(`Found available replacement: ${employee.first_name} ${employee.last_name}`);
+                  break;
+              } else {
+                  console.log(`${employee.first_name} ${employee.last_name} has conflicting shift, trying next candidate...`);
+              }
+            }
+
+            if (!employeeFound) {
+              console.log(`All standby employees for role ${shift.role_title} have conflicting shifts`);
+              
+              //Send notification to manager about all employees having conflicts
+              for (const manager of managers) {
+                await connection.query(
+                  `INSERT INTO t_notification (
+                      employee_id,
+                      message,
+                      sent_time,
+                      read_status,
+                      notification_type_id
+                  ) VALUES (?, ?, NOW(), 'unread', 4)`,
+                  [manager.employee_id, `Shift Replacement Failed: All standby ${shift.role_title} employees have conflicting shifts for missed shift on ${formattedDate} at ${startTime}. Contingency plan required`]
+                );
+              }
+              continue; // Move to next shift
+            }
+
+            //Create new shift for replacement employee
+            const [newShiftResult] = await connection.query(`
+                INSERT INTO t_shift (
+                    shift_type,
+                    start_time,
+                    end_time,
+                    date_,
+                    end_date,
+                    status_,
+                    employee_id,
+                    schedule_id,
+                    created_at,
+                    updated_at,
+                    is_replacement
+                ) VALUES (?, ?, ?, ?, ?, 'scheduled', ?, ?, NOW(), NOW(), TRUE)
+            `, [
+                shift.shift_type,
+                shift.start_time,
+                shift.end_time,
+                shift.date_,
+                shift.end_date,
+                replacementEmployee.employee_id,
+                shift.schedule_id
+            ]);
+
+            const newShiftId = newShiftResult.insertId;
+            console.log(`Created new shift ${newShiftId} for replacement employee`);
+
+            //Send notification to replacement employee
+            const replacementNotificationMessage = `You have been assigned a replacement shift for ${shift.role_title} on ${formattedDate} from ${shift.start_time} to ${shift.end_time} due to a missed clock-in. See you soon!`;
+            
+            await connection.query(`
+                INSERT INTO t_notification (
+                    employee_id,
+                    message,
+                    sent_time,
+                    read_status,
+                    notification_type_id
+                ) VALUES (?, ?, NOW(), 'unread', 3)
+            `, [replacementEmployee.employee_id, replacementNotificationMessage]);
+
+            //Send confirmation notification to managers
+            for (const manager of managers) {
+              await connection.query(
+                `INSERT INTO t_notification (
+                    employee_id,
+                    message,
+                    sent_time,
+                    read_status,
+                    notification_type_id
+                ) VALUES (?, ?, NOW(), 'unread', 4)`,
+                [manager.employee_id, `${replacementEmployee.first_name} ${replacementEmployee.last_name}: Is filling in for a missed shift by ${shift.first_name} ${shift.last_name} (${shift.role_title}) on ${formattedDate} at ${shift.start_time}`]
+              );
+            }
+
+            //EXTEND QR CODE EXPIRY: Give replacement employee time to get to work
+            //Calculate new expiry time (60 minutes from now)
+            const extendedExpiryTime = new Date();
+            extendedExpiryTime.setMinutes(extendedExpiryTime.getMinutes() + 10); //WAS 180, NOW JUST 10 MINUTE (TESTING)
+
+            const shiftDateObj = new Date(shift.date_);
+            //Add 2 hours to convert from UTC to SA time
+            shiftDateObj.setHours(shiftDateObj.getHours() + 2);
+            const shiftDate = shiftDateObj.toISOString().split('T')[0];
+
+            //Update the QR code expiry time for this shift's start time
+            await connection.query(`
+                UPDATE t_qr_code 
+                SET expiration_time = ?, 
+                    status_ = 'active'
+                WHERE purpose = 'clock-in' 
+                AND DATE(generation_time) = ? 
+                AND TIME(generation_time) = ?
+            `, [
+                extendedExpiryTime.toISOString().slice(0, 19).replace('T', ' '),
+                shiftDate,
+                shift.start_time
+            ]);
+            console.log("DATE: " + shiftDate);
+            console.log("TIME: " + shift.start_time);
+            console.log(`Extended QR code expiry time by 60 minutes for replacement employee`);
+
+            //Send additional notification to replacement employee about the extended time
+            //const urgentNotificationMessage = `URGENT: You have been assigned an immediate replacement shift for ${shift.role_title}. Please arrive as soon as possible. QR code has been extended for 30 minutes to allow travel time.`;
+            
+            // await connection.query(`
+            //     INSERT INTO t_notification (
+            //         employee_id,
+            //         message,
+            //         sent_time,
+            //         read_status,
+            //         notification_type_id
+            //     ) VALUES (?, ?, NOW(), 'unread', 3)
+            // `, [replacementEmployee.employee_id, urgentNotificationMessage]);
+
+
+            console.log(`Successfully assigned replacement employee ${replacementEmployee.first_name} ${replacementEmployee.last_name} for missed shift ${shift.shift_id}`);
+          }
+        }
+      }
+    }
 
     //Get all proof QR codes that have expired (MAY CLASH WITH OVERTIME LOGIC)
     const [expiredProofQRs] = await connection.query(
@@ -231,14 +518,14 @@ cron.schedule('* * * * * *', async () => {
           let newShiftStatus;
           
           if (attendanceRecord.length === 0) {
-            //Case 1: No attendance record found - mark as missed
+            //Case 1: No attendance record found - mark as missed (REDUNDANT)
             newShiftStatus = 'missed';
           } else {
             //Case 2: Attendance record exists - check its status
             const attendanceStatus = attendanceRecord[0].status_;
             if (attendanceStatus === 'present') {
               newShiftStatus = 'completed';
-            } else if (attendanceStatus === 'absent'){
+            } else if (attendanceStatus === 'absent' || attendanceStatus === null){
               newShiftStatus = 'missed';
             }
           }
@@ -262,7 +549,7 @@ cron.schedule('* * * * * *', async () => {
               `INSERT INTO t_notification 
                (employee_id, message, sent_time, notification_type_id)
                VALUES (?, ?,NOW(), ?)`, 
-              [shift.employee_id, `${shift.first_name} ${shift.last_name} has missed a normal shift on ${formattedDate}`, 4]
+              [shift.employee_id, `${shift.first_name} ${shift.last_name} has missed a normal shift on ${formattedDate}, failed to scan proof QR code. Consider taking disciplinary action`, 4]
             );
           }
         }
@@ -346,3 +633,101 @@ exports.getProofQR = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+//Additional cron job to check if replacement employees showed up
+//Run every minute to check for replacement employee no-shows
+//Cron job to monitor replacement employees after QR codes expire
+cron.schedule('* * * * *', async () => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    //Find QR codes that just expired (within the last minute) that were extended for replacements
+    const [expiredQRs] = await connection.query(`
+      SELECT 
+        qr.qr_id,
+        qr.code_value,
+        qr.generation_time,
+        qr.expiration_time,
+        DATE(qr.generation_time) as qr_date,
+        TIME(qr.generation_time) as qr_time
+      FROM t_qr_code qr
+      WHERE qr.purpose = 'clock-in' 
+      AND qr.status_ = 'expired'
+      AND qr.expiration_time <= NOW()
+      AND qr.expiration_time >= DATE_SUB(NOW(), INTERVAL 30 SECOND)
+      AND DATE(qr.generation_time) = CURDATE()
+    `);
+    console.log(expiredQRs);
+    for (const qr of expiredQRs) {
+      //Find replacement shifts that should have used this QR code
+      const [replacementShifts] = await connection.query(`
+        SELECT 
+          s.shift_id,
+          s.employee_id,
+          s.start_time,
+          s.date_,
+          e.first_name,
+          e.last_name,
+          r.title as role_title
+        FROM t_shift s
+        JOIN t_employee e ON s.employee_id = e.employee_id
+        JOIN t_role r ON e.role_id = r.role_id
+        WHERE s.is_replacement = TRUE
+        AND s.status_ = 'scheduled'
+        AND s.date_ = ?
+        AND s.start_time = ?
+      `, [qr.qr_date, qr.qr_time]);
+
+      for (const shift of replacementShifts) {
+        //Check if replacement employee clocked in
+        const [attendanceRecord] = await connection.query(
+          `SELECT attendance_id FROM t_attendance 
+           WHERE employee_id = ? AND shift_id = ?`,
+          [shift.employee_id, shift.shift_id]
+        );
+
+        //If replacement employee didn't clock in, send notification to managers
+        if (attendanceRecord.length === 0) {
+          //Mark the replacement shift as missed
+          await connection.query(
+            `UPDATE t_shift 
+             SET status_ = 'missed'
+             WHERE shift_id = ?`,
+            [shift.shift_id]
+          );
+
+          //Get all managers for notifications
+          const [managers] = await connection.query(
+            `SELECT employee_id FROM t_employee WHERE type_ = 'manager'`
+          );
+
+          const currentDate = new Date().toLocaleDateString('en-ZA');
+
+          //Send notification to managers about replacement employee not showing up
+          for (const manager of managers) {
+            await connection.query(
+              `INSERT INTO t_notification 
+               (employee_id, message, sent_time, notification_type_id)
+               VALUES (?, ?, NOW(), ?)`, 
+              [
+                manager.employee_id, 
+                `${shift.first_name} ${shift.last_name}: Replacement employee failed to clock in for ${shift.role_title} shift on ${currentDate} at ${shift.start_time}. QR code has expired. Consider taking disciplinary action. Contingency plan required.`,
+                4
+              ]
+            );
+          }
+
+          console.log(`Replacement employee ${shift.first_name} ${shift.last_name} failed to show up for shift ${shift.shift_id} - QR expired`);
+        }
+      }
+    }
+
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    console.error('Replacement monitoring error:', error);
+  } finally {
+    connection.release();
+  }
+});

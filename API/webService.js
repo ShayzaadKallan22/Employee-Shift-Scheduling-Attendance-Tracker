@@ -6,6 +6,8 @@ const PORT = 3000;
 const pool = require('./db');
 const authRoutes = require('./authRoutes');
 const leaveRoutes = require('./leaveRoutes');
+const shiftReplacementSystem = require('./shiftReplacement'); //SHAYZAAD
+const { createMonthlyShifts, updateWeeklyStandbyStatus } = require('./shiftSchedular'); //SHAYZAAD
 const shiftsRoutes = require('./shiftsRoutes'); //SHAYZAAD
 const payrollRoutes = require('./payrollRoutes'); //SHAYZAAD
 const overtimeRoutes = require('./overtimeRoutes');;//SHAYZAAD
@@ -44,13 +46,14 @@ const path = require('path');
 require('dotenv').config();
 
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://127.0.0.1:3000',
-    'http://localhost' //Added for Yatin's frontend
-  ],
+  // origin: [
+  //   'http://localhost:3000',
+  //   'http://127.0.0.1:5500',
+  //   'http://localhost:5500',
+  //   'http://127.0.0.1:3000',
+  //   'http://localhost' //Added for Yatin's frontend
+  // ],
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -71,6 +74,7 @@ app.use(express.json()); //For API JSON payloads
 //Start of Cletus's code
 //Serve static files from the 'uploads' directory
 app.use('/uploads', express.static('uploads')); //Added by Cletus.
+
 
 //Method to handle leave status updates.
 // async function updateLeaveStatuses() {
@@ -107,6 +111,47 @@ app.use('/uploads', express.static('uploads')); //Added by Cletus.
 //Also schedule daily at midnight
 //cron.schedule('* * * * *', updateLeaveStatuses);
 //End of cron job added by Cletus.
+
+//==========================CRON JOBS ADDED BY SHAYZAAD==========================
+shiftReplacementSystem.handleShiftReplacements(); //Run shift replacement check immediately on startup
+
+//Schedule shift replacement system to run every 1 minutes
+cron.schedule('*/1 * * * *', () => {
+    console.log('Running scheduled shift replacement check...');
+    shiftReplacementSystem.handleShiftReplacements();
+});
+
+//Create shifts for the entire next month on the last Tuesday of each month at 10:00 UTC
+//This creates all shifts for the upcoming month
+cron.schedule('0 10 * * 2', async () => {
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    
+    //Check if next Tuesday would be in the next month
+    if (nextWeek.getMonth() !== today.getMonth()) {
+        console.log('Running monthly shift creation for upcoming month...');
+        try {
+            await createMonthlyShifts();
+            console.log('Monthly shift creation completed successfully');
+        } catch (error) {
+            console.error('Error in monthly shift creation:', error);
+        }
+    }
+});
+
+//Update standby status every Tuesday at 10:00 UTC (weekly rotation)
+//This rotates standby employees every week while keeping the monthly shift schedule
+cron.schedule('0 10 * * 2', async () => {
+    console.log('Running weekly standby status update...');
+    try {
+        await updateWeeklyStandbyStatus();
+        console.log('Weekly standby status update completed successfully');
+    } catch (error) {
+        console.error('Error in weekly standby status update:', error);
+    }
+});
+//==========================END OF CRON JOBS==========================
 
 //SHAYZAAD - Cors Middleware
 //app.use(cors());
@@ -147,7 +192,7 @@ app.use('/uploads', express.static('uploads')); //Added by Cletus.
 
 //SHAYZAAD
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Front_End_Web', 'signin.html'));
+    res.sendFile(path.join(__dirname, 'Front_End_Web', 'signin.html'));
 });
 
 //Test API endpoint
@@ -253,10 +298,11 @@ app.get('/api/employees/search', async (req, res) => {
 
 //Routes for HTML pages
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Front_End_Web', 'index.html'));
+  res.sendFile(path.join(__dirname, 'Front_End_Web', 'index.html'));
 });
 
-app.use(express.static(path.join(__dirname, '../Front_End_Web')));
+app.use(express.static(path.join(__dirname, 'Front_End_Web')));
+app.use('/lib', express.static(path.join(__dirname, 'node_modules')));
 //---------------------------------------------------------------------------------------------------
 
 // app.use('/api/reports', (req, res, next) => {   //Added by Yatin, still in progress...
@@ -281,13 +327,108 @@ app.use('/api/normal-qr', normalQRRouter);
 //SHAYZAAD - Added roles endpoint
 app.get('/api/roles', async (req, res) => {
   try {
-    const [roles] = await pool.query('SELECT role_id, title FROM t_role');
+    const [roles] = await pool.query(`
+      SELECT role_id, title 
+      FROM t_role 
+      WHERE title != 'Leader'
+    `);
     res.json(roles);
   } catch (error) {
     console.error('Error fetching roles:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+//======================================Endpoints for testing shift creation======================================
+//SHAYZAAD: Manual trigger endpoint for testing monthly shift creation
+app.post('/api/admin/create-monthly-shifts', async (req, res) => {
+    try {
+        console.log('Manual monthly shift creation triggered');
+        await createMonthlyShifts();
+        res.json({ 
+            success: true, 
+            message: 'Monthly shifts created successfully' 
+        });
+    } catch (error) {
+        console.error('Error in manual monthly shift creation:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+//SHAYZAAD: Manual trigger endpoint for testing weekly standby updates
+app.post('/api/admin/update-standby', async (req, res) => {
+    try {
+        console.log('Manual standby update triggered');
+        await updateWeeklyStandbyStatus();
+        res.json({ 
+            success: true, 
+            message: 'Standby status updated successfully' 
+        });
+    } catch (error) {
+        console.error('Error in manual standby update:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+//SHAYZAAD: Add an endpoint to check next scheduled operations
+app.get('/api/admin/next-scheduled-operations', (req, res) => {
+    const now = new Date();
+    
+    // Find next month creation (last Tuesday of month)
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const lastDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    let lastTuesdayOfNextMonth = new Date(lastDayOfNextMonth);
+    
+    // Find last Tuesday of next month
+    while (lastTuesdayOfNextMonth.getDay() !== 2) {
+        lastTuesdayOfNextMonth.setDate(lastTuesdayOfNextMonth.getDate() - 1);
+    }
+    lastTuesdayOfNextMonth.setHours(10, 0, 0, 0);
+    
+    // Find next Tuesday for standby update
+    let nextTuesday = new Date(now);
+    const daysUntilTuesday = (2 + 7 - now.getDay()) % 7;
+    if (daysUntilTuesday === 0 && now.getHours() >= 9) {
+        nextTuesday.setDate(now.getDate() + 7);
+    } else {
+        nextTuesday.setDate(now.getDate() + (daysUntilTuesday || 7));
+    }
+    nextTuesday.setHours(9, 0, 0, 0);
+    
+    res.json({
+        current_time: now.toISOString(),
+        next_monthly_shift_creation: lastTuesdayOfNextMonth.toISOString(),
+        next_standby_update: nextTuesday.toISOString(),
+        hours_until_next_standby_update: Math.round((nextTuesday - now) / (1000 * 60 * 60)),
+        hours_until_next_monthly_creation: Math.round((lastTuesdayOfNextMonth - now) / (1000 * 60 * 60))
+    });
+});
+
+//SHAYZAAD: Keeping the old weekly endpoint incase needed
+app.post('/api/admin/create-shifts', async (req, res) => {
+    try {
+        console.log('Legacy weekly shift creation - redirecting to monthly creation');
+        await createMonthlyShifts();
+        res.json({ 
+            success: true, 
+            message: 'Monthly shifts created successfully (legacy endpoint)' 
+        });
+    } catch (error) {
+        console.error('Error in legacy shift creation:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+//======================================End of Endpoints for testing shift creation======================================
+
 
 // app.use('/api/leave', (req, res, next) => {
 //     if (!req.session.user) {
@@ -403,7 +544,77 @@ app.get('/view-sick-note.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'view-sick-note.html'));
 });
 
-//End of Yatin's code
-
 const eventRoutes = require('./eventRoutes');
 app.use('/api', eventRoutes);
+
+// Scheduled task to send event notifications
+const checkEventNotifications = async () => {
+  try {
+    const currentDate = new Date();
+    console.log('Checking for pending event notifications...');
+    
+    // Find notifications that are scheduled for today or earlier but not read yet
+    const [notifications] = await pool.execute(
+      `SELECT n.notification_id, n.employee_id, n.message, e.email, e.first_name
+       FROM t_notification n
+       JOIN t_employee e ON n.employee_id = e.employee_id
+       WHERE n.sent_time <= ? 
+       AND n.read_status = 'unread'
+       AND n.notification_type_id = 7`,
+      [currentDate]
+    );
+    
+    for (const notification of notifications) {
+      console.log(`Event notification ready for employee ${notification.employee_id}: ${notification.message}`);
+      
+      // Here you would implement your actual notification delivery
+      // For example: email, push notification, SMS, etc.
+      // Since we can't modify the schema, we'll rely on the sent_time for scheduling
+      
+      console.log(`Would send notification to ${notification.email}: ${notification.message}`);
+      
+      // In a real implementation, you would:
+      // 1. Send email/push notification
+      // 2. Maybe update a flag if you had one, but we can't modify schema
+    }
+    
+    console.log(`Found ${notifications.length} event notifications ready for delivery`);
+    
+  } catch (err) {
+    console.error('Error in event notification check:', err);
+  }
+};
+
+// Run notification check every hour to catch notifications
+cron.schedule('0 * * * *', checkEventNotifications);
+
+// Also run immediately on server start
+setTimeout(checkEventNotifications, 5000); // Wait 5 seconds after server start
+
+// Run notification check daily at 9:00 AM
+cron.schedule('0 9 * * *', checkEventNotifications);
+
+// Also run immediately on server start
+checkEventNotifications();  
+
+// Add this check on server startup
+const ensureEventNotificationType = async () => {
+  try {
+    const [existing] = await pool.execute(
+      `SELECT * FROM t_notification_type WHERE notification_type_id = 7`
+    );
+    
+    if (existing.length === 0) {
+      await pool.execute(
+        `INSERT INTO t_notification_type (notification_type_id, _name) VALUES (7, 'event')`
+      );
+      console.log('Created event notification type');
+    }
+  } catch (err) {
+    console.error('Error ensuring event notification type:', err);
+  }
+};
+
+// Call this on server startup
+ensureEventNotificationType();
+//End of Yatin's code

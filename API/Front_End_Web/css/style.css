@@ -1,0 +1,625 @@
+/********** Template CSS **********/
+:root {
+    --primary: #00a4e0;
+    --secondary: #191C24;
+    --light: #6C7293;
+    --dark: #000000;
+}
+
+.back-to-top {
+    position: fixed;
+    display: none;
+    right: 45px;
+    bottom: 45px;
+    z-index: 99;
+}
+
+/*** Reports ***/
+canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 250px;
+}
+
+/* Swaps Report Specific Styles */
+#swapsChartContainer {
+    margin-bottom: 2rem;
+}
+
+#swapsChartTabs .nav-link {
+    color: #adb5bd;
+    border-color: #495057;
+}
+
+#swapsChartTabs .nav-link.active {
+    color: #fff;
+    background-color: #495057;
+    border-color: #495057 #495057 #0d6efd;
+}
+
+#swapsChartTabs .nav-link:hover:not(.active) {
+    color: #fff;
+    border-color: #495057;
+}
+
+.tab-content {
+    padding: 1rem;
+    background-color: #495057;
+    border: 1px solid #495057;
+    border-top: none;
+    border-radius: 0 0 0.25rem 0.25rem;
+}
+
+/*** Spinner ***/
+#spinner {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .5s ease-out, visibility 0s linear .5s;
+    z-index: 99999;
+}
+
+
+
+
+#spinner.show {
+    transition: opacity .5s ease-out, visibility 0s linear 0s;
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/*** Button ***/
+.btn {
+    transition: .5s;
+}
+
+.btn-square {
+    width: 38px;
+    height: 38px;
+}
+
+.btn-sm-square {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-lg-square {
+    width: 48px;
+    height: 48px;
+}
+
+.btn-square,
+.btn-sm-square,
+.btn-lg-square {
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: normal;
+    border-radius: 50px;
+}
+
+
+/*** Layout ***/
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--secondary);
+    transition: 0.5s;
+    z-index: 999;
+}
+
+.content {
+    margin-left: 250px;
+    min-height: 100vh;
+    background: var(--dark);
+    transition: 0.5s;
+}
+
+@media (min-width: 992px) {
+    .sidebar {
+        margin-left: 0;
+    }
+
+    .sidebar.open {
+        margin-left: -250px;
+    }
+
+    .content {
+        width: calc(100% - 250px);
+    }
+
+    .content.open {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .sidebar {
+        margin-left: -250px;
+    }
+
+    .sidebar.open {
+        margin-left: 0;
+    }
+
+    .content {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+
+/*** Navbar ***/
+
+
+/* Make the "Messages" and "Notifications" text white */
+.navbar-nav .nav-link .d-none.d-lg-inline-flex {
+    color: white !important;
+}
+
+.sidebar .navbar .navbar-nav .nav-link {
+    padding: 7px 20px;
+    /* color: var(--light); */
+    color: #ffffff;
+    font-weight: 500;
+    border-left: 3px solid var(--secondary);
+    border-radius: 0 30px 30px 0;
+    outline: none;
+}
+
+.sidebar .navbar .navbar-nav .nav-link:hover,
+.sidebar .navbar .navbar-nav .nav-link.active {
+    color: #00a4e0;
+    background: var(--dark);
+    border-color: #00a4e0
+}
+
+.sidebar .navbar .navbar-nav .nav-link i {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dark);
+    border-radius: 40px;
+}
+
+.sidebar .navbar .navbar-nav .nav-link:hover i,
+.sidebar .navbar .navbar-nav .nav-link.active i {
+    background: var(--dark);
+}
+
+.sidebar .navbar .dropdown-toggle::after {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    transition: .5s;
+}
+
+.sidebar .navbar .dropdown-toggle[aria-expanded=true]::after {
+    transform: rotate(-180deg);
+}
+
+.sidebar .navbar .dropdown-item {
+    padding-left: 25px;
+    border-radius: 0 30px 30px 0;
+    color: #e9ecef;
+    transition: all 0.3s;
+}
+
+.sidebar .navbar .dropdown-item:hover,
+.sidebar .navbar .dropdown-item.active {
+    color: var(--primary);  /* This makes the text blue on hover */
+    background: var(--dark); /* This keeps the dark background */
+}
+
+/* Dropdown active state */
+.sidebar .navbar .dropdown-toggle.active {
+    color: var(--primary);
+    background: var(--dark);
+    border-left: 3px solid var(--primary);
+}
+
+/* Dropdown item active state */
+.sidebar .navbar .dropdown-item.active {
+    color: var(--primary);
+    background: var(--dark);
+    border-left: 3px solid var(--primary);
+}
+
+/* Add this to ensure the dropdown menu has proper hover states */
+.sidebar .navbar .dropdown-menu {
+    border-left: 3px solid transparent;
+}
+
+.sidebar .navbar .dropdown-item:hover {
+    border-left: 3px solid var(--primary); /* Blue accent line */
+}
+
+.content .navbar .sidebar-toggler,
+.content .navbar .navbar-nav .nav-link i {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dark);
+    border-radius: 40px;
+}
+
+.content .navbar .dropdown-item {
+    color: var(white);
+}
+
+.content .navbar .dropdown-item:hover,
+.content .navbar .dropdown-item.active {
+    background: var(--dark);
+}
+
+.content .navbar .dropdown-toggle::after {
+    margin-left: 6px;
+    vertical-align: middle;
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    transition: .5s;
+}
+
+.content .navbar .dropdown-toggle[aria-expanded=true]::after {
+    transform: rotate(-180deg);
+}
+
+@media (max-width: 575.98px) {
+    .content .navbar .navbar-nav .nav-link {
+        margin-left: 15px;
+    }
+}
+
+/*** Layout Fixes ***/
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container-fluid.position-relative.d-flex.p-0 {
+    flex: 1;
+    display: flex;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 250px;
+    min-height: 100vh;
+    background: var(--dark);
+    transition: 0.5s;
+}
+
+.main-content {
+    flex: 1;
+}
+
+
+
+/*** Date Picker ***/
+.bootstrap-datetimepicker-widget.bottom {
+    top: auto !important;
+}
+
+.bootstrap-datetimepicker-widget .table * {
+    border-bottom-width: 0px;
+}
+
+.bootstrap-datetimepicker-widget .table th {
+    font-weight: 500;
+}
+
+.bootstrap-datetimepicker-widget.dropdown-menu {
+    padding: 10px;
+    border-radius: 2px;
+}
+
+.bootstrap-datetimepicker-widget table td.active,
+.bootstrap-datetimepicker-widget table td.active:hover {
+    background: #2e7a3a;
+}
+
+.bootstrap-datetimepicker-widget table td.today::before {
+    border-bottom-color: var(--primary);
+}
+
+
+/*** Testimonial ***/
+.progress .progress-bar {
+    width: 0px;
+    transition: 2s;
+}
+
+
+/*** Testimonial ***/
+.testimonial-carousel .owl-dots {
+    margin-top: 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.testimonial-carousel .owl-dot {
+    position: relative;
+    display: inline-block;
+    margin: 0 5px;
+    width: 15px;
+    height: 15px;
+    border: 5px solid var(--primary);
+    border-radius: 15px;
+    transition: .5s;
+}
+
+.testimonial-carousel .owl-dot.active {
+    background: var(--dark);
+    border-color: var(--primary);
+}
+
+/* Shift Swap Styling */
+#swapsChartContainer {
+    position: relative;
+    min-height: 400px;
+}
+
+#swapsChartContainer .chart-container {
+    transition: opacity 0.3s ease;
+}
+
+#swapsChartContainer .tab-pane:not(.active) {
+    display: none;
+}
+
+#swapsChartContainer .nav-tabs {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#swapsChartContainer .nav-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+#swapsChartContainer .nav-tabs .nav-link.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* CSS Fixes */
+.swap-report-container {
+    background-color: #2d3748;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.swap-report-header {
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #4a5568;
+    padding-bottom: 0.75rem;
+}
+
+.swap-tabs {
+    margin-bottom: 1.5rem;
+}
+
+.swap-tabs .nav-link {
+    color: #a0aec0;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+.swap-tabs .nav-link.active {
+    color: #ffffff;
+    background-color: transparent;
+    border-bottom: 3px solid #4299e1;
+}
+
+.swap-table {
+    width: 100%;
+    color: #ffffff;
+    border-collapse: collapse;
+}
+
+.swap-table th {
+    background-color: #4a5568;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.swap-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #4a5568;
+}
+
+.swap-table tr:hover {
+    background-color: #4a5568;
+}
+
+.status-badge {
+    padding: 0.35rem 0.65rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.status-approved {
+    background-color: #48bb78;
+    color: white;
+}
+
+.status-pending {
+    background-color: #ed8936;
+    color: white;
+}
+
+.status-rejected {
+    background-color: #f56565;
+    color: white;
+}
+
+.status-cancelled {
+    background-color: #a0aec0;
+    color: white;
+}
+
+/* Insights Panel Styles */
+.insights-panel {
+    position: relative;
+    margin-top: 15px;
+}
+
+.insights-toggle {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.insights-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.insights-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.insights-toggle.collapsed i {
+    transform: rotate(-90deg);
+}
+
+.insights-content {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.insights-content.show {
+    padding: 15px;
+    max-height: 500px;
+}
+
+.insights-content ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+
+/* Make sure the insights panel fits well in all contexts */
+.bg-secondary .insights-panel {
+    margin-top: 15px;
+}
+
+.bg-dark .insights-toggle {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.bg-dark .insights-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.bg-dark .insights-content {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Ensure proper spacing in all report sections */
+.report-section .row:last-child {
+    margin-bottom: 1rem;
+}
+
+/* Better icon alignment */
+.insights-toggle i.fa-chevron-down {
+    margin-left: 8px;
+    font-size: 0.9em;
+}
+
+/* Add this to style.css */
+.text-muted {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+/* Optional: Add a tooltip to explain why the column is dimmed */
+.dimmed-column {
+    position: relative;
+}
+
+.dimmed-column::after {
+    content: "Filtered out by current shift type selection";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.dimmed-column:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Export Modal Styles */
+#exportModal .modal-content {
+    background-color: var(--secondary);
+    color: white;
+}
+
+#exportModal .export-btn {
+    text-align: left;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+#exportModal .export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#exportModal .export-btn i {
+    margin-right: 8px;
+}

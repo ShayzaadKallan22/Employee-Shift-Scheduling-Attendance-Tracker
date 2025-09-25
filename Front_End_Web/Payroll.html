@@ -64,6 +64,115 @@
 .flatpickr-calendar .flatpickr-day {
     position: relative;
 }
+
+.budget-summary-card {
+    border: 2px solid;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.budget-summary-card.under-budget {
+    border-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.budget-summary-card.over-budget {
+    border-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.budget-progress {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #6c757d;
+}
+
+/* Fixed budget summary that doesn't scroll - Updated for dark theme consistency */
+.budget-summary-fixed {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin: px -15px 15px -15px;
+    padding: 15px;
+    border-bottom: 1px solid #495057;
+    background-color: black;
+}
+
+/* Fixed search bar that doesn't scroll */
+.search-bar-fixed {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    margin: -15px -15px 15px -15px;
+    padding: 15px;
+    background-color: black;
+    border-bottom: 1px solid #495057;
+}
+
+/* Dark themed budget impact display */
+.budget-impact-display {
+    background-color: #343a40;
+    border: 1px solid #495057;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 0;
+    max-width: 1200px;
+    width: 100%;
+}
+
+.budget-impact-display.over-budget {
+    border-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    margin: 0 auto;
+}
+
+.budget-impact-display.within-budget {
+  border-color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+  z-index: 100;
+  margin: 0 auto;
+}
+
+.budget-impact-text {
+    color: #ffffff;
+    font-size: 0.875rem;
+}
+
+.budget-impact-amount {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.budget-impact-status.over-budget {
+    color: #ff6b6b;
+}
+
+.budget-impact-status.within-budget {
+    color: #51cf66;
+}
+
+.budget-progress-thin {
+    height: 3px;
+    background-color: #495057;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.budget-progress-bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.budget-progress-bar.over-budget {
+    background-color: #dc3545;
+}
+
+.budget-progress-bar.within-budget {
+    background-color: #28a745;
+}
 </style>
 </head>
 
@@ -81,7 +190,6 @@
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
-
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -110,8 +218,6 @@
                         <div class="dropdown-menu bg-secondary border-0 rounded-0 rounded-bottom m-0 ps-3">
                             <a href="registration.html" class="dropdown-item ps-5"><i
                                     class="fa fa-user-edit me-2"></i>New</a>
-                            <!-- <a href="status.html" class="dropdown-item ps-5"><i
-                                    class="fa fa-info-circle me-2"></i>Status</a> -->
                         </div>
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
@@ -144,10 +250,6 @@
                                     <div class="d-flex justify-content-between align-items-center mb-4">
                                         <h4 class="mb-0"><i class="fa fa-money-bill me-2"></i>Payroll Management</h4>
                                         <div class="d-flex gap-2">
-                                           <!-- Update these buttons in the Payroll Management section -->
-                                            <!-- <button class="btn btn-primary" @click="openBudgetModal">
-                                                <i class="fa fa-wallet me-2"></i>Adjust Budget
-                                            </button> -->
                                             <button class="btn btn-primary" @click="showEmployeeModal = true">
                                                 <i class="fa fa-user-edit me-2"></i>Manage Employee Rates
                                             </button>
@@ -185,7 +287,6 @@
                                     <div class="modal-backdrop fade show" v-if="showBudgetModal"></div>    
 
                                     <!-- Payroll Summary -->
-
 <div class="bg-dark rounded p-4 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Payroll Summary</h5>
@@ -340,23 +441,10 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Adjustment Reason -->
-                            <!-- <div class="alert mb-0" :class="budgetComparison.hasAdjustment ? 'alert-info' : 'alert-secondary'">
-                                <h6 class="alert-heading">
-                                    <i class="fa fa-info-circle me-2"></i>
-                                    <span v-if="budgetComparison.hasAdjustment">Adjustment Reason</span>
-                                    <span v-else>Budget Status</span>
-                                </h6>
-                                <p class="mb-0">{{ budgetComparison.adjustmentReason }}</p>
-                            </div> -->
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" @click="closeBudgetDetailsModal">Close</button>
-            </div> -->
         </div>
     </div>
 </div>
@@ -413,18 +501,49 @@
                                     <h5 class="modal-title">Manage Role Rates</h5>
                                     <button type="button" class="btn-close btn-close-white" @click="showRoleModal = false"></button>
                                 </div>
-                                <div class="modal-body" style="overflow-y: auto; flex: 1;">
+                                
+                                <!-- Updated Budget Summary for Role Modal -->
+                                <div class="budget-summary-fixed">
+                                    <div class="budget-impact-display" :class="budgetExceeded ? 'over-budget' : 'within-budget'">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <i :class="budgetExceeded ? 'fa fa-exclamation-triangle text-danger' : 'fa fa-check-circle text-success'" class="me-2"></i>
+                                                <span class="budget-impact-text fw-bold">Budget Impact:</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="budget-impact-text">
+                                                    <strong class="budget-impact-amount">{{ formatProjectedCurrency(projectedTotal) }}</strong> / {{ formatProjectedCurrency(globalBudget) }}
+                                                </span>
+                                                <span class="budget-impact-text" v-if="budgetExceeded">
+                                                    <strong class="budget-impact-status over-budget">Over by {{ formatProjectedCurrency(budgetExcess) }}</strong>
+                                                </span>
+                                                <span class="budget-impact-text" v-else>
+                                                    <strong class="budget-impact-status within-budget">Within Budget</strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Thin progress bar -->
+                                        <div class="budget-progress-thin mt-2">
+                                            <div class="budget-progress-bar" 
+                                                :class="budgetExceeded ? 'over-budget' : 'within-budget'" 
+                                                :style="{width: Math.min(100, (projectedTotal / globalBudget) * 100) + '%'}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="modal-body" style="overflow-y: auto; flex: 1; padding-top: 0;">
                                     <div v-if="roleRates.length === 0" class="text-center py-4">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-4">
+                                        <!-- Fixed search bar -->
+                                        <div class="search-bar-fixed">
                                             <div class="input-group border border-1 border-white rounded">
-                                                <!-- <span class="input-group-text">Search</span> -->
                                                 <span class="input-group-text bg-secondary text-white">
-                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                    <i class="bi bi-search"></i>
                                                 </span>
                                                 <input 
                                                     type="text" 
@@ -435,26 +554,32 @@
                                                 >
                                             </div>
                                         </div>
-                                        <div class="mb-3" v-for="role in filteredRoleRates" :key="role.role_id">
-                                            <label class="form-label">{{ role.title }}</label>
-                                            <div class="input-group mb-2">
-                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
-                                                <span class="input-group-text">R</span>
-                                                <input type="number" class="form-control bg-secondary text-white" 
-                                                    v-model.number="role.base_hourly_rate" step="0.01" min="0">
-                                            </div>
-                                            <div class="input-group">
-                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
-                                                <span class="input-group-text">R</span>
-                                                <input type="number" class="form-control bg-secondary text-white" 
-                                                    v-model.number="role.overtime_hourly_rate" step="0.01" min="0">
+                                        <!-- Scrollable content area -->
+                                        <div class="px-3">
+                                            <div class="mb-3" v-for="role in filteredRoleRates" :key="role.role_id">
+                                                <label class="form-label">{{ role.title }}</label>
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text" style="width: 130px;">Base Rate</span>
+                                                    <span class="input-group-text">R</span>
+                                                    <input type="number" class="form-control bg-secondary text-white" 
+                                                        v-model.number="role.base_hourly_rate" step="0.01" min="0">
+                                                </div>
+                                                <div class="input-group">
+                                                    <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
+                                                    <span class="input-group-text">R</span>
+                                                    <input type="number" class="form-control bg-secondary text-white" 
+                                                        v-model.number="role.overtime_hourly_rate" step="0.01" min="0">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer border-secondary sticky-bottom bg-dark py-3">
                                     <button type="button" class="btn btn-secondary" @click="showRoleModal = false">Cancel</button>
-                                    <button type="button" class="btn btn-primary" @click="saveRoleRates">
+                                    <button type="button" 
+                                            :class="budgetExceeded ? 'btn btn-danger' : 'btn btn-primary'" 
+                                            @click="saveRoleRatesWithBudgetCheck">
+                                        <i v-if="budgetExceeded" class="fa fa-exclamation-triangle me-2"></i>
                                         Save Changes
                                     </button>
                                 </div>
@@ -471,18 +596,49 @@
                                     <h5 class="modal-title">Manage Employee Rates</h5>
                                     <button type="button" class="btn-close btn-close-white" @click="showEmployeeModal = false"></button>
                                 </div>
-                                <div class="modal-body" style="overflow-y: auto; flex: 1;">
+                                
+                                <!-- Updated Budget Summary for Employee Modal -->
+                                <div class="budget-summary-fixed">
+                                    <div class="budget-impact-display" :class="budgetExceeded ? 'over-budget' : 'within-budget'">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <i :class="budgetExceeded ? 'fa fa-exclamation-triangle text-danger' : 'fa fa-check-circle text-success'" class="me-2"></i>
+                                                <span class="budget-impact-text fw-bold">Budget Impact:</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="budget-impact-text">
+                                                    <strong class="budget-impact-amount">{{ formatProjectedCurrency(projectedTotal) }}</strong> / {{ formatProjectedCurrency(globalBudget) }}
+                                                </span>
+                                                <span class="budget-impact-text" v-if="budgetExceeded">
+                                                    <strong class="budget-impact-status over-budget">Over by {{ formatProjectedCurrency(budgetExcess) }}</strong>
+                                                </span>
+                                                <span class="budget-impact-text" v-else>
+                                                    <strong class="budget-impact-status within-budget">Within Budget</strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Thin progress bar -->
+                                        <div class="budget-progress-thin mt-2">
+                                            <div class="budget-progress-bar" 
+                                                :class="budgetExceeded ? 'over-budget' : 'within-budget'" 
+                                                :style="{width: Math.min(100, (projectedTotal / globalBudget) * 100) + '%'}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="modal-body" style="overflow-y: auto; flex: 1; padding-top: 0;">
                                     <div v-if="employeeRates.length === 0" class="text-center py-4">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="mb-4">
+                                        <!-- Fixed search bar -->
+                                        <div class="search-bar-fixed">
                                             <div class="input-group border border-1 border-white rounded">
-                                                <!-- <span class="input-group-text">Search</span> -->
                                                 <span class="input-group-text bg-secondary text-white">
-                                                    <i class="bi bi-search"></i>  <!-- Bootstrap search icon -->
+                                                    <i class="bi bi-search"></i>
                                                 </span>
                                                 <input 
                                                     type="text" 
@@ -493,32 +649,38 @@
                                                 >
                                             </div>
                                         </div>
-                                        <div class="mb-3" v-for="employee in filteredEmployeeRates" :key="employee.employee_id">
-                                            <label class="form-label">{{ employee.employee_name }} - {{ employee.role_title }}</label>
-                                            <div class="input-group mb-2">
-                                                <span class="input-group-text" style="width: 130px;">Base Rate</span>
-                                                <span class="input-group-text">R</span>
-                                                <input type="number" class="form-control bg-secondary text-white" 
-                                                    v-model.number="employee.base_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
-                                                    (Role default: {{ formatCurrency(employee.role_base_rate) }})
-                                                </span>
-                                            </div>
-                                            <div class="input-group">
-                                                <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
-                                                <span class="input-group-text">R</span>
-                                                <input type="number" class="form-control bg-secondary text-white" 
-                                                    v-model.number="employee.overtime_hourly_rate" step="0.01" min="0">
-                                                <span class="input-group-text bg-dark text-muted" style="width: 180px;">
-                                                    (Role default: {{ formatCurrency(employee.role_overtime_rate) }})
-                                                </span>
+                                        <!-- Scrollable content area -->
+                                        <div class="px-3">
+                                            <div class="mb-3" v-for="employee in filteredEmployeeRates" :key="employee.employee_id">
+                                                <label class="form-label">{{ employee.employee_name }} - {{ employee.role_title }}</label>
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text" style="width: 130px;">Base Rate</span>
+                                                    <span class="input-group-text">R</span>
+                                                    <input type="number" class="form-control bg-secondary text-white" 
+                                                        v-model.number="employee.base_hourly_rate" step="0.01" min="0">
+                                                    <span class="input-group-text bg-dark text-muted" style="width: 180px;">
+                                                        (Role default: {{ formatCurrency(employee.role_base_rate) }})
+                                                    </span>
+                                                </div>
+                                                <div class="input-group">
+                                                    <span class="input-group-text" style="width: 130px;">Overtime Rate</span>
+                                                    <span class="input-group-text">R</span>
+                                                    <input type="number" class="form-control bg-secondary text-white" 
+                                                        v-model.number="employee.overtime_hourly_rate" step="0.01" min="0">
+                                                    <span class="input-group-text bg-dark text-muted" style="width: 180px;">
+                                                        (Role default: {{ formatCurrency(employee.role_overtime_rate) }})
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer border-secondary sticky-bottom bg-dark py-3">
                                     <button type="button" class="btn btn-secondary" @click="showEmployeeModal = false">Cancel</button>
-                                    <button type="button" class="btn btn-primary" @click="saveEmployeeRates">
+                                    <button type="button" 
+                                            :class="budgetExceeded ? 'btn btn-danger' : 'btn btn-primary'" 
+                                            @click="saveEmployeeRatesWithBudgetCheck">
+                                        <i v-if="budgetExceeded" class="fa fa-exclamation-triangle me-2"></i>
                                         Save Changes
                                     </button>
                                 </div>
