@@ -64,13 +64,13 @@ const Shift = () => {
           fullDate: new Date(date_).toLocaleDateString('en-CA'),
           start: start_time,
           end: end_time,
-          eventName: event_title ? event_title : 'No events',
+          eventName: event_title ? event_title : 'No Event',
           eventDesc: event_description,
           hasEvent: !!event_title, //Simple flag to check if event exists
           eventType: event_title ? (event_description?.length > 50 ? 'detailed' : 'standard') : 'none' //Categorize events
         }));
         setShifts(shiftData);
-        console.log(shiftData);
+        // console.log(shiftData);
       } catch(err) {
         Alert.alert('Failed to fetch shifts:', err);
       }
@@ -465,11 +465,11 @@ const Shift = () => {
                 const hasEvent = shift?.eventName;
                 
                 return (
-                   <TouchableOpacity 
-                      style={styles.dayContainer}
-                      onPress={() => setSelectedDate(date.dateString)}
-                      disabled={state === 'disabled'}
-                    >
+                 <TouchableOpacity 
+                    style={styles.dayContainer}
+                    onPress={() => setSelectedDate(date.dateString)}
+                    disabled={state === 'disabled'}
+                  >
                     <Text style={[
                       styles.dayText,
                       state === 'disabled' && styles.disabledDayText,
@@ -485,12 +485,12 @@ const Shift = () => {
                         styles.eventBadge,
                         marking?.selected && styles.eventBadgeSelected
                       ]}>
-                        <Text style={styles.eventBadgeText}>●</Text>
+                        <Text style={styles.eventBadgeText}>{shift.eventName}</Text>
                       </View>
                     )}
                     
                     {/* Shift dot indicator */}
-                    {marking?.marked && (
+                    {marking?.marked && hasEvent && (
                       <View style={[
                         styles.dot,
                         { backgroundColor: marking.dotColor }
@@ -972,11 +972,11 @@ const styles = StyleSheet.create({
     borderColor: '#1a1a1a',
   },
   eventBadgeSelected: {
-    borderColor: '#ffffff',
+    // borderColor: '#ffffff',
     backgroundColor: 'transparent',
   },
   eventBadgeText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 6,
     fontWeight: 'bold',
   },
