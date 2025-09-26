@@ -274,9 +274,7 @@ const Shift = () => {
         original_shift_id: originalShiftId,
         requested_shift_id: requestedShiftId,
         requesting_employee_id: requestingEmployeeId,
-        approving_employee_id: selectedColleague,
-        assigned_Date: assignedDateStr,  
-        swap_Date: swapDateStr 
+        approving_employee_id: selectedColleague
       };
 
       //Create shift swap request.
@@ -290,7 +288,7 @@ const Shift = () => {
       Alert.alert('Shift-Swap submitted successfully.', result.message);
       setShowRequestForm(false);
     } catch (error) {
-      Alert.alert('Failed to submit shift-swap request');
+      Alert.alert('Failed to submit shift-swap request', error);
       //console.error(error);
     }
   };
@@ -592,7 +590,7 @@ const Shift = () => {
                     onPress={() => setShowAssignedCalendar(!showAssignedCalendar)}
                   >
                     <Text style={styles.dateText}>
-                      {assignedDate ? assignedDate.toLocaleDateString('en-CA') : 'Select a date'}
+                      {assignedDate ? assignedDate.toLocaleDateString('en-CA'): 'Select a shift to swap'}
                     </Text>
                   </TouchableOpacity>
 
@@ -631,7 +629,7 @@ const Shift = () => {
                     onPress={() => setShowSwapCalendar(!showSwapCalendar)}
                   >
                     <Text style={styles.dateText}>
-                      {swapDate ? swapDate.toLocaleDateString('en-CA') : 'Select a date'}
+                      {swapDate ? swapDate.toLocaleDateString('en-CA') : 'Select a preferred swap date'}
                     </Text>
                   </TouchableOpacity>
 
