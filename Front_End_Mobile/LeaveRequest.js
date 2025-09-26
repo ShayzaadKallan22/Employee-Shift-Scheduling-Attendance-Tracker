@@ -185,21 +185,21 @@ const LeaveTypes = React.useMemo(() => [
   };
 
   //Handle picking a sick note
-  const handlePickSickNote = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'application/pdf',
-      copyToCacheDirectory: true,
-    });
+  // const handlePickSickNote = async () => {
+  //   const result = await DocumentPicker.getDocumentAsync({
+  //     type: 'application/pdf',
+  //     copyToCacheDirectory: true,
+  //   });
 
-    if (!result.canceled) {
-      //Check if the selected file is a PDF
-      if (!result.assets[0].name.toLowerCase().endsWith('.pdf')) {
-        Alert.alert('Invalid file', 'Only PDF files are allowed.');
-        return;
-      }
-      setSickNote(result.assets[0]);
-    }
-  };
+  //   if (!result.canceled) {
+  //     //Check if the selected file is a PDF
+  //     if (!result.assets[0].name.toLowerCase().endsWith('.pdf')) {
+  //       Alert.alert('Invalid file', 'Only PDF files are allowed.');
+  //       return;
+  //     }
+  //     setSickNote(result.assets[0]);
+  //   }
+  // };
 
   //Submit leave request
   const handleSubmit = async () => {
@@ -606,13 +606,13 @@ const LeaveTypes = React.useMemo(() => [
             </Picker>
           </View>
           
-          {leaveType === 'Sick' && (
+          {/* {leaveType === 'Sick' && (
             <TouchableOpacity onPress={handlePickSickNote} style={[styles.input, { borderColor: '#007bff', borderWidth: 1 }]}>
               <Text style={styles.inputText}>
                 {sickNote ? `Selected: ${sickNote.name}` : 'Upload PDF Sick Note (if required)'}
               </Text>
             </TouchableOpacity>
-          )}
+          )} */}
 
           <TouchableOpacity 
             style={[styles.submitButton, isLoading && styles.disabledButton]} 
