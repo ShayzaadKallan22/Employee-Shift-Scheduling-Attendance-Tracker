@@ -85,7 +85,7 @@ exports.scanQR = async (req, res) => {
     const [shiftRows] = await db.execute(shiftQuery, queryParams);
 
     if (shiftRows.length === 0) {
-      return res.status(404).json({ message: `No ${shiftType} shift found for clock-out.` });
+      return res.status(404).json({ message: `No ${shiftType} shift found.` });
     }
 
     const shift_id = shiftRows[0].shift_id;
@@ -120,7 +120,7 @@ exports.scanQR = async (req, res) => {
          WHERE employee_id = ?`, ['Working', employee_id]
       );
 
-      return res.status(200).json({ message: `QR code has been accepted for ${qr.Purpose}` });
+      return res.status(200).json({ message: `QR code has been accepted for clock in.}` });
       
     } else if (qr.purpose === 'attendanceNormal' || qr.purpose === 'attendance') {
 
