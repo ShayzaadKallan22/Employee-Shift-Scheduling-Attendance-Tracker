@@ -558,9 +558,9 @@ const ClockInScreen = () => {
          {/* Location Status */}
         <View style={styles.locationStatus}>
           <Icon 
-            name={locationStatus.includes('verified') ? 'location' : 'location'} 
+            name={locationStatus.includes('Location verified') ? 'location' : 'location'} 
             size={16} 
-            color={locationStatus.includes('verified') ? '#4CAF50' : '#FF4444'} 
+            color={locationStatus.includes('Location verified') ? '#4CAF50' : '#FF4444'} 
           />
           {/* <Text style={[
             styles.locationStatusText,
