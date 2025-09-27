@@ -199,11 +199,11 @@ function initializeMessageSystem() {
   loadRecentMessages();
   updateMessageCount();
 
-  // Polling as a fallback (every 30 seconds)
+  // Polling as a fallback (every 5 seconds)
   window.messageRefreshInterval = setInterval(() => {
     loadRecentMessages();
     updateMessageCount();
-  }, 30000);
+  }, 5000);
 
   // Listen for real-time updates from the broadcast channel
   messageChannel.onmessage = (event) => {

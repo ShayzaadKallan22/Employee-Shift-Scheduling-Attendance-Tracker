@@ -199,40 +199,140 @@
       .event-calendar {
         padding: 6px;
       }
-      
+
       .calendar-header {
         margin-bottom: 6px;
       }
-      
+
       .calendar-title {
         font-size: 0.85rem;
       }
-      
+
       .calendar-weekdays {
         font-size: 0.7rem;
         margin-bottom: 3px;
       }
-      
+
       .calendar-day {
         height: 22px;
         font-size: 0.7rem;
       }
-      
+
       .day-number {
         font-size: 0.75rem;
       }
     }
 
     .calendar-day.closed {
-  background-color: rgba(108, 117, 125, 0.3);
-  border-color: #6c757d;
-  color: #6c757d;
-  cursor: not-allowed;
+      background-color: rgba(108, 117, 125, 0.3);
+      border-color: #6c757d;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .calendar-day.closed .day-number {
+      color: #6c757d;
+      text-decoration: line-through;
+    }
+
+    .shift-working {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .shift-not-working {
+      color: #6c757d;
+    }
+
+    .shift-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .shift-icon {
+      font-size: 1.1em;
+    }
+
+    /* Shift Details Modal Animations */
+.shift-item {
+  animation: slideInUp 0.3s ease-out;
+  animation-fill-mode: both;
 }
 
-.calendar-day.closed .day-number {
-  color: #6c757d;
-  text-decoration: line-through;
+.shift-item:nth-child(1) { animation-delay: 0.1s; }
+.shift-item:nth-child(2) { animation-delay: 0.2s; }
+.shift-item:nth-child(3) { animation-delay: 0.3s; }
+.shift-item:nth-child(4) { animation-delay: 0.4s; }
+.shift-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.shift-details-container {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.no-shifts-icon {
+  animation: bounceIn 1s ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hover effects */
+.shift-item:hover {
+  transform: translateX(5px);
+  transition: transform 0.2s ease;
+}
+
+/* Pulse animation for new content */
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
 }
   </style>
 </head>
@@ -254,7 +354,7 @@
         <a href="index.html" class="navbar-brand mx-4 mb-3">
           <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
         </a>
-        <div class="d-flex align-items-center ms-4 mb-4">
+        <!-- <div class="d-flex align-items-center ms-4 mb-4">
           <div class="position-relative">
             <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
             <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
@@ -263,6 +363,22 @@
           <div class="ms-3">
             <h6 class="mb-0">Employee Manager Demo</h6>
             <span>Admin</span>
+          </div>
+        </div> -->
+
+        <div class="d-flex align-items-center ms-4 mb-4">
+          <div class="position-relative">
+            <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+            <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+            </div>
+          </div>
+          <div class="ms-3">
+            <h6 class="mb-0" id="profile-name">
+              <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+              </a>
+            </h6>
+            <span>Manager</span>
           </div>
         </div>
         <div class="navbar-nav w-100">
@@ -321,7 +437,7 @@
                           <i class="fas fa-chevron-right"></i>
                         </button>
                       </div>
-                      
+
                       <div class="calendar-weekdays">
                         <div class="calendar-weekday">Sun</div>
                         <div class="calendar-weekday">Mon</div>
@@ -331,35 +447,32 @@
                         <div class="calendar-weekday">Fri</div>
                         <div class="calendar-weekday">Sat</div>
                       </div>
-                      
+
                       <div class="calendar-days">
-                       <div v-for="day in calendarDays" :key="day.id" 
-     :class="['calendar-day', 
+                        <div v-for="day in calendarDays" :key="day.id" :class="['calendar-day', 
              day.isEmpty ? 'empty' : '',
              day.isToday ? 'today' : '',
              day.hasEvents ? 'has-events' : '',
              day.isSelected ? 'selected' : '',
-             day.isClosedDay ? 'closed' : '']"
-     @click="!day.isClosedDay && selectDate(day)">
-  <span class="day-number">{{ day.isEmpty ? '' : day.date }}</span>
-  <div v-if="day.isClosedDay" class="text-muted" style="font-size: 0.6rem;">
-    Closed
-  </div>
-  <div v-else-if="day.eventsCount > 0" class="event-dots">
-    <span v-for="n in Math.min(day.eventsCount, 3)" :key="n" class="event-dot"></span>
-    <span v-if="day.eventsCount > 3" class="event-more">+{{ day.eventsCount - 3 }}</span>
-  </div>
-</div>
+             day.isClosedDay ? 'closed' : '']" @click="!day.isClosedDay && selectDate(day)">
+                          <span class="day-number">{{ day.isEmpty ? '' : day.date }}</span>
+                          <div v-if="day.isClosedDay" class="text-muted" style="font-size: 0.6rem;">
+                            Closed
+                          </div>
+                          <div v-else-if="day.eventsCount > 0" class="event-dots">
+                            <span v-for="n in Math.min(day.eventsCount, 3)" :key="n" class="event-dot"></span>
+                            <span v-if="day.eventsCount > 3" class="event-more">+{{ day.eventsCount - 3 }}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    
+
                     <!-- Date Actions Panel -->
                     <div class="date-actions" :class="{ visible: selectedDate }">
                       <h6 class="text-white mb-3">Events on {{ selectedDateFormatted }}</h6>
-                      
+
                       <div v-if="selectedDateEvents.length > 0">
-                        <div v-for="event in selectedDateEvents" :key="event.event_id" 
-                             class="bg-dark p-3 rounded mb-2">
+                        <div v-for="event in selectedDateEvents" :key="event.event_id" class="bg-dark p-3 rounded mb-2">
                           <h6 class="text-white">{{ event.event_name }}</h6>
                           <p class="text-muted mb-1">{{ event.start_time }} - {{ event.end_time }}</p>
                           <p class="text-muted mb-2">{{ event.location }}</p>
@@ -382,7 +495,7 @@
                       <div v-else class="text-center text-muted py-3">
                         No events scheduled for this date
                       </div>
-                      
+
                       <div class="mt-3">
                         <button class="btn btn-sm btn-primary" @click="createEventForSelectedDate">
                           <i class="fa fa-plus me-1"></i>Create Event on This Date
@@ -427,9 +540,14 @@
                           </td>
                           <td>{{ event.location || 'Night Lounge' }}</td>
                           <td>
-                            <span v-for="role in event.required_roles" :key="role" class="badge bg-info me-1">
+                            <!-- <span v-for="role in event.required_roles" :key="role" class="badge bg-info me-1">
                               {{ formatRoleName(role) }}
+                            </span> -->
+                            <span v-for="roleId in event.required_roles" :key="roleId" class="badge me-1"
+                              style="color: #00a4e0;">
+                              {{ formatRoleName(roleId) }}
                             </span>
+
                           </td>
                           <td>
                             <span class="badge bg-info">{{ event.assigned_staff || 0 }} staff</span>
@@ -466,77 +584,79 @@
                             <div class="row">
                               <div class="col-md-6 mb-3">
                                 <label class="form-label">Event Name</label>
-                                <input type="text" class="form-control bg-secondary text-white" v-model="currentEvent.event_name" required>
+                                <input type="text" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.event_name" required>
                               </div>
                               <div class="col-md-6 mb-3">
                                 <label class="form-label">Location</label>
-                                <input type="text" class="form-control bg-secondary text-white" v-model="currentEvent.location" placeholder="Night Lounge">
+                                <input type="text" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.location" placeholder="Night Lounge">
                               </div>
                             </div>
 
                             <div class="mb-3">
                               <label class="form-label">Description</label>
-                              <textarea class="form-control bg-secondary text-white" v-model="currentEvent.description" rows="2"></textarea>
+                              <textarea class="form-control bg-secondary text-white" v-model="currentEvent.description"
+                                rows="2"></textarea>
                             </div>
 
-                           <!-- In your event modal form -->
-<div class="row">
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Start Date</label>
-    <input type="date" class="form-control bg-secondary text-white" 
-           v-model="currentEvent.start_date" 
-           @change="validateDateInput('start')"
-           :min="getMinDate()"
-           required>
-    <small class="text-warning" v-if="dateError.start">{{ dateError.start }}</small>
-  </div>
-  <div class="col-md-6 mb-3">
-    <label class="form-label">End Date</label>
-    <input type="date" class="form-control bg-secondary text-white" 
-           v-model="currentEvent.end_date" 
-           @change="validateDateInput('end')"
-           :min="currentEvent.start_date || getMinDate()"
-           required>
-    <small class="text-warning" v-if="dateError.end">{{ dateError.end }}</small>
-  </div>
-</div>
+                            <!-- In your event modal form -->
+                            <div class="row">
+                              <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.start_date" @change="validateDateInput('start')"
+                                  :min="getMinDate()" required>
+                                <small class="text-warning" v-if="dateError.start">{{ dateError.start }}</small>
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.end_date" @change="validateDateInput('end')"
+                                  :min="currentEvent.start_date || getMinDate()" required>
+                                <small class="text-warning" v-if="dateError.end">{{ dateError.end }}</small>
+                              </div>
+                            </div>
 
                             <div class="row">
                               <div class="col-md-6 mb-3">
                                 <label class="form-label">Start Time</label>
-                                <input type="time" class="form-control bg-secondary text-white" v-model="currentEvent.start_time" required>
+                                <input type="time" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.start_time" required>
                               </div>
                               <div class="col-md-6 mb-3">
                                 <label class="form-label">End Time</label>
-                                <input type="time" class="form-control bg-secondary text-white" v-model="currentEvent.end_time" required>
+                                <input type="time" class="form-control bg-secondary text-white"
+                                  v-model="currentEvent.end_time" required>
                               </div>
                             </div>
 
                             <div class="mb-3">
                               <label class="form-label">Expected Attendance</label>
-                              <input type="number" class="form-control bg-secondary text-white" v-model="currentEvent.expected_attendance" min="0">
+                              <input type="number" class="form-control bg-secondary text-white"
+                                v-model="currentEvent.expected_attendance" min="0">
                             </div>
 
                             <div class="mb-3">
-  <label class="form-label">Select Required Roles</label>
-  <div class="role-selection bg-secondary p-3 rounded">
-    <div class="row">
-      <div class="col-md-6" v-for="role in availableRoles" :key="role.value">
-        <div class="form-check">
-          <input class="form-check-input role-checkbox" type="checkbox" 
-                 :value="role.value" :id="'role-' + role.value" 
-                 v-model="currentEvent.requiredRoles">
-          <label class="form-check-label" :for="'role-' + role.value">
-            {{ role.label }}
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-  <small class="text-muted">All employees with selected roles will be automatically assigned to this event.</small>
-</div>
+                              <label class="form-label">Select Required Roles</label>
+                              <div class="role-selection bg-secondary p-3 rounded">
+                                <div class="row">
+                                  <div class="col-md-6" v-for="role in availableRoles" :key="role.value">
+                                    <div class="form-check">
+                                      <input class="form-check-input role-checkbox" type="checkbox" :value="role.value"
+                                        :id="'role-' + role.value" v-model="currentEvent.requiredRoles">
+                                      <label class="form-check-label" :for="'role-' + role.value">
+                                        {{ role.label }}
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <small class="text-muted">Employees with selected roles will be automatically assigned to
+                                this event based on their schedule.</small>
+                            </div>
 
-                            
+
 
                             <div class="modal-footer">
                               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -551,24 +671,60 @@
                   </div>
 
                   <!-- Event Staff Modal -->
+                  <!-- Staff Modal -->
                   <div class="modal fade" id="staffModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-lg"> <!-- Increased size to modal-lg -->
                       <div class="modal-content bg-dark">
                         <div class="modal-header">
-                          <h5 class="modal-title">Staff Possibly Assigned to {{ currentEvent.event_name }}</h5>
+                          <h5 class="modal-title">Possible Staff Assigned to {{ currentEvent.event_name }}</h5>
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                          <ul class="list-group">
-                            <li v-for="staff in eventStaff" :key="staff.employee_id" 
-                                class="list-group-item bg-secondary text-white d-flex justify-content-between align-items-center">
-                              {{ staff.first_name }} {{ staff.last_name }}
-                              <span class="badge bg-info">{{ formatRoleName(staff.role) }}</span>
-                            </li>
-                            <li v-if="eventStaff.length === 0" class="list-group-item bg-secondary text-white text-center">
-                              No staff assigned to this event
-                            </li>
-                          </ul>
+                          <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                              <thead>
+                                <tr>
+                                  <th>Name</th>
+                                  <th>Role</th>
+                                  <th>Shift Status</th>
+                                  <th>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr v-for="staff in eventStaff" :key="staff.employee_id">
+                                  <td>{{ staff.first_name }} {{ staff.last_name }}</td>
+                                  <td>
+                                    <span class="badge bg-info">{{ staff.role_name }}</span>
+                                  </td>
+                                  <td>
+                                    <span v-if="staff.has_shift_during_event" class="badge bg-success">
+                                      <i class="fa fa-calendar-check me-1"></i>Working Shift
+                                    </span>
+                                    <span v-else class="badge bg-warning">
+                                      <i class="fa fa-calendar-times me-1"></i>No Shift
+                                    </span>
+                                  </td>
+                                  <!-- <td>
+                                    <button class="btn btn-sm btn-outline-light"
+                                      @click="viewEmployeeShifts(staff.employee_id)">
+                                      <i class="fa fa-eye me-1"></i>View Shifts
+                                    </button>
+                                  </td> -->
+                                  <td>
+  <button class="btn btn-sm btn-outline-info" 
+          @click="viewEmployeeShifts(staff.employee_id)"
+          title="View shifts during event dates">
+    <i class="fa fa-calendar-alt me-1"></i>View Shifts
+  </button>
+</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <div v-if="eventStaff.length === 0" class="text-center text-muted py-4">
+                            <i class="fa fa-users fa-3x mb-3"></i>
+                            <p>No staff assigned to this event</p>
+                          </div>
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -576,6 +732,76 @@
                       </div>
                     </div>
                   </div>
+                  <!-- Shift Details Modal -->
+<div class="modal fade" id="shiftDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fa fa-calendar-alt me-2"></i>
+          Shift Details for {{ currentEmployee ? currentEmployee.first_name + ' ' + currentEmployee.last_name : 'Employee' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="shift-details-container">
+          <div class="event-info mb-4 p-3 bg-secondary rounded">
+            <h6 class="text-warning mb-2">
+              <i class="fa fa-calendar-day me-2"></i>Event Dates
+            </h6>
+            <p class="mb-1 text-light">
+              {{ formatEventDateRange(currentEvent.start_date, currentEvent.end_date) }}
+            </p>
+            <small class="text-muted">
+              {{ currentEvent.start_time }} - {{ currentEvent.end_time }}
+            </small>
+          </div>
+          
+          <div v-if="shiftDetails.length > 0">
+            <h6 class="text-success mb-3">
+              <i class="fa fa-check-circle me-2"></i>
+              Shifts During Event ({{ shiftDetails.length }})
+            </h6>
+            <div class="shifts-list">
+              <div v-for="(shift, index) in shiftDetails" 
+                   :key="index"
+                   class="shift-item card bg-secondary mb-2 border-0">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 class="text-white mb-1">
+                        <i class="fa fa-calendar me-2"></i>{{ formatShiftDate(shift.date_) }}
+                      </h6>
+                      <p class="mb-0 text-light">
+                        <i class="fa fa-clock me-2"></i>{{ shift.start_time }} - {{ shift.end_time }}
+                      </p>
+                    </div>
+                    <span class="badge bg-success">
+                      <i class="fa fa-check me-1"></i>Scheduled
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div v-else class="text-center py-4">
+            <div class="no-shifts-icon mb-3">
+              <i class="fa fa-calendar-times fa-3x text-warning"></i>
+            </div>
+            <h6 class="text-warning">No Shifts Scheduled</h6>
+            <p class="text-muted">This employee has no shifts scheduled during the event dates.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fa fa-times me-1"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
                 </div>
               </div>
             </div>

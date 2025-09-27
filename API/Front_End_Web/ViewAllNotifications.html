@@ -941,7 +941,7 @@
                     if (notification.type === "attendance" && !employeeId) {
                       // Regex to handle multiple attendance notification formats
                       const match = notification.message.match(
-                        /^([A-Za-z\s]+) (?:has missed an overtime shift|failed to clock in for their overtime shift|has missed a shift from \d{2}\/\d{2}\/\d{4} to \d{2}\/\d{2}\/\d{4})/
+                        /^([A-Za-z'-]+ [A-Za-z'-]+)/
                       );
                       if (match) {
                         const name = match[1].trim();

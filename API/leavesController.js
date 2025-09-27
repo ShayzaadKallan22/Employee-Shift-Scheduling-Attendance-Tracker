@@ -271,7 +271,7 @@ exports.uploadSickNote = async (req, res) => {
         }
 
         const [employee] = await db.execute(
-            `SELECT CONCAT(first_name, last_name) As name
+            `SELECT CONCAT(first_name, " ", last_name) As name
              FROM t_employee WHERE employee_id = ?`, [leaveRecord[0].employee_id]
         );
 

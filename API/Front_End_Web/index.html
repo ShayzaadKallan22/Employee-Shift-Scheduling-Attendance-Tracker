@@ -190,7 +190,7 @@
                     </div>
                 </div> -->
                 
-<!-- In index.html, find the sidebar section and update it: -->
+
 <div class="d-flex align-items-center ms-4 mb-4">
     <div class="position-relative">
         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
@@ -227,6 +227,7 @@
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
                     <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    
                 </div>
             </nav>
         </div>
@@ -445,8 +446,7 @@
                     :key="request.leave_id">
                     <div class="w-100">
                         <div class="d-flex w-100 align-items-center justify-content-between">
-                            <span>{{ request.first_name }} {{ request.last_name }} (EMP-{{
-                                request.employee_id }}): {{ request.leave_type }}</span>
+                            <span>{{ request.first_name }} {{ request.last_name }} : {{ request.leave_type }}</span>
                             <div>
                                 <button @click="respondToLeave(request.leave_id, 'approved')"
                                     class="btn btn-sm btn-success me-2">Approve</button>
