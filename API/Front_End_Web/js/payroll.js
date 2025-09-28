@@ -15,8 +15,8 @@ createApp({
             roleSearchQuery: '',
             filteredRoleRates: [],
             projectedTotal: 0,
-        budgetExceeded: false,
-        budgetExcess: 0,
+            budgetExceeded: false,
+            budgetExcess: 0,
         
 
             //Summary statistics for the current payroll period
@@ -49,108 +49,180 @@ createApp({
                 hasAdjustment: false
             },
             showBudgetDetailsModal: false,
+
+            //Confirmation modal properties
+            showSaveConfirmationModal: false,
+            showOverBudgetModal: false,
+            pendingSaveAction: null,
+            overBudgetAmount: 0,
+            confirmationType: '',
         };
+        
     },
 
     methods: {
-        // Calculate projected total payroll based on current form values
-    // Calculate projected total payroll based on current form values
-calculateProjectedTotal() {
-    let total = 0;
-    
-    if (this.showEmployeeModal) {
-        // Calculate for employee rate changes
-        for (const employee of this.employeeRates) {
-            // Find corresponding payment details for this employee
-            const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
-            
-            if (paymentData) {
-                const regularHours = parseFloat(paymentData.regular_hours) || 0;
-                const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
-                const baseRate = parseFloat(employee.base_hourly_rate) || 0;
-                const overtimeRate = parseFloat(employee.overtime_hourly_rate) || 0;
-                
-                total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
-            }
-        }
-    } else if (this.showRoleModal) {
-        // Calculate for role rate changes - affects all employees using those roles
-        for (const employee of this.employeeRates) {
-            const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
-            
-            if (paymentData) {
-                const regularHours = parseFloat(paymentData.regular_hours) || 0;
-                const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
-                
-                // Find the role for this employee
-                const role = this.roleRates.find(r => r.title === employee.role_title);
-                
-                if (role) {
-                    // Check if employee has custom rates (different from role defaults)
-                    // You may need to adjust these field names based on your actual data structure
-                    const hasCustomBaseRate = employee.base_hourly_rate !== employee.role_base_rate;
-                    const hasCustomOvertimeRate = employee.overtime_hourly_rate !== employee.role_overtime_rate;
-                    
-                    // Use employee custom rate if exists, otherwise use updated role rate
-                    const baseRate = hasCustomBaseRate ? 
-                        parseFloat(employee.base_hourly_rate) : 
-                        parseFloat(role.base_hourly_rate) || 0;
-                    const overtimeRate = hasCustomOvertimeRate ? 
-                        parseFloat(employee.overtime_hourly_rate) : 
-                        parseFloat(role.overtime_hourly_rate) || 0;
-                    
-                    total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
-                }
-            }
-        }
-    }
-    
-    this.projectedTotal = total;
-    this.budgetExceeded = total > this.globalBudget;
-    this.budgetExcess = Math.max(0, total - this.globalBudget);
-    
-    return total;
-},
 
-    // Format currency for display
-    formatProjectedCurrency(value) {
-        return this.formatCurrency(value);
-    },
-
-    // Enhanced save methods with budget confirmation
+    // Enhanced save methods with user-friendly modal confirmation
     async saveRoleRatesWithBudgetCheck() {
         this.calculateProjectedTotal();
         
         if (this.budgetExceeded) {
-            const confirmed = confirm(
-                `Warning: These changes will exceed the weekly budget by ${this.formatCurrency(this.budgetExcess)}. Are you sure you want to proceed?`
-            );
-            
-            if (!confirmed) {
-                return;
-            }
+            // Show over-budget confirmation modal
+            this.showOverBudgetModal = true;
+            this.pendingSaveAction = this.saveRoleRates;
+            this.overBudgetAmount = this.budgetExcess;
+            this.showRoleModal = false;
+        } else {
+            // Show regular confirmation modal for under-budget changes
+            this.showSaveConfirmationModal = true;
+            this.pendingSaveAction = this.saveRoleRates;
+            this.confirmationType = 'role';
+            this.showRoleModal = false;
         }
-        
-        await this.saveRoleRates();
     },
 
     async saveEmployeeRatesWithBudgetCheck() {
         this.calculateProjectedTotal();
         
         if (this.budgetExceeded) {
-            const confirmed = confirm(
-                `Warning: These changes will exceed the weekly budget by ${this.formatCurrency(this.budgetExcess)}. Are you sure you want to proceed?`
-            );
-            
-            if (!confirmed) {
-                return;
+            // Show over-budget confirmation modal
+            this.showOverBudgetModal = true;
+            this.pendingSaveAction = this.saveEmployeeRates;
+            this.overBudgetAmount = this.budgetExcess;
+            this.showEmployeeModal = false;
+        } else {
+            // Show regular confirmation modal for under-budget changes
+            this.showSaveConfirmationModal = true;
+            this.pendingSaveAction = this.saveEmployeeRates;
+            this.confirmationType = 'employee';
+            this.showEmployeeModal = false;
+        }
+    },
+
+    // Execute the pending save action after confirmation
+    async executePendingSave() {
+        if (this.pendingSaveAction) {
+            await this.pendingSaveAction();
+        }
+        this.closeAllConfirmationModals();
+    },
+
+    // Close all confirmation modals
+    closeAllConfirmationModals() {
+        this.showSaveConfirmationModal = false;
+        this.showOverBudgetModal = false;
+        this.pendingSaveAction = null;
+        this.overBudgetAmount = 0;
+        this.confirmationType = '';
+    },
+
+    //Calculate projected total payroll based on current form values
+    calculateProjectedTotal() {
+        let total = 0;
+        
+        if (this.showEmployeeModal) {
+            //Calculate for employee rate changes
+            for (const employee of this.employeeRates) {
+                //Find corresponding payment details for this employee
+                const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
+                
+                if (paymentData) {
+                    const regularHours = parseFloat(paymentData.regular_hours) || 0;
+                    const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
+                    const baseRate = parseFloat(employee.base_hourly_rate) || 0;
+                    const overtimeRate = parseFloat(employee.overtime_hourly_rate) || 0;
+                    
+                    total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
+                }
+            }
+        } else if (this.showRoleModal) {
+            //Calculate for role rate changes - affects all employees using those roles
+            for (const employee of this.employeeRates) {
+                const paymentData = this.paymentDetails.find(p => p.employee_id === employee.employee_id);
+                
+                if (paymentData) {
+                    const regularHours = parseFloat(paymentData.regular_hours) || 0;
+                    const overtimeHours = parseFloat(paymentData.overtime_hours) || 0;
+                    
+                    //Find the role for this employee
+                    const role = this.roleRates.find(r => r.title === employee.role_title);
+                    
+                    if (role) {
+                        //Check if employee has custom rates (different from role defaults)
+                        //You may need to adjust these field names based on your actual data structure
+                        const hasCustomBaseRate = employee.base_hourly_rate !== employee.role_base_rate;
+                        const hasCustomOvertimeRate = employee.overtime_hourly_rate !== employee.role_overtime_rate;
+                        
+                        //Use employee custom rate if exists, otherwise use updated role rate
+                        const baseRate = hasCustomBaseRate ? 
+                            parseFloat(employee.base_hourly_rate) : 
+                            parseFloat(role.base_hourly_rate) || 0;
+                        const overtimeRate = hasCustomOvertimeRate ? 
+                            parseFloat(employee.overtime_hourly_rate) : 
+                            parseFloat(role.overtime_hourly_rate) || 0;
+                        
+                        total += (regularHours * baseRate) + (overtimeHours * overtimeRate);
+                    }
+                }
             }
         }
         
-        await this.saveEmployeeRates();
+        this.projectedTotal = total;
+        this.budgetExceeded = total > this.globalBudget;
+        this.budgetExcess = Math.max(0, total - this.globalBudget);
+        
+        return total;
     },
 
-         async fetchBudgetComparison(date) {
+    //Format currency for display
+    formatProjectedCurrency(value) {
+        return this.formatCurrency(value);
+    },
+
+    // Notification methods to replace alerts
+    showSuccessNotification(message) {
+        // Create a custom notification element
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+        notification.innerHTML = `
+            <i class="fa fa-check-circle me-2"></i>
+            <strong>${message}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    },
+
+    showErrorNotification(message) {
+        // Create a custom notification element
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+        notification.innerHTML = `
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            <strong>${message}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    },
+
+    async fetchBudgetComparison(date) {
         try {
             const response = await fetch(`${API_BASE}/budget-comparison?date=${date}`);
             if (response.ok) {
@@ -210,7 +282,7 @@ calculateProjectedTotal() {
     },
         async fetchBudgetStatusForDate(dateString) {
             try {
-                // Check cache first
+                //Check cache first
                 if (this.budgetStatusCache[dateString]) {
                     return this.budgetStatusCache[dateString];
                 }
@@ -221,7 +293,7 @@ calculateProjectedTotal() {
                 ]);
 
                 let totalBudgetUsed = 0;
-                let budget = 50000; // Default budget
+                let budget = 30000; //Default budget
 
                 if (paymentsResponse.ok) {
                     const summaryData = await paymentsResponse.json();
@@ -230,7 +302,7 @@ calculateProjectedTotal() {
 
                 if (budgetResponse.ok) {
                     const budgetData = await budgetResponse.json();
-                    budget = Math.max(10000, budgetData.budget || 50000);
+                    budget = Math.max(10000, budgetData.budget || 30000);
                 }
 
                 const status = {
@@ -239,7 +311,7 @@ calculateProjectedTotal() {
                     totalBudget: budget
                 };
 
-                // Cache the result
+                //Cache the result
                 this.budgetStatusCache[dateString] = status;
                 return status;
             } catch (error) {
@@ -277,7 +349,7 @@ calculateProjectedTotal() {
             }
         },
 
-                //Added this method to fetch budget history:
+        //Added this method to fetch budget history:
         async fetchBudgetHistory() {
             try {
                 const response = await fetch(`${API_BASE}/budget-history`);
@@ -301,7 +373,7 @@ calculateProjectedTotal() {
             });
         },
 
-         filterEmployees() {
+        filterEmployees() {
             if (!this.employeeSearchQuery) {
                 this.filteredEmployeeRates = [...this.employeeRates];
                 return;
@@ -319,42 +391,42 @@ calculateProjectedTotal() {
         //Calculate most recent Tuesday
         //Fixed getMostRecentTuesday method - more explicit and debuggable
         getMostRecentTuesday() {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); //0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-    
-    console.log('Today is:', today.toDateString(), 'Day of week:', dayOfWeek);
-    
-    let daysToSubtract;
-    switch (dayOfWeek) {
-        case 0: //Sunday
-            daysToSubtract = 5; // Go back 5 days to Tuesday
-            break;
-        case 1: //Monday  
-            daysToSubtract = 6; // Go back 6 days to Tuesday
-            break;
-        case 2: //Tuesday
-            daysToSubtract = 0; // Today is Tuesday
-            break;
-        default: //Wednesday through Saturday
-            daysToSubtract = dayOfWeek - 2; //Go back to this week's Tuesday
-    }
-    
-    console.log('Days to subtract:', daysToSubtract);
-    
-    const mostRecentTuesday = new Date(today);
-    mostRecentTuesday.setDate(today.getDate() - daysToSubtract);
-    
-    // Fix the date formatting to ensure correct timezone handling
-    const year = mostRecentTuesday.getFullYear();
-    const month = String(mostRecentTuesday.getMonth() + 1).padStart(2, '0');
-    const day = String(mostRecentTuesday.getDate()).padStart(2, '0');
-    const result = `${year}-${month}-${day}`;
-    
-    console.log('Most recent Tuesday:', result);
-    console.log('Verification - that date is a:', new Date(result + 'T12:00:00').toDateString());
-    
-    return result;
-},
+        const today = new Date();
+        const dayOfWeek = today.getDay(); //0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+        
+        console.log('Today is:', today.toDateString(), 'Day of week:', dayOfWeek);
+        
+        let daysToSubtract;
+        switch (dayOfWeek) {
+            case 0: //Sunday
+                daysToSubtract = 5; // Go back 5 days to Tuesday
+                break;
+            case 1: //Monday  
+                daysToSubtract = 6; // Go back 6 days to Tuesday
+                break;
+            case 2: //Tuesday
+                daysToSubtract = 0; // Today is Tuesday
+                break;
+            default: //Wednesday through Saturday
+                daysToSubtract = dayOfWeek - 2; //Go back to this week's Tuesday
+        }
+        
+        console.log('Days to subtract:', daysToSubtract);
+        
+        const mostRecentTuesday = new Date(today);
+        mostRecentTuesday.setDate(today.getDate() - daysToSubtract);
+        
+        // Fix the date formatting to ensure correct timezone handling
+        const year = mostRecentTuesday.getFullYear();
+        const month = String(mostRecentTuesday.getMonth() + 1).padStart(2, '0');
+        const day = String(mostRecentTuesday.getDate()).padStart(2, '0');
+        const result = `${year}-${month}-${day}`;
+        
+        console.log('Most recent Tuesday:', result);
+        console.log('Verification - that date is a:', new Date(result + 'T12:00:00').toDateString());
+        
+        return result;
+        },
 
         //Fetch all required data simultaneously using Promise.all
         async fetchAllData() {
@@ -656,7 +728,7 @@ calculateProjectedTotal() {
                 });
                 
                 if (response.ok) {
-                    alert('Role rates updated successfully');
+                    this.showSuccessNotification('Role rates updated successfully');
                     this.showRoleModal = false; //Close modal after successful update
                     //Refresh employee rates as they may be affected by role rate changes
                     await this.fetchEmployeeRates();
@@ -672,7 +744,7 @@ calculateProjectedTotal() {
                 }
             } catch (error) {
                 console.error('Error saving role rates:', error);
-                alert('Failed to update role rates: ' + error.message);
+                this.showErrorNotification('Failed to update role rates: ' + error.message);
             } finally {
                 this.isLoading = false;
             }
@@ -698,7 +770,7 @@ calculateProjectedTotal() {
                 });
                 
                 if (response.ok) {
-                    alert('Employee rates updated successfully');
+                    this.showSuccessNotification('Employee rates updated successfully');
                     this.showEmployeeModal = false; //Close modal after successful update
                     
                     //Refresh current view to show updated calculations
@@ -712,7 +784,7 @@ calculateProjectedTotal() {
                 }
             } catch (error) {
                 console.error('Error saving employee rates:', error);
-                alert('Failed to update employee rates: ' + error.message);
+                this.showErrorNotification('Failed to update employee rates: ' + error.message);
             } finally {
                 this.isLoading = false;
             }
@@ -724,41 +796,6 @@ calculateProjectedTotal() {
             this.editableBudget = this.globalBudget;
             this.showBudgetModal = true;
         },
-        
-        
-        //saveBudget to use the API:
-        // async saveBudget() {
-        //     this.isLoading = true;
-        //     try {
-        //         const response = await fetch(`${API_BASE}/set-budget`, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             },
-        //             body: JSON.stringify({
-        //                 budget: this.editableBudget,
-        //                 date: this.selectedDate || this.getMostRecentTuesday()
-        //             })
-        //         });
-                
-        //         if (response.ok) {
-        //             // Refresh data to show updated budget
-        //             if (this.selectedDate) {
-        //                 await this.fetchPayrollDataForDate(this.selectedDate);
-        //             } else {
-        //                 await this.fetchPayrollSummary();
-        //             }
-        //             this.showBudgetModal = false;
-        //         } else {
-        //             throw new Error('Failed to update budget');
-        //         }
-        //     } catch (error) {
-        //         console.error('Error saving budget:', error);
-        //         alert('Failed to update budget: ' + error.message);
-        //     } finally {
-        //         this.isLoading = false;
-        //     }
-        // },
         
         //Close budget modal without saving changes
         closeBudgetModal() {
