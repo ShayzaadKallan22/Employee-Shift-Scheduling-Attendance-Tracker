@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         standbyData: {},
         loadingStandby: {},
         loadingEvents: {},
+        rejectingLeaveId: null,
+    rejectionReason: '',
+    customRejectionMessage: '',
+    rejectionReasons: [],
         standbyDetails: {
           employee: '',
           available: 0,
@@ -177,24 +181,240 @@ async fetchLeaveRequests() {
           console.error('Error showing employee leave history:', err);
         }
       },
-      async respondToLeave(leaveId, action) {
-        try {
-          const response = await fetch('http://localhost:3000/api/leave/respond', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ leave_id: leaveId, action })
-          });
+      // async respondToLeave(leaveId, action) {
+      //   try {
+      //     const response = await fetch('http://localhost:3000/api/leave/respond', {
+      //       method: 'POST',
+      //       headers: { 'Content-Type': 'application/json' },
+      //       body: JSON.stringify({ leave_id: leaveId, action })
+      //     });
 
-          if (response.ok) {
-            alert(`Leave request ${action}!`);
-            this.fetchLeaveRequests();
-          } else {
-            alert('Failed to update leave request.');
-          }
-        } catch (err) {
-          console.error('Error:', err);
+      //     if (response.ok) {
+      //       alert(`Leave request ${action}!`);
+      //       this.fetchLeaveRequests();
+      //     } else {
+      //       alert('Failed to update leave request.');
+      //     }
+      //   } catch (err) {
+      //     console.error('Error:', err);
+      //   }
+      // },
+
+  //     async respondToLeave(leaveId, action) {
+  //   try {
+  //     const response = await fetch('http://localhost:3000/api/leave/respond', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ leave_id: leaveId, action })
+  //     });
+
+  //     if (response.ok) {
+  //       this.showToast(`Leave request ${action === 'approved' ? 'approved' : 'rejected'} successfully!`, 'success');
+  //       this.fetchLeaveRequests();
+  //     } else {
+  //       this.showToast('Failed to update leave request. Please try again.', 'error');
+  //     }
+  //   } catch (err) {
+  //     console.error('Error:', err);
+  //     this.showToast('An error occurred. Please check your connection.', 'error');
+  //   }
+  // },
+
+// In the respondToLeave method, update to include rejection reason
+async respondToLeave(leaveId, action, rejectionReason = '', customMessage = '') {
+  try {
+    const response = await fetch('http://localhost:3000/api/leave/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        leave_id: leaveId, 
+        action,
+        rejection_reason: rejectionReason,
+        custom_message: customMessage
+      })
+    });
+
+    if (response.ok) {
+      this.showToast(`Leave request ${action === 'approved' ? 'approved' : 'rejected'} successfully!`, 'success');
+      this.fetchLeaveRequests();
+    } else {
+      this.showToast('Failed to update leave request. Please try again.', 'error');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    this.showToast('An error occurred. Please check your connection.', 'error');
+  }
+},
+
+// Add method to show rejection modal
+showRejectionModal(request) {
+  this.rejectingLeaveId = request.leave_id;
+  this.rejectionReason = '';
+  this.customRejectionMessage = '';
+  
+  // Auto-detect possible rejection reasons
+  this.autoDetectRejectionReasons(request);
+  
+  // Show rejection modal
+  const rejectionModal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+  rejectionModal.show();
+},
+
+// Auto-detect rejection reasons based on leave request analysis
+autoDetectRejectionReasons(request) {
+  const reasons = [];
+  
+  // Check for events
+  const key = `${request.employee_id}-${request.start_date}-${request.end_date}`;
+  const events = this.eventDetails[key];
+  if (events && events.length > 0) {
+    reasons.push({
+      value: 'event_conflict',
+      text: `Event Conflict (${events.length} events scheduled during leave)`,
+      description: 'Employee has important events scheduled during this period'
+    });
+  }
+  
+  // Check standby availability
+  const leaveId = request.leave_id;
+  const standby = this.standbyData[leaveId];
+  if (standby) {
+    if (standby.available === 0 && standby.total > 0) {
+      reasons.push({
+        value: 'insufficient_standby',
+        text: `Insufficient Standby (0/${standby.total} available)`,
+        description: 'No standby staff available to cover this period'
+      });
+    } else if (standby.available < 2) { // Threshold for low availability
+      reasons.push({
+        value: 'insufficient_standby',
+        text: `Low Standby Availability (${standby.available}/${standby.total} available)`,
+        description: 'Limited standby staff available'
+      });
+    }
+  }
+  
+  // Check if it's a peak period (you might want to implement this logic)
+  if (this.isPeakPeriod(request.start_date, request.end_date)) {
+    reasons.push({
+      value: 'peak_period',
+      text: 'Peak Business Period',
+      description: 'Leave falls during high-demand business period'
+    });
+  }
+  
+  // Check leave balance (if available in your data)
+  if (request.used_days && request.max_days_per_year) {
+    const remaining = request.max_days_per_year - request.used_days;
+    const requestedDays = request.days_requested || 
+      (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1;
+    
+    if (remaining < requestedDays) {
+      reasons.push({
+        value: 'insufficient_leave_balance',
+        text: `Insufficient Leave Balance (${remaining}/${requestedDays} days available)`,
+        description: 'Employee does not have enough leave days remaining'
+      });
+    }
+  }
+  
+  reasons.push({
+    value: 'other',
+    text: 'Other Reason',
+    description: 'Specify custom reason below'
+  });
+  
+  this.rejectionReasons = reasons;
+},
+
+// Helper method to check peak periods (you'll need to implement your business logic)
+isPeakPeriod(startDate, endDate) {
+  // Example: Consider weekends and holidays as peak periods
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Check if period includes weekend
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    const day = date.getDay();
+    if (day === 0 || day === 6) { // Saturday or Sunday
+      return true;
+    }
+  }
+  
+  // Add your specific business logic for peak periods
+  return false;
+},
+
+// Submit rejection with reason
+submitRejection() {
+  if (!this.rejectionReason && this.rejectionReason !== 'other') {
+    this.showToast('Please select a rejection reason', 'error');
+    return;
+  }
+  
+  if (this.rejectionReason === 'other' && !this.customRejectionMessage.trim()) {
+    this.showToast('Please provide a reason for rejection', 'error');
+    return;
+  }
+  
+  this.respondToLeave(
+    this.rejectingLeaveId, 
+    'rejected', 
+    this.rejectionReason,
+    this.customRejectionMessage
+  );
+  
+  // Close modal
+  const rejectionModal = bootstrap.Modal.getInstance(document.getElementById('rejectionModal'));
+  rejectionModal.hide();
+},
+
+  // Toast notification method
+  showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+
+    const toastId = 'toast-' + Date.now();
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    
+    const toastHTML = `
+      <div id="${toastId}" class="toast custom-toast toast-${type} toast-enter" role="alert">
+        <div class="toast-header bg-transparent border-bottom-0">
+          <i class="fas ${icon} toast-icon text-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'}"></i>
+          <strong class="me-auto">Leave Management</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          ${message}
+        </div>
+        <div class="toast-progress"></div>
+      </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, {
+      autohide: true,
+      delay: 3000
+    });
+
+    toast.show();
+
+    // Remove toast from DOM after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+      toastElement.classList.remove('toast-enter');
+      toastElement.classList.add('toast-exit');
+      
+      setTimeout(() => {
+        if (toastElement.parentNode) {
+          toastElement.parentNode.removeChild(toastElement);
         }
-      },
+      }, 5000);
+    });
+  },
+
       formatDate(dateString) {
         if (!dateString || dateString.startsWith('0000-00-00')) {
           return "None";

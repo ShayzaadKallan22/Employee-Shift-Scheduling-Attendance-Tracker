@@ -548,54 +548,48 @@ const eventRoutes = require('./eventRoutes');
 app.use('/api', eventRoutes);
 
 // Scheduled task to send event notifications
-const checkEventNotifications = async () => {
-  try {
-    const currentDate = new Date();
-    console.log('Checking for pending event notifications...');
+// const checkEventNotifications = async () => {
+//   try {
+//     const currentDate = new Date();
+//     console.log('Checking for pending event notifications...');
     
-    // Find notifications that are scheduled for today or earlier but not read yet
-    const [notifications] = await pool.execute(
-      `SELECT n.notification_id, n.employee_id, n.message, e.email, e.first_name
-       FROM t_notification n
-       JOIN t_employee e ON n.employee_id = e.employee_id
-       WHERE n.sent_time <= ? 
-       AND n.read_status = 'unread'
-       AND n.notification_type_id = 7`,
-      [currentDate]
-    );
+//     // Find notifications that are scheduled for today or earlier but not read yet
+//     const [notifications] = await pool.execute(
+//       `SELECT n.notification_id, n.employee_id, n.message, e.email, e.first_name
+//        FROM t_notification n
+//        JOIN t_employee e ON n.employee_id = e.employee_id
+//        WHERE n.sent_time <= ? 
+//        AND n.read_status = 'unread'
+//        AND n.notification_type_id = 7`,
+//       [currentDate]
+//     );
     
-    for (const notification of notifications) {
-      console.log(`Event notification ready for employee ${notification.employee_id}: ${notification.message}`);
+//     for (const notification of notifications) {
+//       console.log(`Event notification ready for employee ${notification.employee_id}: ${notification.message}`);
       
-      // Here you would implement your actual notification delivery
-      // For example: email, push notification, SMS, etc.
-      // Since we can't modify the schema, we'll rely on the sent_time for scheduling
       
-      console.log(`Would send notification to ${notification.email}: ${notification.message}`);
+//       console.log(`Would send notification to ${notification.email}: ${notification.message}`);
       
-      // In a real implementation, you would:
-      // 1. Send email/push notification
-      // 2. Maybe update a flag if you had one, but we can't modify schema
-    }
+//     }
     
-    console.log(`Found ${notifications.length} event notifications ready for delivery`);
+//     console.log(`Found ${notifications.length} event notifications ready for delivery`);
     
-  } catch (err) {
-    console.error('Error in event notification check:', err);
-  }
-};
+//   } catch (err) {
+//     console.error('Error in event notification check:', err);
+//   }
+// };
 
-// Run notification check every hour to catch notifications
-cron.schedule('0 * * * *', checkEventNotifications);
+// // Run notification check every hour to catch notifications
+// cron.schedule('0 * * * *', checkEventNotifications);
 
-// Also run immediately on server start
-setTimeout(checkEventNotifications, 5000); // Wait 5 seconds after server start
+// // Also run immediately on server start
+// setTimeout(checkEventNotifications, 5000); // Wait 5 seconds after server start
 
-// Run notification check daily at 9:00 AM
-cron.schedule('0 9 * * *', checkEventNotifications);
+// // Run notification check daily at 9:00 AM
+// cron.schedule('0 9 * * *', checkEventNotifications);
 
-// Also run immediately on server start
-checkEventNotifications();  
+// // Also run immediately on server start
+// checkEventNotifications();  
 
 // Add this check on server startup
 const ensureEventNotificationType = async () => {
@@ -617,4 +611,103 @@ const ensureEventNotificationType = async () => {
 
 // Call this on server startup
 ensureEventNotificationType();
+
+const eventReminderState = new Map(); // In-memory storage for reminder status
+
+const sendEventRemindersMemory = async () => {
+  try {
+    const currentDate = new Date();
+    console.log('Checking for event reminders (7 days before event)...');
+    
+    // Calculate date 7 days from now
+    const sevenDaysFromNow = new Date(currentDate);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    const sevenDaysFromNowStr = sevenDaysFromNow.toISOString().split('T')[0];
+    
+    // Find events starting in exactly 7 days
+    const [eventsDueForReminder] = await pool.execute( // CHANGE db to pool
+      `SELECT e.event_id, e.event_name, e.start_date, 
+              ee.employee_id, emp.first_name, emp.email
+       FROM t_event e
+       JOIN t_event_employee ee ON e.event_id = ee.event_id
+       JOIN t_employee emp ON ee.employee_id = emp.employee_id
+       WHERE e.start_date = ?`,
+      [sevenDaysFromNowStr]
+    );
+    
+    if (eventsDueForReminder.length === 0) {
+      console.log('No events require 7-day reminders today.');
+      return;
+    }
+    
+    // Group by event
+    const eventsMap = new Map();
+    eventsDueForReminder.forEach(row => {
+      if (!eventsMap.has(row.event_id)) {
+        eventsMap.set(row.event_id, {
+          event_name: row.event_name,
+          start_date: row.start_date,
+          employees: []
+        });
+      }
+      eventsMap.get(row.event_id).employees.push({
+        employee_id: row.employee_id,
+        first_name: row.first_name,
+        email: row.email
+      });
+    });
+    
+    // Send reminders only for events that haven't been reminded yet today
+    for (const [eventId, eventData] of eventsMap) {
+      const reminderKey = `${eventId}-${currentDate.toISOString().split('T')[0]}`;
+      
+      if (eventReminderState.has(reminderKey)) {
+        console.log(`Reminders already sent today for event: ${eventData.event_name}`);
+        continue;
+      }
+      
+      console.log(`Sending 7-day reminders for event: ${eventData.event_name}`);
+      
+      for (const employee of eventData.employees) {
+        // Create the reminder notification
+        await pool.execute( // CHANGE db to pool
+          `INSERT INTO t_notification 
+           (employee_id, message, sent_time, read_status, notification_type_id) 
+           VALUES (?, ?, NOW(), 'unread', 7)`,
+          [
+            employee.employee_id,
+            `Reminder: Event "${eventData.event_name}" is starting in 7 days (${new Date(eventData.start_date).toLocaleDateString()}). Please check your schedule.`
+          ]
+        );
+        
+        console.log(`7-day reminder sent to ${employee.first_name} (${employee.email})`);
+      }
+      
+      // Mark as sent in memory
+      eventReminderState.set(reminderKey, true);
+    }
+    
+    console.log(`Sent 7-day reminders for ${eventsMap.size} events`);
+    
+    // Clean up old memory entries (older than 2 days)
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    
+    for (const [key] of eventReminderState) {
+      const keyDate = new Date(key.split('-').slice(1).join('-'));
+      if (keyDate < twoDaysAgo) {
+        eventReminderState.delete(key);
+      }
+    }
+    
+  } catch (err) {
+    console.error('Error in event reminder check:', err);
+  }
+};
+
+// Schedule the memory-based reminder check
+cron.schedule('0 9 * * *', sendEventRemindersMemory); // Daily at 9 AM
+
+// Run immediately on server start
+setTimeout(sendEventRemindersMemory, 10000);
 //End of Yatin's code

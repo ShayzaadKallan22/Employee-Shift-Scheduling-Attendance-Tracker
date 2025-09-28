@@ -203,13 +203,21 @@
                             <div class="bg-dark rounded p-4" v-if="!isLoading && reportData">
                                 <!-- Payroll Report -->
                                 <div v-if="reportType === 'payroll'" class="report-section">
-                                    <h5 class="mb-4"><i class="fa fa-money-bill-wave me-2"></i>Payroll Report ({{
-                                        formattedDateRange }})</h5>
+                                    <!-- <h5 class="mb-4"><i class="fa fa-money-bill-wave me-2"></i>Payroll Report ({{
+                                        formattedDateRange }})</h5> -->
+
+                                        <h5 class="mb-4"><i class="fa fa-money-bill-wave me-2"></i>Payroll Report ({{ formattedDateRange }}) - Payments from {{ startDate }} to {{ endDate }}</h5>
 
                                     <!-- Payroll Charts -->
                                     <div class="row mb-4">
                                         <div class="col-md-8">
                                             <div class="bg-secondary rounded p-3">
+                                                <h6 class="text-center mb-3" v-if="employeeId === 'all'">
+            Employee Pay Comparison
+        </h6>
+        <h6 class="text-center mb-3" v-else>
+            Payroll Timeline for Selected Employee
+        </h6>
                                                 <canvas id="payrollChart" height="250"></canvas>
                                             </div>
                                         </div>
@@ -222,7 +230,7 @@
                                     </div>
 
                                     <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
+                                        <!-- <table class="table table-hover mb-0">
                                             <thead class="text-white">
                                                 <tr>
                                                     <th>Employee</th>
@@ -247,7 +255,41 @@
                                                     <td><strong>{{ payrollTotal }}</strong></td>
                                                 </tr>
                                             </tfoot>
-                                        </table>
+                                        </table> -->
+                                        <!-- Payroll Report Table -->
+<table class="table table-hover mb-0">
+    <thead class="text-white">
+        <tr>
+            <th>Payment Date</th>
+            <th>Employee</th>
+            <th>Role</th>
+            <th>Base Pay</th>
+            <th>Overtime Pay</th>
+            <th>Net Pay</th>
+            <th>Base Hours</th>
+            <th>Overtime Hours</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="row in payrollTableData" :key="row.employee + row.rawPaymentDate">
+            <td>{{ row.paymentDate }}</td>
+            <td>{{ row.employee }}</td>
+            <td>{{ row.role }}</td>
+            <td>{{ row.baseSalary }}</td>
+            <td>{{ row.overtime }}</td>
+            <td>{{ row.netPay }}</td>
+            <td>{{ row.baseHours }}</td>
+            <td>{{ row.overtimeHours }}</td>
+        </tr>
+    </tbody>
+    <tfoot class="text-white">
+        <tr>
+            <td colspan="5" class="text-end"><strong>Total</strong></td>
+            <td><strong>{{ payrollTotal }}</strong></td>
+            <td colspan="2"></td>
+        </tr>
+    </tfoot>
+</table>
                                     </div>
                                 </div>
 

@@ -112,17 +112,118 @@ exports.getAllLeaveRequests = async (req, res) => {
   }
 };
 
-// Editted By Yatin
 
+
+// exports.respondToLeave = async (req, res) => {
+//     const { leave_id, action } = req.body;
+
+//     if (!leave_id || !['approved', 'rejected'].includes(action)) {
+//         return res.status(400).json({ message: 'Invalid input' });
+//     }
+
+//     try {
+//         //get leave info before updating
+//         const [[leaveInfo]] = await db.query(`
+//             SELECT 
+//                 l.*,
+//                 e.first_name,
+//                 e.last_name,
+//                 t.name_ as leave_type_name
+//             FROM t_leave l
+//             JOIN t_employee e ON l.employee_id = e.employee_id
+//             JOIN t_leave_type t ON l.leave_type_id = t.leave_type_id
+//             WHERE l.leave_id = ?
+//         `, [leave_id]);
+
+//         if (!leaveInfo) {
+//             return res.status(404).json({ message: 'Leave request not found' });
+//         }
+
+//         //Update leave status
+//         await db.execute(
+//             `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
+//             [action, leave_id]
+//         );
+
+//         //If approved, update employee status to On Leave and schedule status reset
+//         if (action === 'approved') {
+//             await db.execute(
+//                 `UPDATE t_employee SET status_ = 'On Leave' WHERE employee_id = ?`,
+//                 [leaveInfo.employee_id]
+//             );
+
+//             //Schedule status reset to Not Working when leave period ends
+//             const endDate = new Date(leaveInfo.end_date);
+//             const now = new Date();
+            
+//             if (endDate > now) {
+//                 const timeUntilEnd = endDate.getTime() - now.getTime();
+                
+//                 // Schedule the status update
+//                 setTimeout(async () => {
+//                     try {
+//                         await db.execute(
+//                             `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ? AND status_ = 'On Leave'`,
+//                             [leaveInfo.employee_id]
+//                         );
+//                     } catch (err) {
+//                         console.error('Error resetting employee status after leave:', err);
+//                     }
+//                 }, timeUntilEnd);
+//             } else {
+//                 //if leave has already ended, set status to not working immediately
+//                 await db.execute(
+//                     `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ?`,
+//                     [leaveInfo.employee_id]
+//                 );
+//             }
+//         }
+
+//         // Create notification message
+//         const message = action === 'approved' 
+//             ? `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been approved`
+//             : `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been rejected`;
+
+//         //Insert notification with CURRENT_TIMESTAMP for sent_time (datetime)
+//         await db.execute(
+//             `INSERT INTO t_notification (employee_id, message, notification_type_id, sent_time, read_status)
+//              VALUES (?, ?, 1, CURRENT_TIMESTAMP, 'unread')`,
+//             [leaveInfo.employee_id, message]
+//         );
+
+//         // Adjust used_days if approved
+//         if (action === 'approved') {
+//             const daysRequested = leaveInfo.days_requested || 
+//                 (new Date(leaveInfo.end_date) - new Date(leaveInfo.start_date)) / (1000 * 60 * 60 * 24) + 1;    //AI calculation that works
+
+//             //update the leave record with used days
+//             await db.execute(
+//                 `UPDATE t_leave 
+//                  SET used_days = ?, 
+//                      remaining_days = (SELECT max_days_per_year FROM t_leave_type WHERE leave_type_id = ?) - ?
+//                  WHERE leave_id = ?`,
+//                 [daysRequested, leaveInfo.leave_type_id, daysRequested, leave_id]
+//             );
+//         }
+
+//         res.status(200).json({ message: `Leave request ${action}` });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
+
+// In leaveController.js, update the respondToLeave function
 exports.respondToLeave = async (req, res) => {
-    const { leave_id, action } = req.body;
+    const { leave_id, action, rejection_reason, custom_message } = req.body;
 
     if (!leave_id || !['approved', 'rejected'].includes(action)) {
         return res.status(400).json({ message: 'Invalid input' });
     }
 
     try {
-        //get leave info before updating
+        // Get leave info before updating
         const [[leaveInfo]] = await db.query(`
             SELECT 
                 l.*,
@@ -139,20 +240,20 @@ exports.respondToLeave = async (req, res) => {
             return res.status(404).json({ message: 'Leave request not found' });
         }
 
-        //Update leave status
+        // Update leave status
         await db.execute(
             `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
             [action, leave_id]
         );
 
-        //If approved, update employee status to On Leave and schedule status reset
+        // If approved, update employee status to On Leave and schedule status reset
         if (action === 'approved') {
             await db.execute(
                 `UPDATE t_employee SET status_ = 'On Leave' WHERE employee_id = ?`,
                 [leaveInfo.employee_id]
             );
 
-            //Schedule status reset to Not Working when leave period ends
+            // Schedule status reset to Not Working when leave period ends
             const endDate = new Date(leaveInfo.end_date);
             const now = new Date();
             
@@ -171,7 +272,7 @@ exports.respondToLeave = async (req, res) => {
                     }
                 }, timeUntilEnd);
             } else {
-                //if leave has already ended, set status to not working immediately
+                // If leave has already ended, set status to not working immediately
                 await db.execute(
                     `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ?`,
                     [leaveInfo.employee_id]
@@ -184,19 +285,23 @@ exports.respondToLeave = async (req, res) => {
             ? `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been approved`
             : `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been rejected`;
 
-        //Insert notification with CURRENT_TIMESTAMP for sent_time (datetime)
+        // Insert notification
         await db.execute(
             `INSERT INTO t_notification (employee_id, message, notification_type_id, sent_time, read_status)
              VALUES (?, ?, 1, CURRENT_TIMESTAMP, 'unread')`,
             [leaveInfo.employee_id, message]
         );
 
+        // If rejected, send automatic message with rejection reason
+        if (action === 'rejected') {
+            await this.sendRejectionMessage(leaveInfo, rejection_reason, custom_message);
+        }
+
         // Adjust used_days if approved
         if (action === 'approved') {
             const daysRequested = leaveInfo.days_requested || 
-                (new Date(leaveInfo.end_date) - new Date(leaveInfo.start_date)) / (1000 * 60 * 60 * 24) + 1;    //AI calculation that works
+                (new Date(leaveInfo.end_date) - new Date(leaveInfo.start_date)) / (1000 * 60 * 60 * 24) + 1;
 
-            //update the leave record with used days
             await db.execute(
                 `UPDATE t_leave 
                  SET used_days = ?, 
@@ -212,7 +317,58 @@ exports.respondToLeave = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-//end of Yatin edit
+
+// Add this new method to handle rejection messages
+exports.sendRejectionMessage = async (leaveInfo, rejection_reason, custom_message) => {
+    try {
+        // Default manager ID (you might want to get this from session/context)
+        const manager_id = 1; // Replace with actual manager ID from session
+        
+        let messageContent = '';
+        
+        // Generate message based on rejection reason
+        switch (rejection_reason) {
+            case 'event_conflict':
+                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to scheduled events during this period. You have important assignments that cannot be rescheduled.`;
+                break;
+                
+            case 'insufficient_standby':
+                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient standby staff availability. We cannot ensure proper coverage during your absence.`;
+                break;
+                
+            case 'peak_period':
+                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected as it falls during a peak business period. Please consider alternative dates.`;
+                break;
+                
+            case 'insufficient_leave_balance':
+                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient leave balance. Please check your available leave days.`;
+                break;
+                
+            case 'other':
+                messageContent = custom_message || `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected. Please contact management for more details.`;
+                break;
+                
+            default:
+                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected.`;
+        }
+        
+        // Add invitation to discuss
+        messageContent += `\n\nIf you have questions or would like to discuss this decision, please reply to this message or speak with your manager.`;
+        
+        // Insert message into database
+        await db.execute(
+            `INSERT INTO t_message (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+            [manager_id, leaveInfo.employee_id, messageContent]
+        );
+        
+        console.log(`Rejection message sent to employee ${leaveInfo.employee_id}`);
+        
+    } catch (err) {
+        console.error('Error sending rejection message:', err);
+        // Don't throw error here to avoid affecting the main leave response
+    }
+};
+
 
 // View my leave requests (employee)
 exports.getMyLeaveRequests = async (req, res) => {

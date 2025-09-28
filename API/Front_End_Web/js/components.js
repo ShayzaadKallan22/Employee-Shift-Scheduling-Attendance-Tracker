@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span id="messageCount" class="badge bg-success ms-1" style="font-size: 0.75rem; display: none;">0</span>
               <!-- END: Unread messages count badge -->
             </a>
-            <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0" style="width: 350px;">
+            <div class="dropdown-menu dropdown-menu-end bg-secondary border-10 rounded-0 rounded-bottom m-0" style="width: 350px;">
               <div id="recent-messages" class="overflow-auto" style="max-height: 400px;">
                 <div class="text-center py-3">
                   <div class="spinner-border text-primary" role="status">
