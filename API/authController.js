@@ -14,14 +14,12 @@ const roleMap = {
     'waiter': 3,
     'cleaner': 4,
     'bouncer': 5,
-    'runner': 6,
-    'leader': 7
+    'runner': 6
 };
 
 const register = async (req, res) => {
     try {
-
-        let { first_name, last_name, email, phone_number, role_id, type_ } = req.body;
+        let { first_name, last_name, email, phone_number, role_id, mac_address, type_ } = req.body;
 
         //Convert role name to ID if needed
         if (typeof role_id === 'string') {
@@ -33,7 +31,7 @@ const register = async (req, res) => {
         }
 
         //Validate input
-        if (!first_name || !last_name || !email || !phone_number || !role_id || !type_) {
+        if (!first_name || !last_name || !email || !phone_number || !role_id || !mac_address || !type_) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -42,14 +40,14 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'Invalid employee type' });
         }
 
-        // //Validate MAC address format
-        // if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac_address)) {
-        //     return res.status(400).json({ message: 'Invalid MAC address format' });
-        // }
+        //Validate MAC address format
+        if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac_address)) {
+            return res.status(400).json({ message: 'Invalid MAC address format' });
+        }
 
         //Check if user exists
         const [existingUser] = await pool.query(
-            'SELECT * FROM t_employee WHERE email = ?', 
+            'SELECT * FROM T_Employee WHERE email = ?', 
             [email]
         );
 
@@ -57,15 +55,15 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // //Check if MAC address is registered
-        // const [existingDevice] = await pool.query(
-        //     'SELECT * FROM t_device WHERE mac_address = ?',
-        //     [mac_address]
-        // );
+        //Check if MAC address is registered
+        const [existingDevice] = await pool.query(
+            'SELECT * FROM T_Device WHERE mac_address = ?',
+            [mac_address]
+        );
 
-        // if (existingDevice.length > 0) {
-        //     return res.status(400).json({ message: 'MAC address already registered' });
-        // }
+        if (existingDevice.length > 0) {
+            return res.status(400).json({ message: 'MAC address already registered' });
+        }
 
         //Generate and hash password
         const generatedPassword = generatePassword();
@@ -78,25 +76,26 @@ const register = async (req, res) => {
         try {
             //Create user with dynamic type_
             const [employeeResult] = await pool.query(
-                'INSERT INTO t_employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "Not Working", ?, ?)',
+                'INSERT INTO T_Employee (first_name, last_name, email, phone_number, password_hash, status_, type_, role_id) VALUES (?, ?, ?, ?, ?, "active", ?, ?)',
                 [first_name, last_name, email, phone_number, hashedPassword, type_, role_id]
             );
 
             const newEmployeeId = employeeResult.insertId;
 
             //Register device
-            // await pool.query(
-            //     'INSERT INTO t_device (mac_address, employee_id) VALUES (?, ?)',
-            //     [mac_address, newEmployeeId]
-            // );
+            await pool.query(
+                'INSERT INTO T_Device (mac_address, employee_id) VALUES (?, ?)',
+                [mac_address, newEmployeeId]
+            );
 
             //Commit transaction
             await pool.query('COMMIT');
 
             //Get the newly created user
             const [newUser] = await pool.query(`
-                SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id
-                FROM t_employee e
+                SELECT e.employee_id, e.first_name, e.last_name, e.email, e.type_, e.role_id, d.mac_address
+                FROM T_Employee e
+                LEFT JOIN T_Device d ON e.employee_id = d.employee_id
                 WHERE e.employee_id = ?
             `, [newEmployeeId]);
 
@@ -120,9 +119,9 @@ const register = async (req, res) => {
                     type: newUser[0].type_,
                     role_id: newUser[0].role_id
                 },
-                // device: {
-                //     mac_address: newUser[0].mac_address
-                // },
+                device: {
+                    mac_address: newUser[0].mac_address
+                },
                 temporaryPassword: generatedPassword,
                 token
             });
@@ -149,7 +148,7 @@ const login = async (req, res) => {
 
         //Check user exists
         const [user] = await pool.query(
-            'SELECT * FROM t_employee WHERE email = ?', 
+            'SELECT * FROM t_employee WHERE email = ? AND type_ = "employee"', 
             [email]
         );
 
@@ -165,28 +164,52 @@ const login = async (req, res) => {
 
         //Generate JWT token
         const token = jwt.sign(
-            { 
-                id: user[0].employee_id,
-                email: user[0].email,
-                role_id: user[0].role_id 
-            }, 
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+         { 
+           id: user[0].employee_id,
+           email: user[0].email,
+           role_id: user[0].role_id 
+         }, 
+           process.env.JWT_SECRET,
+           { expiresIn: '1h' }
+      );
 
-        res.json({ 
-            message: 'Logged in successfully',
-            token,
-            user: {
-                id: user[0].employee_id,
-                email: user[0].email,
-                role_id: user[0].role_id
-            }
-        });
+      console.log('Generated token:', token); // Add this line
+      console.log('Using secret:', process.env.JWT_SECRET); // Add this line
+
+      res.json({ 
+         message: 'Logged in successfully',
+         //token,
+         user: {
+               id: user[0].employee_id,
+               email: user[0].email,
+               role_id: user[0].role_id
+              }
+});
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ error: 'Login failed', details: err.message });
     }
+};
+
+const refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const newToken = jwt.sign(
+      { id: decoded.id, email: decoded.email, role_id: decoded.role_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    res.json({ token: newToken });
+  } catch (err) {
+    res.status(403).json({ message: 'Invalid refresh token' });
+  }
 };
 
 //authController.js

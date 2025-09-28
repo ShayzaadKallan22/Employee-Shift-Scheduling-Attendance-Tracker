@@ -145,7 +145,7 @@ exports.cancelShift = async (req, res) => {
              WHERE s.shift_id = ? AND s.employee_id = ? AND s.date_ = ?`,
             [shift_id, employee_id, date]
         );
-
+        console.log(shiftRows);
         if (shiftRows.length === 0) {
             return res.status(404).json({ error: 'Shift not found or does not belong to employee' });
         }
@@ -154,7 +154,7 @@ exports.cancelShift = async (req, res) => {
         const shiftDateTime = new Date(`${shift.date_}T${shift.start_time}`);
         const now = new Date();
         
-        //Check if within 2-hour cancellation window
+        //Check if within 3-hour cancellation window
         const timeDiff = shiftDateTime - now;
         const threeHoursInMs = 3 * 60 * 60 * 1000;
         
