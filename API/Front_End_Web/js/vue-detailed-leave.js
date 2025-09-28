@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     data() {
       return {
         employees: [],
+        filteredEmployees: [], 
+        searchQuery: '',
         leaveTypes: [],
         loading: true,
         error: null,
@@ -17,48 +19,140 @@ document.addEventListener('DOMContentLoaded', () => {
         chart: null
       };
     },
+
+    computed: {
+      // Add a computed property to safely access filtered employees
+      displayEmployees() {
+        return this.filteredEmployees.length > 0 ? this.filteredEmployees : this.employees;
+      }
+    },
+
     mounted() {
       this.fetchLeaveData();
       this.fetchStats();
       this.fetchChartData();
     },
     methods: {
-      async fetchLeaveData() {
-        try {
-          console.log("Fetching leave data...");
-          this.loading = true;
-          this.error = null;
 
-          const [empResponse, typesResponse] = await Promise.all([
-            fetch('http://localhost:3000/api/leave/employee-summary'),
-            fetch('http://localhost:3000/api/leave/types')
-          ]);
+  //     filterEmployees() {
+  //   if (!this.searchQuery.trim()) {
+  //     this.filteredEmployees = [...this.employees];
+  //     return;
+  //   }
 
-          if (!empResponse.ok) {
-            const errorData = await empResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to fetch employee data');
-          }
+  //   const query = this.searchQuery.toLowerCase();
+  //   this.filteredEmployees = this.employees.filter(employee =>
+  //     employee.first_name.toLowerCase().includes(query) ||
+  //     employee.last_name.toLowerCase().includes(query) ||
+  //     employee.role_title.toLowerCase().includes(query) ||
+  //     `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(query)
+  //   );
+  // },
 
-          if (!typesResponse.ok) {
-            const errorData = await typesResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to fetch leave types');
-          }
+  
 
-          this.employees = await empResponse.json();
-          this.leaveTypes = await typesResponse.json();
-
-          console.log("Data loaded successfully:", {
-            employees: this.employees,
-            leaveTypes: this.leaveTypes
-          });
-
-        } catch (err) {
-          console.error('Error fetching leave data:', err);
-          this.error = err.message;
-        } finally {
-          this.loading = false;
+  filterEmployees() {
+        if (!this.searchQuery.trim()) {
+          this.filteredEmployees = [...this.employees];
+          return;
         }
+
+        const query = this.searchQuery.toLowerCase();
+        this.filteredEmployees = this.employees.filter(employee => {
+          if (!employee) return false;
+          
+          const firstName = employee.first_name ? employee.first_name.toLowerCase() : '';
+          const lastName = employee.last_name ? employee.last_name.toLowerCase() : '';
+          const roleTitle = employee.role_title ? employee.role_title.toLowerCase() : '';
+          
+          return firstName.includes(query) ||
+                 lastName.includes(query) ||
+                 roleTitle.includes(query) ||
+                 `${firstName} ${lastName}`.includes(query);
+        });
       },
+
+      getEmployeeInitials(employee) {
+  if (!employee) return '?';
+  const first = employee.first_name ? employee.first_name.charAt(0).toUpperCase() : '';
+  const last = employee.last_name ? employee.last_name.charAt(0).toUpperCase() : '';
+  return first + last;
+},
+
+      // async fetchLeaveData() {
+      //   try {
+      //     console.log("Fetching leave data...");
+      //     this.loading = true;
+      //     this.error = null;
+
+      //     const [empResponse, typesResponse] = await Promise.all([
+      //       fetch('http://localhost:3000/api/leave/employee-summary'),
+      //       fetch('http://localhost:3000/api/leave/types')
+      //     ]);
+
+      //     if (!empResponse.ok) {
+      //       const errorData = await empResponse.json().catch(() => ({}));
+      //       throw new Error(errorData.message || 'Failed to fetch employee data');
+      //     }
+
+      //     if (!typesResponse.ok) {
+      //       const errorData = await typesResponse.json().catch(() => ({}));
+      //       throw new Error(errorData.message || 'Failed to fetch leave types');
+      //     }
+
+      //     this.employees = await empResponse.json();
+      //     this.leaveTypes = await typesResponse.json();
+
+      //     console.log("Data loaded successfully:", {
+      //       employees: this.employees,
+      //       leaveTypes: this.leaveTypes
+      //     });
+
+      //   } catch (err) {
+      //     console.error('Error fetching leave data:', err);
+      //     this.error = err.message;
+      //   } finally {
+      //     this.loading = false;
+      //   }
+      // },
+      
+        async fetchLeaveData() {
+    try {
+      console.log("Fetching leave data...");
+      this.loading = true;
+      this.error = null;
+
+      const [empResponse, typesResponse] = await Promise.all([
+        fetch('http://localhost:3000/api/leave/employee-summary'),
+        fetch('http://localhost:3000/api/leave/types')
+      ]);
+
+      if (!empResponse.ok) {
+        const errorData = await empResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch employee data');
+      }
+
+      if (!typesResponse.ok) {
+        const errorData = await typesResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch leave types');
+      }
+
+      this.employees = await empResponse.json();
+      this.filteredEmployees = [...this.employees]; // Initialize filteredEmployees
+      this.leaveTypes = await typesResponse.json();
+
+      console.log("Data loaded successfully:", {
+        employees: this.employees,
+        leaveTypes: this.leaveTypes
+      });
+
+    } catch (err) {
+      console.error('Error fetching leave data:', err);
+      this.error = err.message;
+    } finally {
+      this.loading = false;
+    }
+  },
       
       async fetchStats() {
         try {
