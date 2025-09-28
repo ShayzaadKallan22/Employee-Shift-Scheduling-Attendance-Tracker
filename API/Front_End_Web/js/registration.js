@@ -1,102 +1,173 @@
-// Front_End/registration.js
-document.addEventListener('DOMContentLoaded', function() {
-    const registrationForm = document.querySelector('form');
-    
-    registrationForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Get form values
-        const formData = {
-            first_name: document.getElementById('firstName').value.trim(),
-            last_name: document.getElementById('lastName').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            phone_number: document.getElementById('phone').value.trim(),
-            type_: document.getElementById('userType').value,
-            role_id: document.getElementById('role').value,
-            mac_address: document.getElementById('macAddress').value.trim().toUpperCase()
-        };
-        
-        // Validate MAC address format
-        const macRegex = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/;
-        if (!macRegex.test(formData.mac_address)) {
-            showAlert('Please enter a valid MAC address in the format: 00:1A:2B:3C:4D:5E', 'danger');
-            return;
+// js/vue-registration.js
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            formData: {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone_number: '',
+                type_: '',
+                role_id: '',
+            },
+            termsChecked: false,
+            isSubmitting: false,
+            alert: {
+                message: '',
+                type: ''
+            },
+            allRoles: [
+                { value: 'bartender', label: 'Bartender' },
+                { value: 'cleaner', label: 'Cleaner' },
+                { value: 'bouncer', label: 'Bouncer' },
+                { value: 'sparkler_girl', label: 'Sparkler Girl' },
+                { value: 'runner', label: 'Runner' },
+                { value: 'waiter', label: 'Waiter' },
+                { value: 'leader', label: 'Leader' }
+            ]
         }
-        
-        // Validate terms checkbox
-        if (!document.getElementById('termsCheck').checked) {
-            showAlert('Please confirm that all information is correct', 'danger');
-            return;
+    },
+    computed: {
+        availableRoles() {
+            if (this.formData.type_ === 'manager') {
+                // Only Leader role for managers
+                return this.allRoles.filter(role => role.value === 'leader');
+            } else if (this.formData.type_ === 'employee') {
+                // All roles except Leader for employees
+                return this.allRoles.filter(role => role.value !== 'leader');
+            } else {
+                // No user type selected, show no roles
+                return [];
+            }
         }
-        
-        try {
-            // Show loading state
-            const submitButton = registrationForm.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering...';
+    },
+    watch: {
+        'formData.type_'(newType) {
+            // Reset role selection when user type changes
+            this.formData.role_id = '';
             
-            // Send data to API
-            const response = await fetch('http://localhost:3000/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
+            // Auto-select Leader if Manager is selected
+            if (newType === 'manager') {
+                this.formData.role_id = 'leader';
+            }
+        }
+    },
+    methods: {
+        async handleSubmit() {
+            // Validate form
+            if (!this.validateForm()) {
+                return;
             }
             
-            // Registration successful
-            showAlert(`Employee registered successfully! Temporary password: ${data.temporaryPassword}`, 'success');
+            this.isSubmitting = true;
+            this.clearAlert();
             
-            // Reset form
-            registrationForm.reset();
+            try {
+                // Send data to API
+                const response = await fetch('http://localhost:3000/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.formData)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Registration failed');
+                }
+                
+                // Registration successful
+                this.showAlert(`Employee registered successfully! Temporary password: ${data.temporaryPassword}`, 'success');
+                
+                // Reset form
+                this.resetForm();
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                this.showAlert(`Registration failed: ${error.message}`, 'danger');
+            } finally {
+                this.isSubmitting = false;
+            }
+        },
+        
+        validateForm() {
+            // Check required fields
+            if (!this.formData.first_name.trim()) {
+                this.showAlert('First name is required', 'danger');
+                return false;
+            }
             
-        } catch (error) {
-            console.error('Registration error:', error);
-            showAlert(`Registration failed: ${error.message}`, 'danger');
-        } finally {
-            // Reset button state
-            const submitButton = registrationForm.querySelector('button[type="submit"]');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Register Employee';
-        }
-    });
-    
-    // Function to show alert messages
-    function showAlert(message, type) {
-        // Remove any existing alerts
-        const existingAlert = document.querySelector('.alert');
-        if (existingAlert) {
-            existingAlert.remove();
-        }
+            if (!this.formData.last_name.trim()) {
+                this.showAlert('Last name is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.email.trim()) {
+                this.showAlert('Email is required', 'danger');
+                return false;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(this.formData.email)) {
+                this.showAlert('Please enter a valid email address', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.phone_number.trim()) {
+                this.showAlert('Phone number is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.type_) {
+                this.showAlert('User type is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.role_id) {
+                this.showAlert('Role is required', 'danger');
+                return false;
+            }
+            
+            if (!this.termsChecked) {
+                this.showAlert('Please confirm that all information is correct', 'danger');
+                return false;
+            }
+            
+            return true;
+        },
         
-        // Create new alert
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} mt-3`;
-        alertDiv.textContent = message;
+        showAlert(message, type) {
+            this.alert.message = message;
+            this.alert.type = type;
+            
+            // Auto-clear non-success alerts after 5 seconds
+            if (type !== 'success') {
+                setTimeout(() => {
+                    this.clearAlert();
+                }, 5000);
+            }
+        },
         
-        // Add close button for success messages
-        if (type === 'success') {
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="float: right;"></button>
-            `;
-        }
+        clearAlert() {
+            this.alert.message = '';
+            this.alert.type = '';
+        },
         
-        // Insert after the form
-        const formContainer = document.querySelector('.bg-secondary.rounded.h-100.p-4');
-        formContainer.appendChild(alertDiv);
-        
-        // Remove after 5 seconds (only for non-success messages)
-        if (type !== 'success') {
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
+        resetForm() {
+            this.formData = {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone_number: '',
+                type_: '',
+                role_id: '',
+            };
+            this.termsChecked = false;
         }
     }
-});
+}).mount('#vue-registration-form');

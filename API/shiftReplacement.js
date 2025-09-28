@@ -69,6 +69,19 @@ async function processShiftReplacement(cancellation) {
 
         console.log(`Processing cancellation ${cancellation_id} for shift ${shift_id}`);
 
+        // Mark the original shift as "missed"
+        const [originalEmployee] = await db.query(`
+            SELECT first_name, last_name 
+            FROM t_employee 
+            WHERE employee_id = ?
+        `, [cancelled_employee_id]);
+        
+        await db.query(`
+            UPDATE t_shift 
+            SET status_ = 'missed' 
+            WHERE shift_id = ?
+        `, [shift_id]);
+
         //Find all available standby employees with same role
         const [standbyEmployees] = await db.query(`
             SELECT 
@@ -90,7 +103,7 @@ async function processShiftReplacement(cancellation) {
             
             //Send notification to manager about no standby available
             await sendManagerNotification(
-                `Shift Replacement Failed: No standby employee available for cancelled ${role_title} shift on ${currentDate} at ${start_time}`
+                `Shift Replacement Failed: No standby employee available for cancelled ${role_title} shift on ${currentDate} at ${start_time}. Contingency plan required`
             );
             
             //Mark as processed even if no replacement found
@@ -140,7 +153,7 @@ async function processShiftReplacement(cancellation) {
             
             //Send notification to manager about all employees having conflicts
             await sendManagerNotification(
-                `Shift Replacement Failed: All standby ${role_title} employees have conflicting shifts for cancelled shift on ${currentDate} at ${start_time}`
+                `Shift Replacement Failed: All standby ${role_title} employees have conflicting shifts for cancelled shift on ${currentDate} at ${start_time}. Contingency plan required`
             );
             
             //Mark as processed since we've exhausted all options
@@ -177,7 +190,7 @@ async function processShiftReplacement(cancellation) {
         console.log(`Created new shift ${newShiftId} for replacement employee`);
 
         //Send notification to replacement employee
-        const notificationMessage = `You have been assigned a replacement shift for ${role_title} on ${currentDate} from ${start_time} to ${end_time} due to a missed shift.`;
+        const notificationMessage = `You have been assigned a replacement shift for ${role_title} on ${currentDate} from ${start_time} to ${end_time} due to a missed shift. Be there within the hour, see you soon!`;
         
         await db.query(`
             INSERT INTO t_notification (
@@ -191,7 +204,7 @@ async function processShiftReplacement(cancellation) {
 
         //Send confirmation notification to manager
         await sendManagerNotification(
-            `${replacementEmployee.first_name} ${replacementEmployee.last_name}: Is filling in for a missed shift by ${shift.first_name} ${shift.last_name} (${shift.role_title}) on ${formattedDate} at ${shift.start_time}`
+            `${replacementEmployee.first_name} ${replacementEmployee.last_name}: Is filling in for a missed shift by ${originalEmployee[0].first_name} ${originalEmployee[0].last_name} (${role_title}) on ${currentDate} at ${start_time}`
         );
 
         //Mark cancellation as processed in database
