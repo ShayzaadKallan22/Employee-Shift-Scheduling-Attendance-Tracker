@@ -257,7 +257,7 @@ cron.schedule('* * * * * *', async () => {
                 `INSERT INTO t_notification 
                 (employee_id, message, sent_time, notification_type_id)
                 VALUES (?, ?, NOW(), ?)`, 
-                [manager.employee_id, `${shift.first_name} ${shift.last_name} failed to clock in for their shift starting at ${startTime} on ${formattedDate} with no reason. Consider taking disciplinary action`, 4]
+                [manager.employee_id, `${shift.first_name} ${shift.last_name}: Failed to clock in for their shift starting at ${startTime} on ${formattedDate} with no reason. Consider taking disciplinary action`, 4]
               );
             }
 
@@ -295,7 +295,7 @@ cron.schedule('* * * * * *', async () => {
                       read_status,
                       notification_type_id
                   ) VALUES (?, ?, NOW(), 'unread', 4)`,
-                  [manager.employee_id, `Shift Replacement Failed: No standby employee available for missed ${shift.role_title} shift on ${formattedDate} at ${startTime}. Contingency plan needed`]
+                  [manager.employee_id, `Shift Replacement Failed: No standby employee available for missed ${shift.role_title} shift on ${formattedDate} at ${startTime}. Contingency plan required`]
                 );
               }
               continue; //Move to next shift
@@ -354,7 +354,7 @@ cron.schedule('* * * * * *', async () => {
                   [manager.employee_id, `Shift Replacement Failed: All standby ${shift.role_title} employees have conflicting shifts for missed shift on ${formattedDate} at ${startTime}. Contingency plan required`]
                 );
               }
-              continue; // Move to next shift
+              continue; //Move to next shift
             }
 
             //Create new shift for replacement employee
@@ -386,7 +386,7 @@ cron.schedule('* * * * * *', async () => {
             console.log(`Created new shift ${newShiftId} for replacement employee`);
 
             //Send notification to replacement employee
-            const replacementNotificationMessage = `You have been assigned a replacement shift for ${shift.role_title} on ${formattedDate} from ${shift.start_time} to ${shift.end_time} due to a missed clock-in. See you soon!`;
+            const replacementNotificationMessage = `You have been assigned a replacement shift for ${shift.role_title} on ${formattedDate} from ${shift.start_time} to ${shift.end_time} due to a missed clock-in. Be there within the hour, see you soon!`;
             
             await connection.query(`
                 INSERT INTO t_notification (
@@ -549,7 +549,7 @@ cron.schedule('* * * * * *', async () => {
               `INSERT INTO t_notification 
                (employee_id, message, sent_time, notification_type_id)
                VALUES (?, ?,NOW(), ?)`, 
-              [shift.employee_id, `${shift.first_name} ${shift.last_name} has missed a normal shift on ${formattedDate}, failed to scan proof QR code. Consider taking disciplinary action`, 4]
+              [shift.employee_id, `${shift.first_name} ${shift.last_name}: Has missed a normal shift on ${formattedDate}, failed to scan proof QR code. Consider taking disciplinary action`, 4]
             );
           }
         }
@@ -712,7 +712,7 @@ cron.schedule('* * * * *', async () => {
                VALUES (?, ?, NOW(), ?)`, 
               [
                 manager.employee_id, 
-                `${shift.first_name} ${shift.last_name}: Replacement employee failed to clock in for ${shift.role_title} shift on ${currentDate} at ${shift.start_time}. QR code has expired. Consider taking disciplinary action. Contingency plan required.`,
+                `${shift.first_name} ${shift.last_name}: Replacement employee failed to clock in for ${shift.role_title} shift on ${currentDate} at ${shift.start_time}. Consider taking disciplinary action. Contingency plan required.`,
                 4
               ]
             );

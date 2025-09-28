@@ -30,6 +30,32 @@
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 
+    <!-- Custom Styles for Form -->
+    <style>
+        /* Fix for disabled role dropdown to match theme */
+        .form-select:disabled {
+            background-color: #191C24 !important;
+            border-color: #374151 !important;
+            color: #9CA3AF !important;
+            opacity: 0.6;
+        }
+        
+        .form-select:disabled:focus {
+            border-color: #374151 !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ensure placeholder text is visible in dark theme */
+        .form-control::placeholder {
+            color: #9CA3AF !important;
+            opacity: 0.8;
+        }
+        
+        .form-control:focus::placeholder {
+            color: #6B7280 !important;
+        }
+    </style>
+
     <!-- Vue CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
@@ -50,7 +76,7 @@
 
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
+                <!-- <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
                         <div
@@ -61,7 +87,21 @@
                         <h6 class="mb-0">Employee Manager Demo</h6>
                         <span>Admin</span>
                     </div>
-                </div>
+                </div> -->
+                <div class="d-flex align-items-center ms-4 mb-4">
+    <div class="position-relative">
+        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+    </div>
+    <div class="ms-3">
+        <h6 class="mb-0" id="profile-name">
+            <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+            </a>
+        </h6>
+        <span>Manager</span>
+    </div>
+</div>
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link"><i
                             class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
@@ -78,6 +118,7 @@
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -115,7 +156,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone" class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" id="phone" v-model="formData.phone_number" placeholder="+27 12 345 6789" required>
+                                        <input type="tel" class="form-control" id="phone" v-model="formData.phone_number" placeholder="012 345 6789" required>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -129,23 +170,23 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="role" class="form-label">Role</label>
-                                        <select class="form-select" id="role" v-model="formData.role_id" required>
-                                            <option value="" selected disabled>Select a role</option>
-                                            <option value="bartender">Bartender</option>
-                                            <option value="cleaner">Cleaner</option>
-                                            <option value="bouncer">Bouncer</option>
-                                            <option value="sparkler_girl">Sparkler Girl</option>
-                                            <option value="runner">Runner</option>
-                                            <option value="waiter">Waiter</option>
-                                            <option value="leader">Leader</option>
+                                        <select class="form-select" id="role" v-model="formData.role_id" required :disabled="!formData.type_">
+                                            <option value="" selected disabled>
+                                                {{ formData.type_ ? 'Select a role' : 'Select user type first' }}
+                                            </option>
+                                            <option v-for="role in availableRoles" :key="role.value" :value="role.value">
+                                                {{ role.label }}
+                                            </option>
                                         </select>
+                                        <div v-if="formData.type_ === 'manager'" class="form-text text-info">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Managers are automatically assigned the Leader role
+                                        </div>
+                                        <div v-else-if="formData.type_ === 'employee'" class="form-text">
+                                            Select the appropriate role for this employee
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- <div class="mb-3">
-                                    <label for="macAddress" class="form-label">Device MAC Address</label>
-                                    <input type="text" class="form-control" id="macAddress" v-model="formData.mac_address" placeholder="00:1A:2B:3C:4D:5E" required>
-                                    <div class="form-text">Format: 00:1A:2B:3C:4D:5E (uppercase letters)</div>
-                                </div> -->
                                 <div class="mb-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="termsCheck" v-model="termsChecked" required>
@@ -240,7 +281,181 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Vue - Registration -->
-<script src="js/vue-registration.js"></script>
+<script>
+// js/vue-registration.js
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            formData: {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone_number: '',
+                type_: '',
+                role_id: '',
+            },
+            termsChecked: false,
+            isSubmitting: false,
+            alert: {
+                message: '',
+                type: ''
+            },
+            allRoles: [
+                { value: 'bartender', label: 'Bartender' },
+                { value: 'cleaner', label: 'Cleaner' },
+                { value: 'bouncer', label: 'Bouncer' },
+                { value: 'sparkler_girl', label: 'Sparkler Girl' },
+                { value: 'runner', label: 'Runner' },
+                { value: 'waiter', label: 'Waiter' },
+                { value: 'leader', label: 'Leader' }
+            ]
+        }
+    },
+    computed: {
+        availableRoles() {
+            if (this.formData.type_ === 'manager') {
+                // Only Leader role for managers
+                return this.allRoles.filter(role => role.value === 'leader');
+            } else if (this.formData.type_ === 'employee') {
+                // All roles except Leader for employees
+                return this.allRoles.filter(role => role.value !== 'leader');
+            } else {
+                // No user type selected, show no roles
+                return [];
+            }
+        }
+    },
+    watch: {
+        'formData.type_'(newType) {
+            // Reset role selection when user type changes
+            this.formData.role_id = '';
+            
+            // Auto-select Leader if Manager is selected
+            if (newType === 'manager') {
+                this.formData.role_id = 'leader';
+            }
+        }
+    },
+    methods: {
+        async handleSubmit() {
+            // Validate form
+            if (!this.validateForm()) {
+                return;
+            }
+            
+            this.isSubmitting = true;
+            this.clearAlert();
+            
+            try {
+                // Send data to API
+                const response = await fetch('http://localhost:3000/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.formData)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Registration failed');
+                }
+                
+                // Registration successful
+                this.showAlert(`Employee registered successfully! Temporary password: ${data.temporaryPassword}`, 'success');
+                
+                // Reset form
+                this.resetForm();
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                this.showAlert(`Registration failed: ${error.message}`, 'danger');
+            } finally {
+                this.isSubmitting = false;
+            }
+        },
+        
+        validateForm() {
+            // Check required fields
+            if (!this.formData.first_name.trim()) {
+                this.showAlert('First name is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.last_name.trim()) {
+                this.showAlert('Last name is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.email.trim()) {
+                this.showAlert('Email is required', 'danger');
+                return false;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(this.formData.email)) {
+                this.showAlert('Please enter a valid email address', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.phone_number.trim()) {
+                this.showAlert('Phone number is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.type_) {
+                this.showAlert('User type is required', 'danger');
+                return false;
+            }
+            
+            if (!this.formData.role_id) {
+                this.showAlert('Role is required', 'danger');
+                return false;
+            }
+            
+            if (!this.termsChecked) {
+                this.showAlert('Please confirm that all information is correct', 'danger');
+                return false;
+            }
+            
+            return true;
+        },
+        
+        showAlert(message, type) {
+            this.alert.message = message;
+            this.alert.type = type;
+            
+            // Auto-clear non-success alerts after 5 seconds
+            if (type !== 'success') {
+                setTimeout(() => {
+                    this.clearAlert();
+                }, 5000);
+            }
+        },
+        
+        clearAlert() {
+            this.alert.message = '';
+            this.alert.type = '';
+        },
+        
+        resetForm() {
+            this.formData = {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone_number: '',
+                type_: '',
+                role_id: '',
+            };
+            this.termsChecked = false;
+        }
+    }
+}).mount('#vue-registration-form');
+</script>
 <script src="js/components.js"></script>
 </body>
 </html>
