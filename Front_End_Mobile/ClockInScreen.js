@@ -360,11 +360,13 @@ const ClockInScreen = () => {
 
     //Check if shift is today and within 3 hours window.
     const isToday = shiftTime.toDateString() === now.toDateString();
+    // console.log('Is Today: ',isToday, shiftTime, now);
     if(!isToday) return false;  
     const timeDiff = shiftTime - now;
     const threeHoursInMs = 3 * 60 * 60 * 1000;
 
-    return isToday && timeDiff > threeHoursInMs && timeDiff > 0;
+    // console.log('Is Today', isToday,'Time diff:', timeDiff, 'Three hours in ms:', threeHoursInMs);
+    return isToday && timeDiff >= threeHoursInMs && timeDiff > 0;
   }
 
   //Handle notification to manager
@@ -403,8 +405,9 @@ const ClockInScreen = () => {
         Alert.alert('Please provide additional notes for cancellation.');
         return;
       }
-
+      // const shiftDate = new Date(nextShift.date_).toLocaleDateString('en-CA');
       const employeeId = await AsyncStorage.getItem('employee_id');
+      // console.log(shiftDate, nextShift.shift_id);
       const res = await axios.post(`${API_URL}/api/shifts/cancel`, {
         employee_id: employeeId,
         shift_id: nextShift.shift_id,
@@ -413,7 +416,7 @@ const ClockInScreen = () => {
         notes: cancelNotes
       });
 
-      updateCountdown(); //Update countdown in case shift was cancelled.
+     
       
       Alert.alert('Notification sent', 'Manager has been notified of your absence.');
       
@@ -423,9 +426,12 @@ const ClockInScreen = () => {
       //Reset reason and notes
       setCancelReason('sick');
       setCancelNotes('');
+      //updateCountdown(); //Update countdown in case shift was cancelled.
+      // console.log(res);
     }catch (error){
-      console.error('Error notifying manager:', error);
-      Alert.alert('Error', 'Could not notify manager. Please try again later.');
+      //console.error('Error notifying manager:',error);
+     
+      Alert.alert('Could not notify manager, you do not have a shift today.');
     }
   };
 
