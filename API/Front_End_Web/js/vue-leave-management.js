@@ -563,7 +563,8 @@ showCalendar(request) {
     this.leaveStartDate = new Date(request.start_date);
     this.leaveEndDate = new Date(request.end_date);
     
-    this.currentDate = new Date();
+    // this.currentDate = new Date();
+    this.currentDate = new Date(request.start_date);
     this.renderSimpleCalendar();
     
     if (!this.calendarModal) {
