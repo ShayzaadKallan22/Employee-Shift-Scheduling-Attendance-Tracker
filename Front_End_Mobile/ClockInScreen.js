@@ -77,7 +77,7 @@ const ClockInScreen = () => {
       // console.log('  Is future?', shiftDateTime > now);
       // console.log('  Time diff (ms):', shiftDateTime - now);
       
-      return shiftDateTime > now;
+      return shiftDateTime >= now;
     });
     
     // console.log('Upcoming shifts found:', upcomingShifts.length);
@@ -430,7 +430,7 @@ const ClockInScreen = () => {
       const res = await axios.post(`${API_URL}/api/shifts/cancel`, {
         employee_id: employeeId,
         shift_id: nextShift.shift_id,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toLocaleDateString('en-CA'),
         reason: cancelReason,
         notes: cancelNotes
       });
@@ -445,6 +445,7 @@ const ClockInScreen = () => {
       setCancelNotes('');
     
     }catch (error){
+      
       Alert.alert("Failure", 'Could not cancel shift, you do not have a shift today.');
     }
   };
