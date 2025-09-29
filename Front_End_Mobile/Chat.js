@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import Ionicon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import config from './config';
 
@@ -240,14 +240,14 @@ useEffect(() => {
     >
       {/* Chat Header */}
       <View style={styles.chatHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
         <Text style={styles.chatHeaderText}>
           {otherName || 'Unknown User'}
         </Text>
-        <Text style={styles.chatHeaderSubtext}>
-          ...
-        </Text>
+        <View style={styles.rightSpacer} />
       </View>
-
       {isLoading && messages.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007bff" />
@@ -296,21 +296,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a'
   },
   chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#2c2c2c',
-    padding: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-    alignItems: 'center'
   },
   chatHeaderText: {
+    flex: 1,
+    textAlign: 'center',
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 2
   },
   chatHeaderSubtext: {
     color: '#aaa',
-    fontSize: 12
+    fontSize: 12,
+    alignItems: 'center'
   },
   loadingContainer: {
     flex: 1,
@@ -392,6 +397,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16
+  },
+  backButton: {
+    width: 40,  
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  rightSpacer: {
+    width: 40,  //To balance the back button
   }
 });
 

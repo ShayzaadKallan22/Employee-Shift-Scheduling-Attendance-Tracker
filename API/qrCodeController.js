@@ -207,7 +207,7 @@ cron.schedule('0 0 * * *', async () => {
       );
     }
 
-    console.log(`Auto clocked-out ${rows.length} employees.`);
+    //console.log(`Auto clocked-out ${rows.length} employees.`);
   } catch (err) {
     console.error('Error in auto clock-out job:', err);
   }

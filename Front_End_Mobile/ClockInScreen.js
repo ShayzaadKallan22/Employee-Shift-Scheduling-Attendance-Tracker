@@ -261,19 +261,19 @@ const ClockInScreen = () => {
   
     return true;
     
-    // const workplaceCoords = { latitude: -26.2041, longitude: 28.0473 }; //UJ APK
-    // const distance = calculateDistance(
-    //   location.coords.latitude,
-    //   location.coords.longitude,
-    //   workplaceCoords.latitude,
-    //   workplaceCoords.longitude
-    // );
-    // return distance <= 100; // Within 100 meters
+    const workplaceCoords = { latitude: -26.1821, longitude: 27.9992 }; //UJ APK
+    const distance = calculateDistance(
+      location.coords.latitude,
+      location.coords.longitude,
+      workplaceCoords.latitude,
+      workplaceCoords.longitude
+    );
+    return distance <= 200; //Within 200 meters
   };
 
   //Calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; //Earth's radius in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a = 
@@ -353,20 +353,38 @@ const ClockInScreen = () => {
     if(!nextShift || attendanceStatus === 'Working') return false;
 
     const now = new Date();
-    const dateField = nextShift.end_date || nextShift.date_;
-    const dateOnly = dateField.split('T')[0];
-    const timeOnly = nextShift.start_time;
-    const shiftTime = new Date(dateOnly + 'T' + timeOnly);
 
-    //Check if shift is today and within 3 hours window.
-    const isToday = shiftTime.toDateString() === now.toDateString();
-    // console.log('Is Today: ',isToday, shiftTime, now);
-    if(!isToday) return false;  
-    const timeDiff = shiftTime - now;
+    const dateField = nextShift.start_date || nextShift.date_ || nextShift.end_date;
+    const [year, month, day] = dateField.split('T')[0].split('-').map(Number);
+    const [hour, minute = 0] = nextShift.start_time.split(':').map(Number);
+
+    const shiftStart = new Date(year, month - 1, day, hour, minute);
+
+    let shiftEnd = null;
+    if (nextShift.end_date && nextShift.end_time) {
+        const [eyear, emonth, eday] = nextShift.end_date.split('T')[0].split('-').map(Number);
+        const [ehour, eminute = 0] = nextShift.end_time.split(':').map(Number);
+        shiftEnd = new Date(eyear, emonth - 1, eday, ehour, eminute);
+
+      //If shiftEnd < shiftStart → adjust for overnight (e.g. 22:00 → 06:00 next day)
+      if (shiftEnd < shiftStart) {
+        shiftEnd.setDate(shiftEnd.getDate() + 1);
+      }
+    }
+
+
+    //Must be today’s shift (shiftStart is today OR shiftEnd crosses into tomorrow)
+    const isTodayShift =
+    shiftStart.toDateString() === now.toDateString() ||
+    (shiftEnd && now.toDateString() === shiftStart.toDateString());
+
+    if (!isTodayShift) return false;
+
+    //Must be at least 3 hours before start
+    const timeDiff = shiftStart - now;
     const threeHoursInMs = 3 * 60 * 60 * 1000;
 
-    // console.log('Is Today', isToday,'Time diff:', timeDiff, 'Three hours in ms:', threeHoursInMs);
-    return isToday && timeDiff >= threeHoursInMs && timeDiff > 0;
+    return timeDiff >= threeHoursInMs;
   }
 
   //Handle notification to manager
@@ -405,6 +423,7 @@ const ClockInScreen = () => {
         Alert.alert('Please provide additional notes for cancellation.');
         return;
       }
+
       // const shiftDate = new Date(nextShift.date_).toLocaleDateString('en-CA');
       const employeeId = await AsyncStorage.getItem('employee_id');
       // console.log(shiftDate, nextShift.shift_id);
@@ -416,9 +435,7 @@ const ClockInScreen = () => {
         notes: cancelNotes
       });
 
-     
-      
-      Alert.alert('Notification sent', 'Manager has been notified of your absence.');
+      Alert.alert('Success', res.data.message || 'Manager notified of shift cancellation.');
       
       setCancelModalVisible(false);
       //fetchData(); //Refresh data to reflect any changes
@@ -429,9 +446,8 @@ const ClockInScreen = () => {
       //updateCountdown(); //Update countdown in case shift was cancelled.
       // console.log(res);
     }catch (error){
-      //console.error('Error notifying manager:',error);
-     
-      Alert.alert('Could not notify manager, you do not have a shift today.');
+      // console.error('Error notifying manager:',error);
+      Alert.alert("Failure", 'Could not cancel shift, you do not have a shift today.');
     }
   };
 
