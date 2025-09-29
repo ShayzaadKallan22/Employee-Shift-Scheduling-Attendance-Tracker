@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -73,7 +73,7 @@ const MessagesAndNotifications = () => {
                 )
               };
             } catch (error) {
-              console.error('Error fetching conversation details:', error);
+              //console.error('Error fetching conversation details:', error);
               return null;
             }
           })
@@ -155,6 +155,7 @@ const MessagesAndNotifications = () => {
   };
 
   return (
+  <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
     <View style={styles.container}>
       {/* Main Tabs */}
       <View style={styles.mainTabContainer}>
@@ -222,7 +223,9 @@ const MessagesAndNotifications = () => {
           <ActivityIndicator size="large" color="#007bff" />
         </View>
       ) : (
-        <ScrollView style={styles.notificationsContainer}>
+        
+        <ScrollView style={styles.notificationsContainer}
+        contentContainerStyle={{ paddingBottom: 20 }}>
           {activeMainTab === 'Notifications' ? (
             filteredNotifications.length === 0 ? (
               <Text style={styles.noNotifications}>No notifications found</Text>
@@ -246,7 +249,13 @@ const MessagesAndNotifications = () => {
                       {formatNotificationType(notification.type)}
                     </Text>
                     <Text style={styles.notificationDate}>
-                      {notification.sent_time?.split('T')[0]}
+                      {new Date(notification.sent_time).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </Text>
                   </View>
                   <Text style={styles.notificationDescription}>{notification.message}</Text>
@@ -287,6 +296,7 @@ const MessagesAndNotifications = () => {
             )
           )}
         </ScrollView>
+      
       )}
 
       {/* Employee Selector Modal */}
@@ -296,8 +306,9 @@ const MessagesAndNotifications = () => {
         onSelectEmployee={handleEmployeeSelected}
       />
 
-      <BottomNav />
-    </View>
+      </View>
+     <BottomNav/>
+    </SafeAreaView>
   );
 };
 

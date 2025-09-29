@@ -334,6 +334,114 @@
     box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
   }
 }
+
+.custom-toast {
+    background: #2a3042;
+    border: 1px solid #4e73df;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: white;
+    min-width: 300px;
+  }
+
+  .toast-success {
+    border-color: #198754;
+    background: linear-gradient(135deg, #2a3042 0%, #1a3a2a 100%);
+  }
+
+  .toast-error {
+    border-color: #dc3545;
+    background: linear-gradient(135deg, #2a3042 0%, #3a1a1a 100%);
+  }
+
+  .toast-warning {
+    border-color: #ffc107;
+    background: linear-gradient(135deg, #2a3042 0%, #3a2a1a 100%);
+  }
+
+  .toast-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+  }
+
+  .toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: #4e73df;
+    width: 100%;
+    transform-origin: left;
+    animation: progressBar 3s linear forwards;
+  }
+
+  .toast-success .toast-progress {
+    background: #198754;
+  }
+
+  .toast-error .toast-progress {
+    background: #dc3545;
+  }
+
+  .toast-warning .toast-progress {
+    background: #ffc107;
+  }
+
+  @keyframes progressBar {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+  }
+
+  .toast-enter {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .toast-exit {
+    animation: slideOutRight 0.3s ease-out forwards;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  .toast-container {
+  z-index: 9999 !important;
+}
+
+/* Toast positioning adjustments */
+.custom-toast {
+  margin-bottom: 10px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .toast-container {
+    padding: 10px !important;
+  }
+  
+  .custom-toast {
+    min-width: 250px !important;
+    font-size: 0.9rem;
+  }
+}
   </style>
 </head>
 
@@ -959,6 +1067,10 @@
   <script src="js/vue-event-management.js"></script>
 
   <script src="js/components.js"></script>
+
+  <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+  <!-- Toast notifications will be dynamically inserted here -->
+</div>
 </body>
 
 </html>

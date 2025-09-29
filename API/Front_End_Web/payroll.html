@@ -37,6 +37,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <style>
+    /* Confirmation Modal Styles */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #495057;
+    padding: 1rem 1.5rem;
+}
+
+.modal-body {
+    padding: 2rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #495057;
+    padding: 1rem 1.5rem;
+}
+
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #FFC107;
+}
+
 .flatpickr-calendar .flatpickr-day.budget-exceeded::after {
     content: '';
     position: absolute;
@@ -192,7 +218,7 @@
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
                     <img src="img/AzaniaWhite.png" alt="Azania Logo" style="height: 45px;">
                 </a>
-                <div class="d-flex align-items-center ms-4 mb-4">
+                <!-- <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
                         <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
                         <div
@@ -203,7 +229,23 @@
                         <h6 class="mb-0">Employee Manager Demo</h6>
                         <span>Admin</span>
                     </div>
-                </div>
+                </div> -->
+
+                <div class="d-flex align-items-center ms-4 mb-4">
+    <div class="position-relative">
+        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+    </div>
+    <div class="ms-3">
+        <h6 class="mb-0" id="profile-name">
+            <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+            </a>
+        </h6>
+        <span>Manager</span>
+    </div>
+</div>
+
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link"><i
                             class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
@@ -222,6 +264,7 @@
                     </div>
                     <a href="status.html" class="nav-item nav-link"><i class="fa fa-info alt me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                    <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                 </div>
             </nav>
@@ -566,6 +609,70 @@
     </div>
 </div>
 <div class="modal-backdrop fade show" v-if="showBudgetDetailsModal"></div>
+<!-- Save Confirmation Modal (Under Budget) -->
+<div class="modal fade" :class="{ show: showSaveConfirmationModal }" v-show="showSaveConfirmationModal" style="display: block;" tabindex="-1" v-if="showSaveConfirmationModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-success">
+                    <i class="fa fa-check-circle me-2"></i>Confirm Changes
+                </h5>
+                <button type="button" class="btn-close btn-close-white" @click="closeAllConfirmationModals"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fa fa-question-circle text-primary fa-3x mb-3"></i>
+                    <h5 class="text-white">Are you sure you want to save these {{ confirmationType }} rate changes?</h5>
+                    <p class="text-muted mb-0">The projected total is {{ formatProjectedCurrency(projectedTotal) }}</p>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary justify-content-center">
+                <button type="button" class="btn btn-secondary me-3" @click="closeAllConfirmationModals">
+                    <i class="fa fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-success" @click="executePendingSave">
+                    <i class="fa fa-check me-2"></i>Confirm Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show" v-if="showSaveConfirmationModal"></div>
+
+<!-- Over Budget Warning Modal -->
+<div class="modal fade" :class="{ show: showOverBudgetModal }" v-show="showOverBudgetModal" style="display: block;" tabindex="-1" v-if="showOverBudgetModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning">
+                    <i class="fa fa-exclamation-triangle me-2"></i>Budget Warning
+                </h5>
+                <button type="button" class="btn-close btn-close-white" @click="closeAllConfirmationModals"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fa fa-exclamation-circle text-warning fa-3x mb-3"></i>
+                    <h5 class="text-white">These changes will exceed the weekly budget</h5>
+                    <div class="alert alert-warning mt-3">
+                        <strong>Over Budget By: {{ formatCurrency(overBudgetAmount) }}</strong>
+                        <br>
+                        <small>Projected Total: {{ formatProjectedCurrency(projectedTotal) }} / Budget: {{ formatProjectedCurrency(globalBudget) }}</small>
+                    </div>
+                    <p class="text-muted">Are you sure you want to proceed with these changes?</p>
+                </div>
+            </div>
+            <div class="modal-footer border-warning justify-content-center">
+                <button type="button" class="btn btn-secondary me-3" @click="closeAllConfirmationModals">
+                    <i class="fa fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" @click="executePendingSave">
+                    <i class="fa fa-exclamation-triangle me-2"></i>Proceed Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show" v-if="showOverBudgetModal"></div>
                                         
                                     <!-- Payment Details -->
                                     <div class="bg-dark rounded p-4">
@@ -694,7 +801,7 @@
                                 <div class="modal-footer border-secondary sticky-bottom bg-dark py-3">
                                     <button type="button" class="btn btn-secondary" @click="showRoleModal = false">Cancel</button>
                                     <button type="button" 
-                                            :class="budgetExceeded ? 'btn btn-danger' : 'btn btn-primary'" 
+                                            :class="budgetExceeded ? 'btn btn-warning' : 'btn btn-primary'" 
                                             @click="saveRoleRatesWithBudgetCheck">
                                         <i v-if="budgetExceeded" class="fa fa-exclamation-triangle me-2"></i>
                                         Save Changes
@@ -795,7 +902,7 @@
                                 <div class="modal-footer border-secondary sticky-bottom bg-dark py-3">
                                     <button type="button" class="btn btn-secondary" @click="showEmployeeModal = false">Cancel</button>
                                     <button type="button" 
-                                            :class="budgetExceeded ? 'btn btn-danger' : 'btn btn-primary'" 
+                                            :class="budgetExceeded ? 'btn btn-warning' : 'btn btn-primary'" 
                                             @click="saveEmployeeRatesWithBudgetCheck">
                                         <i v-if="budgetExceeded" class="fa fa-exclamation-triangle me-2"></i>
                                         Save Changes

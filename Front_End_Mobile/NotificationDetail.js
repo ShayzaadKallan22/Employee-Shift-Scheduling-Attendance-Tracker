@@ -89,7 +89,7 @@ const NotificationDetails = ({ route }) => {
         <View style={styles.notificationHeader}>
           <Text style={styles.title}>{displayType}</Text>
           <Text style={styles.date}>
-            {new Date(notification.sent_time).toLocaleDateString('en-US', {
+            {new Date(notification.sent_time).toLocaleString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',

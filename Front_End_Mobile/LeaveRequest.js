@@ -50,7 +50,7 @@ const LeaveRequest = () => {
     try {
       const employeeId = await AsyncStorage.getItem('employee_id');
       if (!employeeId) {
-        console.log('No employee ID found');
+        //console.log('No employee ID found');
         return;
       }
 
@@ -185,22 +185,23 @@ const LeaveTypes = React.useMemo(() => [
   };
 
   //Handle picking a sick note
-  // const handlePickSickNote = async () => {
-  //   const result = await DocumentPicker.getDocumentAsync({
-  //     type: 'application/pdf',
-  //     copyToCacheDirectory: true,
-  //   });
+  const handlePickSickNote = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+      copyToCacheDirectory: true,
+    });
 
-  //   if (!result.canceled) {
-  //     //Check if the selected file is a PDF
-  //     if (!result.assets[0].name.toLowerCase().endsWith('.pdf')) {
-  //       Alert.alert('Invalid file', 'Only PDF files are allowed.');
-  //       return;
-  //     }
-  //     setSickNote(result.assets[0]);
-  //   }
-  // };
+    if (!result.canceled) {
+      //Check if the selected file is a PDF
+      if (!result.assets[0].name.toLowerCase().endsWith('.pdf')) {
+        Alert.alert('Invalid file', 'Only PDF files are allowed.');
+        return;
+      }
+      setSickNote(result.assets[0]);
+    }
+  };
 
+  //Submit leave request
   //Submit leave request
   const handleSubmit = async () => {
     if (!startDate || !endDate || !leaveType) {
@@ -223,8 +224,8 @@ const LeaveTypes = React.useMemo(() => [
       //Get employee ID from AsyncStorage.
       const employeeId = await AsyncStorage.getItem('employee_id');
       if (!employeeId) {
+        Alert.alert('Error', 'Employee ID not found');
         return;
-        //throw new Error('Employee ID not found');
       }
 
       //Map leave type to leave_type_id 
@@ -235,40 +236,44 @@ const LeaveTypes = React.useMemo(() => [
       };
 
       const leaveTypeId = Number(leaveTypeMap[leaveType]);
-      //Replace the EMP with an empty character if the employee id comes with the EMP.
-      //const numericId = employeeId.replace('EMP-', '');
       
-      //Send request to the API to handle.
+      //Create FormData for multipart request
       const formData = new FormData();
       formData.append('employee_id', employeeId);
       formData.append('leave_type_id', leaveTypeId.toString());
       formData.append('start_date', startDate);
       formData.append('end_date', endDate);
 
+      //Handle sick note upload for sick leave
       if (leaveType === 'Sick' && sickNote) {
-        formData.append('sick_note', {
+        //Ensure proper file structure for React Native
+        const fileToUpload = {
           uri: sickNote.uri,
-          name: sickNote.name,
+          name: sickNote.name || 'sick_note.pdf',
           type: 'application/pdf'
-        });
+        };
+        
+        formData.append('sick_note', fileToUpload);
       }
-      
-      //Debugging: Log FormData entries
-      // console.log('FormData entries:');
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(key, value);
-      // }
+
+      // console.log('Submitting leave request with data:', {
+      //   employee_id: employeeId,
+      //   leave_type_id: leaveTypeId,
+      //   start_date: startDate,
+      //   end_date: endDate,
+      //   has_sick_note: !!(leaveType === 'Sick' && sickNote)
+      // });
 
       const response = await axios.post(`${API_URL}/api/leaves/request`, formData, {
         headers: { 
           'Content-Type': 'multipart/form-data'
-          //'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
         },
+        timeout: 30000, // 30 second timeout
       });
 
-      //console.log('Full response:', response.data);
+      // console.log('Leave request response:', response.data);
       
-      //Add the new request to pendingRequests with the response data
+      // Add the new request to pendingRequests with the response data
       const newRequest = {
         id: response.data.leave_id.toString(),
         startDate,
@@ -277,20 +282,40 @@ const LeaveTypes = React.useMemo(() => [
         leaveStatus: response.data.status_
       };
 
+      //Set the new request in the pending requests list
       setPendingRequests([...pendingRequests, newRequest]);
+      
+      //Reset form
       setStartDate('');
       setEndDate('');
       setLeaveType('Annual');
+      setSickNote(null); // Clear sick note
       setLeaveStatus(response.data.status_);
       
-      //Pop up if leave request was was submitted successfully
-      Alert.alert('Success', 'Leave request submitted successfully');
+      //Show success message
+      Alert.alert('Success', `Leave request submitted successfully. Status: ${response.data.status_}`);
+      
     } catch (error) {
-      //console.error('Error submitting leave request:', error);
-      Alert.alert(
-        'Error', 
-        error.response?.data?.message || 'Failed to submit leave request'
-      );
+      Alert.alert('Error submitting leave request:', error);
+      
+      let errorMessage = 'Failed to submit leave request';
+      
+      if (error.response) {
+        //Server responded with error status
+        // console.error('Response data:', error.response.data);
+       Alert.alert('Response status:', error.response.status);
+        errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
+      } else if (error.request) {
+        //Request was made but no response received
+        Alert.alert('Request error:', error.request);
+        errorMessage = 'Network error - please check your connection';
+      } else {
+        //Something else happened
+      //  Alert.alert('Error message:', error.message);
+        errorMessage = error.message;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -377,7 +402,7 @@ const LeaveTypes = React.useMemo(() => [
 
       Alert.alert('Leave request cancelled.');
     } catch(err) {
-      console.error('Failed to cancel leave:', err);
+      // console.error('Failed to cancel leave:', err);
       Alert.alert(
         'Error',
         err.response?.data?.message || 'Failed to cancel leave request.'
@@ -606,13 +631,13 @@ const LeaveTypes = React.useMemo(() => [
             </Picker>
           </View>
           
-          {/* {leaveType === 'Sick' && (
+          {leaveType === 'Sick' && (
             <TouchableOpacity onPress={handlePickSickNote} style={[styles.input, { borderColor: '#007bff', borderWidth: 1 }]}>
               <Text style={styles.inputText}>
-                {sickNote ? `Selected: ${sickNote.name}` : 'Upload PDF Sick Note (if required)'}
+                {sickNote ? `Selected: ${sickNote.name}` : 'Upload PDF Sick Note.'}
               </Text>
             </TouchableOpacity>
-          )} */}
+          )}
 
           <TouchableOpacity 
             style={[styles.submitButton, isLoading && styles.disabledButton]} 

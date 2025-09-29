@@ -220,6 +220,7 @@ useEffect(() => {
               minute: '2-digit' 
             }) : 'now'}
           </Text>
+          {/* Show read status only for own messages */}
           {isOwnMessage && (
             <Text style={styles.readStatus}>
               {isRead ? '✓✓' : '✓'}
@@ -230,6 +231,7 @@ useEffect(() => {
     );
   };
 
+  //Main render
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -242,7 +244,7 @@ useEffect(() => {
           {otherName || 'Unknown User'}
         </Text>
         <Text style={styles.chatHeaderSubtext}>
-          Tap to view profile
+          ...
         </Text>
       </View>
 
