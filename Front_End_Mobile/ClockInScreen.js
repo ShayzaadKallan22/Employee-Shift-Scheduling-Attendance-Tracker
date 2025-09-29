@@ -435,18 +435,16 @@ const ClockInScreen = () => {
         notes: cancelNotes
       });
 
-      Alert.alert('Success', res.data.message || 'Manager notified of shift cancellation.');
+      Alert.alert("Success", 'Manager notified of shift cancellation.');
       
       setCancelModalVisible(false);
-      //fetchData(); //Refresh data to reflect any changes
+     
       
       //Reset reason and notes
       setCancelReason('sick');
       setCancelNotes('');
-      //updateCountdown(); //Update countdown in case shift was cancelled.
-      // console.log(res);
+    
     }catch (error){
-      // console.error('Error notifying manager:',error);
       Alert.alert("Failure", 'Could not cancel shift, you do not have a shift today.');
     }
   };

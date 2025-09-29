@@ -443,25 +443,7 @@ exports.requestLeave = async (req, res) => {
                                 .getPublicUrl(fileName);
                             sickNoteUrl = publicUrlData.publicUrl;
                         }
-                        const [managers] = await db.execute(
-                            `SELECT employee_id FROM t_employee WHERE type_ = 'manager'`
-                        );
-
-                        const [employee] = await db.execute(
-                            `SELECT CONCAT(first_name, " ", last_name) AS name FROM t_employee WHERE employee_id = ?`, 
-                            [employee_id]
-                        );
-
-                        const leaveTypes = {1: 'Annual', 2: 'Sick', 3: 'Family'};
-                        const leaveTypeName = leaveTypes[typeId];
-
-                        for (const mgr of managers) {
-                            await db.execute(
-                                `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
-                                VALUES (?, ?, NOW(), ?, ?)`,
-                                [mgr.employee_id, `${employee[0].name} has uploaded a sick note for ${leaveTypeName} leave from ${start_date} to ${end_date}.`, 'unread', 1]
-                            );
-                        }
+                       
 
                     } catch (uploadError) {
                         console.warn('Optional sick note upload failed:', uploadError);
@@ -486,6 +468,27 @@ exports.requestLeave = async (req, res) => {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [start_date, end_date, status_, employee_id, typeId, usedDays, remaining, sickNoteUrl]
         );
+
+         const [managers] = await db.execute(
+             `SELECT employee_id FROM t_employee WHERE type_ = 'manager'`
+        );
+
+                        
+        const [employee] = await db.execute(
+            `SELECT CONCAT(first_name, " ", last_name) AS name FROM t_employee WHERE employee_id = ?`, 
+             [employee_id]
+        );
+
+        const leaveTypes = {1: 'Annual', 2: 'Sick', 3: 'Family'};
+        const leaveTypeName = leaveTypes[typeId];
+
+        for (const mgr of managers) {
+        await db.execute(
+         `INSERT INTO t_notification (employee_id, message, sent_time, read_status, notification_type_id)
+          VALUES (?, ?, NOW(), ?, ?)`,
+            [mgr.employee_id, `${employee[0].name} has uploaded a sick note for sick leave #${insertResult.insertId}, starting from ${start_date} to ${end_date}.`, 'unread', 1]
+        );
+        }
 
         //Insert notification for the employee
         await db.execute(
