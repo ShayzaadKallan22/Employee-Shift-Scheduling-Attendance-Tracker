@@ -25,12 +25,13 @@
         return false;
     });
 
-
-    // Sidebar Toggler
-    $('.sidebar-toggler').click(function () {
-        $('.sidebar, .content').toggleClass("open");
-        return false;
-    });
+// Sidebar Toggler
+$('.sidebar-toggler').click(function () {
+    $('.sidebar').toggleClass('collapsed');
+    $('.content').toggleClass('expanded');
+    $('#navbar-container').toggleClass('expanded');
+    return false;
+});
 
 
     // Progress Bar

@@ -297,7 +297,7 @@
                             <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
                         </div>
                     </div>
-                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-info-circle me-2"></i>Status</a>
+                    <a href="status.html" class="nav-item nav-link"><i class="fa fa-info me-2"></i>Status</a>
                     <a href="leave.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
                     <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
                     <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
@@ -309,11 +309,128 @@
         <!-- Content Start -->
         <div class="content">
             <!-- Navbar Start -->
-           <div id="navbar-container"></div>
+          <div id="navbar-container">
+          <nav
+            class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
+          >
+            <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+              <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+            </a>
+            <a href="#" class="sidebar-toggler flex-shrink-0">
+              <i class="fa fa-bars"></i>
+            </a>
+            <div class="navbar-nav align-items-center ms-auto">
+              <!-- Messages dropdown -->
+              <div class="nav-item dropdown me-3">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-envelope me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Messages</span>
+                  <span
+                    id="messageCount"
+                    class="badge bg-success ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-messages"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="message-employee.html"
+                    class="dropdown-item text-center"
+                    >See all messages</a
+                  >
+                </div>
+              </div>
+
+              <!-- Notification dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-bell me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Notifications</span>
+                  <span
+                    id="notificationCount"
+                    class="badge bg-danger ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-notifications"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="ViewAllNotifications.html"
+                    class="dropdown-item text-center"
+                    >See all notifications</a
+                  >
+                </div>
+              </div>
+
+              <!-- User dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <img
+                    class="rounded-circle me-lg-2"
+                    src="img/user.jpg"
+                    alt=""
+                    style="width: 40px; height: 40px"
+                  />
+                  <span class="d-none d-lg-inline-flex" id="nav-profile-name"
+                    >Loading...</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                >
+                  <a href="my-profile.html" class="dropdown-item">My Profile</a>
+                  <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
             <!-- Navbar End -->
 
             <!-- Message Employee Start -->
-            <div class="container-fluid pt-4 px-4">
+            <div class="container-fluid pt-4 px-4" style="margin-top:55px">
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
