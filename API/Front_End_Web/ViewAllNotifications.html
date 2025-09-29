@@ -47,7 +47,7 @@
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet" />
 
-    <style>   
+    <style>
       .navbar.sticky-top {
         z-index: 1000; /* Ensure navbar is above other elements */
       }
@@ -317,9 +317,9 @@
         text-decoration: none;
         display: inline-block;
       }
-       .btn-action:hover{
-          background-color: #0039b5;
-       }
+      .btn-action:hover {
+        background-color: #0039b5;
+      }
       .btn-action:hover {
         background-color: #2563eb;
         color: #ffffff;
@@ -433,23 +433,53 @@
       }
 
       .btn-mark-as-read {
-          display: flex; /* Use flexbox for centering */
-          justify-content: center; /* Center horizontally */
-          align-items: center; /* Center vertically */
-          background-color: #2563eb;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 5px;
-          font-size: 14px;
-          width: 130px; /* Fixed width */
-          height: 40px; /* Fixed height */
-          max-width: 130px;
-          min-width: 130px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          white-space: nowrap; /* Prevent text wrapping */
+        display: flex; /* Use flexbox for centering */
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-size: 14px;
+        width: 130px; /* Fixed width */
+        height: 40px; /* Fixed height */
+        max-width: 130px;
+        min-width: 130px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        white-space: nowrap; /* Prevent text wrapping */
       }
+      .sidebar {
+        width: 250px;
+        transition: width 0.5s ease;
+        overflow: hidden; /* hides sidebar content while shrinking */
+      }
+
+      /* Sidebar default (visible) */
+        .sidebar {
+          width: 250px;              /* full width */
+          transition: width 0.5s ease;
+          overflow: hidden;          /* hide text/icons while shrinking */
+        }
+
+        /* Sidebar collapsed */
+        .sidebar.open {
+          width: 0;                  /* collapse to zero */
+        }
+
+        /* Content default (shrunken to make space for sidebar) */
+        .content {
+          margin-left: 250px;        /* push content over */
+          width: calc(100% - 250px); 
+          transition: margin-left 0.5s ease, width 0.5s ease;
+        }
+
+        /* Content expanded (when sidebar collapsed) */
+        .content.open {
+          margin-left: 0;            /* shift left */
+          width: 100%;               /* take full width */
+        }
 
 
     </style>
@@ -481,6 +511,19 @@
               style="height: 45px"
             />
           </a>
+          <!-- <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <div
+                            class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Employee Manager Demo</h6>
+                        <span>Admin</span>
+                    </div>
+                </div> -->
+
           <div class="d-flex align-items-center ms-4 mb-4">
             <div class="position-relative">
               <img
@@ -494,12 +537,19 @@
               ></div>
             </div>
             <div class="ms-3">
-              <h6 class="mb-0">Employee Manager Demo</h6>
-              <span>Admin</span>
+              <h6 class="mb-0" id="profile-name">
+                <a
+                  href="my-profile.html"
+                  style="color: inherit; text-decoration: none"
+                >
+                  Loading...
+                </a>
+              </h6>
+              <span>Manager</span>
             </div>
           </div>
           <div class="navbar-nav w-100">
-            <a href="index.html" class="nav-item nav-link"
+            <a href="index.html" class="nav-item nav-link active"
               ><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a
             >
             <a href="view-shifts.html" class="nav-item nav-link"
@@ -527,13 +577,18 @@
                 <a href="registration.html" class="dropdown-item ps-5"
                   ><i class="fa fa-user-edit me-2"></i>New</a
                 >
+                <!-- <a href="status.html" class="dropdown-item ps-5"><i
+                                    class="fa fa-info-circle me-2"></i>Status</a> -->
               </div>
             </div>
             <a href="status.html" class="nav-item nav-link"
-              ><i class="fa fa-sign-out-alt me-2"></i>Status</a
+              ><i class="fa fa-info alt me-2"></i>Status</a
             >
             <a href="leave.html" class="nav-item nav-link"
               ><i class="fa fa-sign-out-alt me-2"></i>Leave</a
+            >
+            <a href="events.html" class="nav-item nav-link"
+              ><i class="fa fa-calendar-day me-2"></i>Events</a
             >
             <a href="reports.html" class="nav-item nav-link"
               ><i class="fa fa-chart-bar me-2"></i>Reports</a
@@ -542,13 +597,130 @@
         </nav>
       </div>
       <!-- Sidebar End -->
-
       <!-- Content Start -->
+
       <div class="content">
         <!-- Navbar Start -->
-        <div id="navbar-container"></div>
-        <!-- Navbar End -->
+        <!-- Add this to your index.html and other pages -->
+        <div id="navbar-container">
+          <nav
+            class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
+          >
+            <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+              <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+            </a>
+            <a href="#" class="sidebar-toggler flex-shrink-0">
+              <i class="fa fa-bars"></i>
+            </a>
+            <div class="navbar-nav align-items-center ms-auto">
+              <!-- Messages dropdown -->
+              <div class="nav-item dropdown me-3">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-envelope me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Messages</span>
+                  <span
+                    id="messageCount"
+                    class="badge bg-success ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-messages"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="message-employee.html"
+                    class="dropdown-item text-center"
+                    >See all messages</a
+                  >
+                </div>
+              </div>
 
+              <!-- Notification dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-bell me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Notifications</span>
+                  <span
+                    id="notificationCount"
+                    class="badge bg-danger ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-notifications"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="ViewAllNotifications.html"
+                    class="dropdown-item text-center"
+                    >See all notifications</a
+                  >
+                </div>
+              </div>
+
+              <!-- User dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <img
+                    class="rounded-circle me-lg-2"
+                    src="img/user.jpg"
+                    alt=""
+                    style="width: 40px; height: 40px"
+                  />
+                  <span class="d-none d-lg-inline-flex" id="nav-profile-name"
+                    >Loading...</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                >
+                  <a href="my-profile.html" class="dropdown-item">My Profile</a>
+                  <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+        <!-- Navbar End -->
         <!-- Main Content -->
         <div class="container-fluid pt-4 px-4">
           <div class="row g-4">
@@ -564,7 +736,6 @@
       </div>
       <!-- Content End -->
     </div>
-
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -579,10 +750,10 @@
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/vue-init-null.js"></script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+
     <script>
       const { createApp, ref, onMounted, computed } = Vue;
 
@@ -605,7 +776,7 @@
               props: ["managerId"],
               template: `
             <div>
-              <div class="stats">
+              <div class="stats" style="margin-top:55px">
                 <p class="number-notifications">Notifications</p>
                 <button class="btn-mark-as-read" @click="markAllAsRead" style="text-align: center;">Mark All As Read </button>
               </div>
