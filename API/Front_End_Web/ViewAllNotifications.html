@@ -755,462 +755,461 @@
 
 
     <script>
-      const { createApp, ref, onMounted, computed } = Vue;
+const { createApp, ref, onMounted, computed } = Vue;
 
-      const managerId = localStorage.getItem("employeeId");
-      console.log("Manager ID from localStorage:", managerId);
+const managerId = localStorage.getItem("employeeId");
+console.log("Manager ID from localStorage:", managerId);
 
-      if (!managerId) {
-        console.error(
-          "Manager ID not found in localStorage. Redirecting to login."
-        );
-        document.getElementById("notification-app").innerHTML =
-          '<p>Please log in to view notifications. <a href="/signin.html">Log in</a></p>';
-      } else {
-        createApp({
-          data() {
-            return { managerId };
-          },
-          components: {
-            "notification-panel": {
-              props: ["managerId"],
-              template: `
-            <div>
-              <div class="stats" style="margin-top:55px">
-                <p class="number-notifications">Notifications</p>
-                <button class="btn-mark-as-read" @click="markAllAsRead" style="text-align: center;">Mark All As Read </button>
-              </div>
-              <div class="filter-card mb-4">
-                <div class="filter-content">
-                  <div class="search-wrapper">
-                    <span class="icon-search">🔍</span>
-                    <input class="search-input" v-model="searchTerm" placeholder="Search notifications..." />
-                  </div>
-                  <select class="filter-select" v-model="selectedCategory">
-                    <option value="all">All Categories</option>
-                    <option value="leave_request">Leave</option>
-                    <option value="shift_swap">Shift Swaps</option>
-                    <option value="message">Messages</option>
-                    <option value="attendance">Attendance</option>
-                  </select>
-                  <div class="date-input-wrapper">
-                    <label for="start-date" class="placeholder-text" v-if="!startDate" style="color: white; background-color: #2a2e38;">Start Date</label>
-                    <input
-                      type="date"
-                      v-model="startDate"
-                      class="search-input date-picker"
-                      id="start-date"
-                      @input="handleInput"
-                      style="border-radius: 7px;"
-                    >
-                  </div>
-                  <div class="date-input-wrapper">
-                    <label for="end-date" class="placeholder-text" v-if="!endDate" style="color: white; background-color: #2a2e38;">End Date</label>
-                    <input
-                      type="date"
-                      v-model="endDate"
-                      class="search-input date-picker"
-                      id="end-date"
-                      @input="handleInput"
-                      style="border-radius: 7px;"
-                    >
-                  </div>
+if (!managerId) {
+  console.error(
+    "Manager ID not found in localStorage. Redirecting to login."
+  );
+  document.getElementById("notification-app").innerHTML =
+    '<p>Please log in to view notifications. <a href="/signin.html">Log in</a></p>';
+} else {
+  createApp({
+    data() {
+      return { managerId };
+    },
+    components: {
+      "notification-panel": {
+        props: ["managerId"],
+        template: `
+          <div>
+            <div class="stats" style="margin-top:55px">
+              <p class="number-notifications">Notifications</p>
+              <button class="btn-mark-as-read" @click="markAllAsRead" style="text-align: center;">Mark All As Read </button>
+            </div>
+            <div class="filter-card mb-4">
+              <div class="filter-content">
+                <div class="search-wrapper">
+                  <span class="icon-search">🔍</span>
+                  <input class="search-input" v-model="searchTerm" placeholder="Search notifications..." />
                 </div>
-              </div>
-              <div class="tabs-list mb-4">
-                <button class="tab" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">All</button>
-                <button class="tab" :class="{ active: statusFilter === 'unread' }" @click="statusFilter = 'unread'">
-                  Unread <span class="tab-badge">{{ unreadCount }}</span>
-                </button>
-                <button class="tab" :class="{ active: statusFilter === 'read' }" @click="statusFilter = 'read'">Read</button>
-              </div>
-              <div v-if="isLoading" class="notification-card empty-state">
-                <p>Loading notifications...</p>
-              </div>
-              <div v-else-if="error" class="notification-card empty-state">
-                <p style="color: red;">{{ error }}</p>
-              </div>
-              <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
-                <p>No matching notifications found.</p>
-              </div>
-              <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
-                class="notification-card" :class="{ unread: n.read_status === 'unread', message: n.type === 'message' }">
-                <div class="card-header">
-                  <div class="card-left">
-                    <span class="card-icon">{{ getIcon(n.type) }}</span>
-                    <div>
-                      <h3>{{ n.message }}</h3>
-                      <p v-if="n.type === 'message'">From: {{ n.sender_name }}</p>
-                      <div class="category-badge">{{ formatCategory(n.type) }}</div>
-                    </div>
-                  </div>
-                  <div class="card-right">
-                    <span class="timestamp">{{ formatTime(n.sent_time) }}</span>
-                    <button class="btn btn-primary btn-mark-as-read" @click="toggleRead(n)">
-                        {{ n.read_status === 'read' ? 'Mark as Unread' : 'Mark as Read' }}
-                    </button>
-                  </div>
+                <select class="filter-select" v-model="selectedCategory">
+                  <option value="all">All Categories</option>
+                  <option value="leave_request">Leave</option>
+                  <option value="shift_swap">Shift Swaps</option>
+                  <option value="message">Messages</option>
+                  <option value="attendance">Attendance</option>
+                </select>
+                <div class="date-input-wrapper">
+                  <label for="start-date" class="placeholder-text" v-if="!startDate" style="color: white; background-color: #2a2e38;">Start Date</label>
+                  <input
+                    type="date"
+                    v-model="startDate"
+                    class="search-input date-picker"
+                    id="start-date"
+                    @input="handleInput"
+                    style="border-radius: 7px;"
+                  >
                 </div>
-                <div class="card-actions" v-if="getAction(n)">
-                  <a v-if="getAction(n).type === 'message-employee' || n.type === 'message'" 
-                     href="#" 
-                     class="btn-action" 
-                     @click.prevent="handleMessageClick(n)">
-                    {{ getAction(n).text }}
-                  </a>
-                  <a v-else :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
+                <div class="date-input-wrapper">
+                  <label for="end-date" class="placeholder-text" v-if="!endDate" style="color: white; background-color: #2a2e38;">End Date</label>
+                  <input
+                    type="date"
+                    v-model="endDate"
+                    class="search-input date-picker"
+                    id="end-date"
+                    @input="handleInput"
+                    style="border-radius: 7px;"
+                  >
                 </div>
               </div>
             </div>
-          `,
-              setup(props) {
-                const notifications = ref([]);
-                const isLoading = ref(true);
-                const error = ref(null);
-                const searchTerm = ref("");
-                const selectedCategory = ref("all");
-                const statusFilter = ref("unread");
-                const startDate = ref("");
-                const endDate = ref("");
+            <div class="tabs-list mb-4">
+              <button class="tab" :class="{ active: statusFilter === 'all' }" @click="statusFilter = 'all'">All</button>
+              <button class="tab" :class="{ active: statusFilter === 'unread' }" @click="statusFilter = 'unread'">
+                Unread <span class="tab-badge">{{ unreadCount }}</span>
+              </button>
+              <button class="tab" :class="{ active: statusFilter === 'read' }" @click="statusFilter = 'read'">Read</button>
+            </div>
+            <div v-if="isLoading" class="notification-card empty-state">
+              <p>Loading notifications...</p>
+            </div>
+            <div v-else-if="error" class="notification-card empty-state">
+              <p style="color: red;">{{ error }}</p>
+            </div>
+            <div v-else-if="filteredNotifications.length === 0" class="notification-card empty-state">
+              <p>No matching notifications found.</p>
+            </div>
+            <div v-else v-for="n in filteredNotifications" :key="n.notification_id"
+              class="notification-card" :class="{ unread: n.read_status === 'unread', message: n.type === 'message' }">
+              <div class="card-header">
+                <div class="card-left">
+                  <span class="card-icon">{{ getIcon(n.type) }}</span>
+                  <div>
+                    <h3>{{ n.message }}</h3>
+                    <p v-if="n.type === 'message'">From: {{ n.sender_name }}</p>
+                    <div class="category-badge">{{ formatCategory(n.type) }}</div>
+                  </div>
+                </div>
+                <div class="card-right">
+                  <span class="timestamp">{{ formatTime(n.sent_time) }}</span>
+                  <button class="btn btn-primary btn-mark-as-read" @click="toggleRead(n)">
+                      {{ n.read_status === 'read' ? 'Mark as Unread' : 'Mark as Read' }}
+                  </button>
+                </div>
+              </div>
+              <div class="card-actions" v-if="getAction(n)">
+                <a v-if="getAction(n).type === 'message-employee' || n.type === 'message'" 
+                   href="#" 
+                   class="btn-action" 
+                   @click.prevent="handleMessageClick(n)">
+                  {{ getAction(n).text }}
+                </a>
+                <a v-else :href="getAction(n).link" class="btn-action">{{ getAction(n).text }}</a>
+              </div>
+            </div>
+          </div>
+        `,
+        setup(props) {
+          const notifications = ref([]);
+          const isLoading = ref(true);
+          const error = ref(null);
+          const searchTerm = ref("");
+          const selectedCategory = ref("all");
+          const statusFilter = ref("unread");
+          const startDate = ref("");
+          const endDate = ref("");
 
-                const fetchNotifications = async () => {
-                  isLoading.value = true;
+          const fetchNotifications = async () => {
+            isLoading.value = true;
+            try {
+              const response = await fetch(
+                `http://localhost:3000/api/manager-notifications?employeeId=${props.managerId}`,
+                { credentials: "include" }
+              );
+              if (!response.ok)
+                throw new Error("Failed to fetch notifications");
+              notifications.value = await response.json();
+            } catch (err) {
+              console.error("Error fetching notifications:", err);
+              error.value = "Failed to load notifications";
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          const toggleRead = async (notification) => {
+            try {
+              const response = await fetch(
+                `http://localhost:3000/api/manager-notifications/${
+                  notification.notification_id
+                }/${
+                  notification.read_status === "read" ? "unread" : "read"
+                }?employeeId=${props.managerId}`,
+                {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ type: notification.type }),
+                  credentials: "include",
+                }
+              );
+              if (!response.ok)
+                throw new Error("Failed to update notification status");
+              await fetchNotifications();
+            } catch (err) {
+              console.error("Error toggling read status:", err);
+              error.value = "Failed to update notification status";
+            }
+          };
+
+          const markAllAsRead = async () => {
+            try {
+              const notificationIds = notifications.value.map((n) => ({
+                id: n.notification_id,
+                type: n.type,
+              }));
+              if (notificationIds.length === 0) return;
+
+              const response = await fetch(
+                "http://localhost:3000/api/manager-notifications/mark-all-read",
+                {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    employeeId: props.managerId,
+                    notificationIds,
+                  }),
+                  credentials: "include",
+                }
+              );
+              if (!response.ok)
+                throw new Error("Failed to mark all as read");
+              await fetchNotifications();
+            } catch (err) {
+              console.error("Error marking all as read:", err);
+              error.value = "Failed to mark all notifications as read";
+            }
+          };
+
+          const filteredNotifications = computed(() => {
+            let filtered = notifications.value;
+            if (searchTerm.value) {
+              const term = searchTerm.value.toLowerCase();
+              filtered = filtered.filter((n) =>
+                n.message.toLowerCase().includes(term)
+              );
+            }
+            if (selectedCategory.value !== "all") {
+              filtered = filtered.filter(
+                (n) => n.type === selectedCategory.value
+              );
+            }
+            if (statusFilter.value !== "all") {
+              filtered = filtered.filter(
+                (n) => n.read_status === statusFilter.value
+              );
+            }
+            if (startDate.value || endDate.value) {
+              const start = startDate.value
+                ? new Date(startDate.value)
+                : new Date(0);
+              const end = endDate.value
+                ? new Date(endDate.value)
+                : new Date();
+              filtered = filtered.filter((n) => {
+                const notificationDate = new Date(n.sent_time);
+                return (
+                  notificationDate >= start && notificationDate <= end
+                );
+              });
+            }
+            return filtered;
+          });
+
+          const unreadCount = computed(() => {
+            return notifications.value.filter(
+              (n) => n.read_status === "unread"
+            ).length;
+          });
+
+          const getIcon = (type) => {
+            const icons = {
+              leave_request: "📅",
+              shift_swap: "🔄",
+              payroll: "💰",
+              system: "⚙️",
+              message: "✉️",
+              sick_note: "📄",
+              attendance: "🚨",
+            };
+            return icons[type] || "📢";
+          };
+
+          const formatCategory = (type) => {
+            const categories = {
+              leave_request: "Leave Request",
+              shift_swap: "Shift Swap",
+              payroll: "Payroll",
+              system: "System",
+              message: "Message",
+              sick_note: "Sick Note",
+              attendance: "Attendance",
+            };
+            return categories[type] || type;
+          };
+
+          const formatTime = (time) => new Date(time).toLocaleString();
+
+          const getAction = (notification) => {
+  console.log("getAction called with notification:", notification);
+  
+  // Handle sick note notifications
+  if (notification.message.includes("sick note")) {
+    // Check if we have the enriched data
+    if (!notification.sick_note || !notification.employee_id) {
+      console.error("Missing sick note data in notification:", notification);
+      return {
+        text: "View Sick Note",
+        link: "#",
+        disabled: true
+      };
+    }
+    
+    const employeeName = notification.employee_name || "";
+    const startDate = notification.start_date || "";
+    const endDate = notification.end_date || "";
+    const daysTaken = notification.days_taken || "";
+    
+    const link = `/view-sick-note.html?note=${encodeURIComponent(
+      notification.sick_note
+    )}&employeeId=${notification.employee_id}&startDate=${startDate}&endDate=${endDate}&employeeName=${encodeURIComponent(
+      employeeName
+    )}&daysTaken=${daysTaken}`;
+    
+    console.log("Generated sick note link:", link);
+    return { text: "View Sick Note", link };
+  }
+  
+  // Handle message notifications
+  if (notification.type === "message") {
+    return {
+      text: "View Message",
+      type: "message-employee",
+      link: `message-employee.html?employeeId=${notification.sender_id || ""}`
+    };
+  }
+  
+  // Handle attendance notifications
+  if (notification.type === "attendance") {
+    // Exclude replacement-related messages from having "Message Employee" action
+    if (
+      notification.message.startsWith("Replacement Successful") ||
+      notification.message.startsWith("Shift Replacement Successful") ||
+      notification.message.startsWith("Shift Replacement Failed") ||
+      notification.message.startsWith("Replacement employee")
+    ) {
+      return null;
+    }
+    return {
+      text: "Message Employee",
+      type: "message-employee",
+      link: `message-employee.html?employeeId=${notification.employee_id || ""}`
+    };
+  }
+  
+  // Handle other notification types
+  const actions = {
+    leave_request: {
+      text: "View Request",
+      link: `leave.html?id=${notification.notification_id}`
+    },
+    shift_swap: {
+      text: "View Swap",
+      link: `view-shifts.html?id=${notification.notification_id}`
+    },
+    payroll: {
+      text: "View Payroll",
+      link: `payroll.html?id=${notification.notification_id}`
+    }
+  };
+  
+  return actions[notification.type] || null;
+};
+
+          const handleMessageClick = async (notification) => {
+            try {
+              // Mark notification as read
+              await fetch(
+                `http://localhost:3000/api/manager-notifications/${notification.notification_id}/read?employeeId=${props.managerId}`,
+                {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    type: notification.type,
+                  }),
+                  credentials: "include",
+                }
+              );
+
+              let employeeId =
+                notification.sender_id || notification.employee_id;
+
+              // For attendance notifications, try to resolve employeeId from name if necessary
+              if (notification.type === "attendance" && !employeeId) {
+                // Regex to handle multiple attendance notification formats
+                const match = notification.message.match(
+                  /^([A-Za-z'-]+ [A-Za-z'-]+)/
+                );
+                if (match) {
+                  const name = match[1].trim();
                   try {
                     const response = await fetch(
-                      `http://localhost:3000/api/manager-notifications?employeeId=${props.managerId}`,
+                      `http://localhost:3000/api/employees/search?name=${encodeURIComponent(
+                        name
+                      )}`,
                       { credentials: "include" }
                     );
-                    if (!response.ok)
-                      throw new Error("Failed to fetch notifications");
-                    notifications.value = await response.json();
-                  } catch (err) {
-                    console.error("Error fetching notifications:", err);
-                    error.value = "Failed to load notifications";
-                  } finally {
-                    isLoading.value = false;
-                  }
-                };
-
-                const toggleRead = async (notification) => {
-                  try {
-                    const response = await fetch(
-                      `http://localhost:3000/api/manager-notifications/${
-                        notification.notification_id
-                      }/${
-                        notification.read_status === "read" ? "unread" : "read"
-                      }?employeeId=${props.managerId}`,
-                      {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ type: notification.type }),
-                        credentials: "include",
-                      }
-                    );
-                    if (!response.ok)
-                      throw new Error("Failed to update notification status");
-                    await fetchNotifications();
-                  } catch (err) {
-                    console.error("Error toggling read status:", err);
-                    error.value = "Failed to update notification status";
-                  }
-                };
-
-                const markAllAsRead = async () => {
-                  try {
-                    const notificationIds = notifications.value.map((n) => ({
-                      id: n.notification_id,
-                      type: n.type,
-                    }));
-                    if (notificationIds.length === 0) return;
-
-                    const response = await fetch(
-                      "http://localhost:3000/api/manager-notifications/mark-all-read",
-                      {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          employeeId: props.managerId,
-                          notificationIds,
-                        }),
-                        credentials: "include",
-                      }
-                    );
-                    if (!response.ok)
-                      throw new Error("Failed to mark all as read");
-                    await fetchNotifications();
-                  } catch (err) {
-                    console.error("Error marking all as read:", err);
-                    error.value = "Failed to mark all notifications as read";
-                  }
-                };
-
-                const filteredNotifications = computed(() => {
-                  let filtered = notifications.value;
-                  if (searchTerm.value) {
-                    const term = searchTerm.value.toLowerCase();
-                    filtered = filtered.filter((n) =>
-                      n.message.toLowerCase().includes(term)
-                    );
-                  }
-                  if (selectedCategory.value !== "all") {
-                    filtered = filtered.filter(
-                      (n) => n.type === selectedCategory.value
-                    );
-                  }
-                  if (statusFilter.value !== "all") {
-                    filtered = filtered.filter(
-                      (n) => n.read_status === statusFilter.value
-                    );
-                  }
-                  if (startDate.value || endDate.value) {
-                    const start = startDate.value
-                      ? new Date(startDate.value)
-                      : new Date(0);
-                    const end = endDate.value
-                      ? new Date(endDate.value)
-                      : new Date();
-                    filtered = filtered.filter((n) => {
-                      const notificationDate = new Date(n.sent_time);
-                      return (
-                        notificationDate >= start && notificationDate <= end
+                    if (!response.ok) {
+                      throw new Error(
+                        `Employee search failed: ${response.statusText}`
                       );
-                    });
-                  }
-                  return filtered;
-                });
-
-                const unreadCount = computed(() => {
-                  return notifications.value.filter(
-                    (n) => n.read_status === "unread"
-                  ).length;
-                });
-
-                const getIcon = (type) => {
-                  const icons = {
-                    leave_request: "📅",
-                    shift_swap: "🔄",
-                    payroll: "💰",
-                    system: "⚙️",
-                    message: "✉️",
-                    sick_note: "📄",
-                    attendance: "🚨",
-                  };
-                  return icons[type] || "📢";
-                };
-
-                const formatCategory = (type) => {
-                  const categories = {
-                    leave_request: "Leave Request",
-                    shift_swap: "Shift Swap",
-                    payroll: "Payroll",
-                    system: "System",
-                    message: "Message",
-                    sick_note: "Sick Note",
-                    attendance: "Attendance",
-                  };
-                  return categories[type] || type;
-                };
-
-                const formatTime = (time) => new Date(time).toLocaleString();
-
-                const getAction = (notification) => {
-                  if (
-                    notification.link &&
-                    notification.message.includes("sick note")
-                  ) {
-                    const [name, surname] = notification.employee_name
-                      ? notification.employee_name.split(" ")
-                      : ["", ""];
-                    const startDate = notification.start_date
-                      ? new Date(notification.start_date)
-                          .toISOString()
-                          .split("T")[0]
-                      : "";
-                    const endDate = notification.end_date
-                      ? new Date(notification.end_date)
-                          .toISOString()
-                          .split("T")[0]
-                      : "";
-                    const link = `view-sick-note.html?note=${encodeURIComponent(
-                      notification.sick_note
-                    )}&employeeId=${
-                      notification.employee_id || ""
-                    }&startDate=${startDate}&endDate=${endDate}&employeeName=${encodeURIComponent(
-                      name + "%20" + surname
-                    )}&daysTaken=${notification.days_taken || ""}`;
-                    return { text: "View Sick Note", link };
-                  }
-                  if (notification.type === "message") {
-                    return {
-                      text: "View Message",
-                      type: "message-employee",
-                      link: `message-employee.html?employeeId=${
-                        notification.sender_id || ""
-                      }`,
-                    };
-                  }
-                  if (notification.type === "attendance") {
-                    // Exclude "Message Employee" for replacement-related messages
-                    if (
-                      notification.message.startsWith(
-                        "Replacement Successful"
-                      ) ||
-                      notification.message.startsWith(
-                        "Shift Replacement Successful"
-                      ) ||
-                      notification.message.startsWith(
-                        "Shift Replacement Failed"
-                      ) ||
-                      notification.message.startsWith("Replacement employee")
+                    }
+                    const employee = await response.json();
+                    if (employee.employee_id) {
+                      employeeId = employee.employee_id;
+                    } else if (
+                      employee.error ===
+                      "Multiple employees found with the same name; contact admin"
                     ) {
-                      return null;
-                    }
-                    return {
-                      text: "Message Employee",
-                      type: "message-employee",
-                      link: `message-employee.html?employeeId=${
-                        notification.employee_id || ""
-                      }`,
-                    };
-                  }
-                  const actions = {
-                    leave_request: {
-                      text: "View Request",
-                      link: `leave.html?id=${notification.notification_id}`,
-                    },
-                    shift_swap: {
-                      text: "View Swap",
-                      link: `view-shifts.html?id=${notification.notification_id}`,
-                    },
-                    payroll: {
-                      text: "View Payroll",
-                      link: `payroll.html?id=${notification.notification_id}`,
-                    },
-                  };
-                  return actions[notification.type] || null;
-                };
-
-                const handleMessageClick = async (notification) => {
-                  try {
-                    // Mark notification as read
-                    await fetch(
-                      `http://localhost:3000/api/manager-notifications/${notification.notification_id}/read?employeeId=${props.managerId}`,
-                      {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          type: notification.type,
-                        }),
-                        credentials: "include",
-                      }
-                    );
-
-                    let employeeId =
-                      notification.sender_id || notification.employee_id;
-
-                    // For attendance notifications, try to resolve employeeId from name if necessary
-                    if (notification.type === "attendance" && !employeeId) {
-                      // Regex to handle multiple attendance notification formats
-                      const match = notification.message.match(
-                        /^([A-Za-z'-]+ [A-Za-z'-]+)/
-                      );
-                      if (match) {
-                        const name = match[1].trim();
-                        try {
-                          const response = await fetch(
-                            `http://localhost:3000/api/employees/search?name=${encodeURIComponent(
-                              name
-                            )}`,
-                            { credentials: "include" }
-                          );
-                          if (!response.ok) {
-                            throw new Error(
-                              `Employee search failed: ${response.statusText}`
-                            );
-                          }
-                          const employee = await response.json();
-                          if (employee.employee_id) {
-                            employeeId = employee.employee_id;
-                          } else if (
-                            employee.error ===
-                            "Multiple employees found with the same name; contact admin"
-                          ) {
-                            error.value =
-                              "Multiple employees found with the same name. Please contact admin.";
-                            return;
-                          } else {
-                            throw new Error("Employee not found");
-                          }
-                        } catch (err) {
-                          console.error(
-                            "Error fetching employee by name:",
-                            err
-                          );
-                          error.value = `Unable to message employee: ${err.message}`;
-                          return;
-                        }
-                      } else {
-                        console.error(
-                          "Could not parse employee name from notification:",
-                          notification
-                        );
-                        error.value =
-                          "Unable to message employee: Invalid notification format";
-                        return;
-                      }
-                    }
-
-                    if (!employeeId) {
-                      console.error(
-                        "No valid employeeId found for notification:",
-                        notification
-                      );
                       error.value =
-                        "Unable to message employee: Invalid employee ID";
+                        "Multiple employees found with the same name. Please contact admin.";
                       return;
+                    } else {
+                      throw new Error("Employee not found");
                     }
-
-                    // Redirect to chat portal
-                    window.location.href = `message-employee.html?employeeId=${employeeId}`;
                   } catch (err) {
-                    console.error("Error handling message click:", err);
-                    error.value = `Failed to open chat: ${err.message}`;
+                    console.error(
+                      "Error fetching employee by name:",
+                      err
+                    );
+                    error.value = `Unable to message employee: ${err.message}`;
+                    return;
                   }
-                };
+                } else {
+                  console.error(
+                    "Could not parse employee name from notification:",
+                    notification
+                  );
+                  error.value =
+                    "Unable to message employee: Invalid notification format";
+                  return;
+                }
+              }
 
-                const handleInput = () => {
-                  // Trigger re-computation of filteredNotifications
-                };
+              if (!employeeId) {
+                console.error(
+                  "No valid employeeId found for notification:",
+                  notification
+                );
+                error.value =
+                  "Unable to message employee: Invalid employee ID";
+                return;
+              }
 
-                onMounted(() => {
-                  fetchNotifications();
-                });
+              // Redirect to chat portal
+              window.location.href = `message-employee.html?employeeId=${employeeId}`;
+            } catch (err) {
+              console.error("Error handling message click:", err);
+              error.value = `Failed to open chat: ${err.message}`;
+            }
+          };
 
-                return {
-                  notifications,
-                  isLoading,
-                  error,
-                  searchTerm,
-                  selectedCategory,
-                  statusFilter,
-                  startDate,
-                  endDate,
-                  filteredNotifications,
-                  unreadCount,
-                  getIcon,
-                  formatCategory,
-                  formatTime,
-                  getAction,
-                  toggleRead,
-                  markAllAsRead,
-                  handleMessageClick,
-                  handleInput,
-                };
-              },
-            },
-          },
-        }).mount("#notification-app");
-      }
-    </script>
+          const handleInput = () => {
+            // Trigger re-computation of filteredNotifications
+          };
+
+          onMounted(() => {
+            fetchNotifications();
+          });
+
+          return {
+            notifications,
+            isLoading,
+            error,
+            searchTerm,
+            selectedCategory,
+            statusFilter,
+            startDate,
+            endDate,
+            filteredNotifications,
+            unreadCount,
+            getIcon,
+            formatCategory,
+            formatTime,
+            getAction,
+            toggleRead,
+            markAllAsRead,
+            handleMessageClick,
+            handleInput,
+          };
+        },
+      },
+    },
+  }).mount("#notification-app");
+}
+</script>
   </body>
 </html>

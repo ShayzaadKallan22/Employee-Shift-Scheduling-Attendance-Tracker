@@ -182,7 +182,7 @@ async function loadRecentMessages() {
       // Use 'message' field, fallback to 'content' or indicate missing field
       const messageText = msg.message || msg.content || "Message content unavailable";
       return `
-        <a href="ViewAllMessages.html" class="dropdown-item ${msg.read_status === 'unread' ? 'bg-dark' : ''}">
+       <a href="message-employee.html?employeeId=${msg.other_employee_id}" class="dropdown-item ${msg.read_status === 'unread' ? 'bg-dark' : ''}">
           <h6 class="fw-normal mb-0">${truncateMessage(messageText, 50)}</h6>
           <small>${formatTime(msg.sent_time)}</small>
           ${i < messages.length - 1 ? '<hr class="dropdown-divider m-0">' : ''}
