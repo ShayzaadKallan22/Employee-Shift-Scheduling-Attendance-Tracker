@@ -113,16 +113,16 @@ exports.getAllLeaveRequests = async (req, res) => {
 };
 
 
-
+// // In leaveController.js, update the respondToLeave function
 // exports.respondToLeave = async (req, res) => {
-//     const { leave_id, action } = req.body;
+//     const { leave_id, action, rejection_reason, custom_message, manager_id } = req.body;
 
 //     if (!leave_id || !['approved', 'rejected'].includes(action)) {
 //         return res.status(400).json({ message: 'Invalid input' });
 //     }
 
 //     try {
-//         //get leave info before updating
+//         // Get leave info before updating
 //         const [[leaveInfo]] = await db.query(`
 //             SELECT 
 //                 l.*,
@@ -139,20 +139,20 @@ exports.getAllLeaveRequests = async (req, res) => {
 //             return res.status(404).json({ message: 'Leave request not found' });
 //         }
 
-//         //Update leave status
+//         // Update leave status
 //         await db.execute(
 //             `UPDATE t_leave SET status_ = ?, updated_at = CURRENT_TIMESTAMP WHERE leave_id = ?`,
 //             [action, leave_id]
 //         );
 
-//         //If approved, update employee status to On Leave and schedule status reset
+//         // If approved, update employee status to On Leave and schedule status reset
 //         if (action === 'approved') {
 //             await db.execute(
 //                 `UPDATE t_employee SET status_ = 'On Leave' WHERE employee_id = ?`,
 //                 [leaveInfo.employee_id]
 //             );
 
-//             //Schedule status reset to Not Working when leave period ends
+//             // Schedule status reset to Not Working when leave period ends
 //             const endDate = new Date(leaveInfo.end_date);
 //             const now = new Date();
             
@@ -171,7 +171,7 @@ exports.getAllLeaveRequests = async (req, res) => {
 //                     }
 //                 }, timeUntilEnd);
 //             } else {
-//                 //if leave has already ended, set status to not working immediately
+//                 // If leave has already ended, set status to not working immediately
 //                 await db.execute(
 //                     `UPDATE t_employee SET status_ = 'Not Working' WHERE employee_id = ?`,
 //                     [leaveInfo.employee_id]
@@ -184,19 +184,42 @@ exports.getAllLeaveRequests = async (req, res) => {
 //             ? `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been approved`
 //             : `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been rejected`;
 
-//         //Insert notification with CURRENT_TIMESTAMP for sent_time (datetime)
+//         // Insert notification
 //         await db.execute(
 //             `INSERT INTO t_notification (employee_id, message, notification_type_id, sent_time, read_status)
 //              VALUES (?, ?, 1, CURRENT_TIMESTAMP, 'unread')`,
 //             [leaveInfo.employee_id, message]
 //         );
 
+//         // If rejected, send automatic message with rejection reason
+//         if (action === 'rejected') {
+//             let actualManagerId = manager_id;
+            
+//             // If no manager_id provided in request, try to get one from database
+//             if (!actualManagerId) {
+//                 console.warn('No manager ID provided in request, finding a manager from database');
+//                 const [[manager]] = await db.query(
+//                     `SELECT employee_id FROM t_employee WHERE type_ = 'manager' LIMIT 1`
+//                 );
+//                 actualManagerId = manager ? manager.employee_id : 1;
+//                 console.log('Using manager ID from database:', actualManagerId);
+//             } else {
+//                 console.log('Using manager ID from request:', actualManagerId);
+//             }
+            
+//             await this.sendRejectionMessage(
+//                 leaveInfo, 
+//                 rejection_reason, 
+//                 custom_message,
+//                 actualManagerId
+//             );
+//         }
+
 //         // Adjust used_days if approved
 //         if (action === 'approved') {
 //             const daysRequested = leaveInfo.days_requested || 
-//                 (new Date(leaveInfo.end_date) - new Date(leaveInfo.start_date)) / (1000 * 60 * 60 * 24) + 1;    //AI calculation that works
+//                 (new Date(leaveInfo.end_date) - new Date(leaveInfo.start_date)) / (1000 * 60 * 60 * 24) + 1;
 
-//             //update the leave record with used days
 //             await db.execute(
 //                 `UPDATE t_leave 
 //                  SET used_days = ?, 
@@ -213,10 +236,8 @@ exports.getAllLeaveRequests = async (req, res) => {
 //     }
 // };
 
-
-// In leaveController.js, update the respondToLeave function
 exports.respondToLeave = async (req, res) => {
-    const { leave_id, action, rejection_reason, custom_message } = req.body;
+    const { leave_id, action, rejection_reason, custom_message, manager_id } = req.body;
 
     if (!leave_id || !['approved', 'rejected'].includes(action)) {
         return res.status(400).json({ message: 'Invalid input' });
@@ -239,6 +260,28 @@ exports.respondToLeave = async (req, res) => {
         if (!leaveInfo) {
             return res.status(404).json({ message: 'Leave request not found' });
         }
+
+        // Format dates for South African time (YYYY-MM-DD format)
+        // const formatSADate = (dateString) => {
+        //     const date = new Date(dateString);
+        //     // Use South African timezone and format as YYYY-MM-DD
+        //     return date.toLocaleDateString('en-ZA', {
+        //         year: 'numeric',
+        //         month: '2-digit',
+        //         day: '2-digit'
+        //     });
+        // };
+        const formatSADate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+
+        const formattedStartDate = formatSADate(leaveInfo.start_date);
+        const formattedEndDate = formatSADate(leaveInfo.end_date);
 
         // Update leave status
         await db.execute(
@@ -280,10 +323,10 @@ exports.respondToLeave = async (req, res) => {
             }
         }
 
-        // Create notification message
+        // Create notification message with formatted dates
         const message = action === 'approved' 
-            ? `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been approved`
-            : `Your ${leaveInfo.leave_type_name} request from ${leaveInfo.start_date} to ${leaveInfo.end_date} has been rejected`;
+            ? `Your ${leaveInfo.leave_type_name} request from ${formattedStartDate} to ${formattedEndDate} has been approved`
+            : `Your ${leaveInfo.leave_type_name} request from ${formattedStartDate} to ${formattedEndDate} has been rejected`;
 
         // Insert notification
         await db.execute(
@@ -294,7 +337,28 @@ exports.respondToLeave = async (req, res) => {
 
         // If rejected, send automatic message with rejection reason
         if (action === 'rejected') {
-            await this.sendRejectionMessage(leaveInfo, rejection_reason, custom_message);
+            let actualManagerId = manager_id;
+            
+            // If no manager_id provided in request, try to get one from database
+            if (!actualManagerId) {
+                console.warn('No manager ID provided in request, finding a manager from database');
+                const [[manager]] = await db.query(
+                    `SELECT employee_id FROM t_employee WHERE type_ = 'manager' LIMIT 1`
+                );
+                actualManagerId = manager ? manager.employee_id : 1;
+                console.log('Using manager ID from database:', actualManagerId);
+            } else {
+                console.log('Using manager ID from request:', actualManagerId);
+            }
+            
+            await this.sendRejectionMessage(
+                leaveInfo, 
+                rejection_reason, 
+                custom_message,
+                actualManagerId,
+                formattedStartDate,
+                formattedEndDate
+            );
         }
 
         // Adjust used_days if approved
@@ -318,42 +382,122 @@ exports.respondToLeave = async (req, res) => {
     }
 };
 
-// Add this new method to handle rejection messages
-exports.sendRejectionMessage = async (leaveInfo, rejection_reason, custom_message) => {
+
+// // In leaveController.js, update the sendRejectionMessage method
+// exports.sendRejectionMessage = async (leaveInfo, rejection_reason, custom_message, manager_id) => {
+//     try {
+//         // Use the provided manager_id
+//         if (!manager_id) {
+//             console.error('No manager ID provided for rejection message');
+//             return;
+//         }
+        
+//         let messageContent = '';
+        
+//         // Generate message based on rejection reason
+//         switch (rejection_reason) {
+//             case 'event_conflict':
+//                 messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to scheduled events during this period. You have important assignments that cannot be rescheduled.`;
+//                 break;
+                
+//             case 'insufficient_standby':
+//                 messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient standby staff availability. We cannot ensure proper coverage during your absence.`;
+//                 break;
+                
+//             case 'peak_period':
+//                 messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected as it falls during a peak business period. Please consider alternative dates.`;
+//                 break;
+                
+//             case 'insufficient_leave_balance':
+//                 messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient leave balance. Please check your available leave days.`;
+//                 break;
+                
+//             case 'other':
+//                 messageContent = custom_message || `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected. Please contact management for more details.`;
+//                 break;
+                
+//             default:
+//                 messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected.`;
+//         }
+        
+//         // Add invitation to discuss
+//         messageContent += `\n\nIf you have questions or would like to discuss this decision, please reply to this message or speak with your manager.`;
+        
+//         // Insert message into database
+//         await db.execute(
+//             `INSERT INTO t_message (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+//             [manager_id, leaveInfo.employee_id, messageContent]
+//         );
+        
+//         console.log(`Rejection message sent to employee ${leaveInfo.employee_id} from manager ${manager_id}`);
+        
+//     } catch (err) {
+//         console.error('Error sending rejection message:', err);
+//         // Don't throw error here to avoid affecting the main leave response
+//     }
+// };
+
+
+exports.sendRejectionMessage = async (leaveInfo, rejection_reason, custom_message, manager_id, formattedStartDate, formattedEndDate) => {
     try {
-        // Default manager ID (you might want to get this from session/context)
-        const manager_id = 1; // Replace with actual manager ID from session
+        // Use the provided manager_id
+        if (!manager_id) {
+            console.error('No manager ID provided for rejection message');
+            return;
+        }
+        
+        // If formatted dates weren't provided, format them here
+        if (!formattedStartDate || !formattedEndDate) {
+            // const formatSADate = (dateString) => {
+            //     const date = new Date(dateString);
+            //     return date.toLocaleDateString('en-ZA', {
+            //         year: 'numeric',
+            //         month: '2-digit',
+            //         day: '2-digit'
+            //     });
+            // };
+            const formatSADate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+            formattedStartDate = formatSADate(leaveInfo.start_date);
+            formattedEndDate = formatSADate(leaveInfo.end_date);
+        }
         
         let messageContent = '';
         
-        // Generate message based on rejection reason
+        // Generate message based on rejection reason with formatted dates
         switch (rejection_reason) {
             case 'event_conflict':
-                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to scheduled events during this period. You have important assignments that cannot be rescheduled.`;
+                messageContent = `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected due to scheduled events during this period. You may be needed for the event.`;
                 break;
                 
             case 'insufficient_standby':
-                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient standby staff availability. We cannot ensure proper coverage during your absence.`;
+                messageContent = `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected due to insufficient standby staff availability. We cannot ensure proper coverage during your absence.`;
                 break;
                 
             case 'peak_period':
-                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected as it falls during a peak business period. Please consider alternative dates.`;
+                messageContent = `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected as it falls during a peak business period. Please consider alternative dates.`;
                 break;
                 
             case 'insufficient_leave_balance':
-                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected due to insufficient leave balance. Please check your available leave days.`;
+                messageContent = `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected due to insufficient leave balance. Please check your available leave days.`;
                 break;
                 
             case 'other':
-                messageContent = custom_message || `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected. Please contact management for more details.`;
+                messageContent = custom_message || `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected. Please contact me for more details.`;
                 break;
                 
             default:
-                messageContent = `Your leave request from ${leaveInfo.start_date} to ${leaveInfo.end_date} was rejected.`;
+                messageContent = `Your leave request from ${formattedStartDate} to ${formattedEndDate} was rejected.`;
         }
         
         // Add invitation to discuss
-        messageContent += `\n\nIf you have questions or would like to discuss this decision, please reply to this message or speak with your manager.`;
+        messageContent += `\n\nIf you have questions or would like to discuss this decision, please reply to this message or speak to me in person.`;
         
         // Insert message into database
         await db.execute(
@@ -361,14 +505,13 @@ exports.sendRejectionMessage = async (leaveInfo, rejection_reason, custom_messag
             [manager_id, leaveInfo.employee_id, messageContent]
         );
         
-        console.log(`Rejection message sent to employee ${leaveInfo.employee_id}`);
+        console.log(`Rejection message sent to employee ${leaveInfo.employee_id} from manager ${manager_id}`);
         
     } catch (err) {
         console.error('Error sending rejection message:', err);
         // Don't throw error here to avoid affecting the main leave response
     }
 };
-
 
 // View my leave requests (employee)
 exports.getMyLeaveRequests = async (req, res) => {
