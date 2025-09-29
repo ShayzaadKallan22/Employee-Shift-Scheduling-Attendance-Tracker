@@ -293,29 +293,29 @@ const LeaveTypes = React.useMemo(() => [
       setLeaveStatus(response.data.status_);
       
       //Show success message
-      Alert.alert('Success', `Leave request submitted successfully. Status: ${response.data.status_}`);
+      Alert.alert(response.data.message || "Leave request submitted successfully");
       
     } catch (error) {
-      Alert.alert('Error submitting leave request:', error);
+      Alert.alert("Failure","You already have an existing leave for the selected days.");
       
-      let errorMessage = 'Failed to submit leave request';
+      // let errorMessage = 'Failed to submit leave request';
       
-      if (error.response) {
-        //Server responded with error status
-        // console.error('Response data:', error.response.data);
-       Alert.alert('Response status:', error.response.status);
-        errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
-      } else if (error.request) {
-        //Request was made but no response received
-        Alert.alert('Request error:', error.request);
-        errorMessage = 'Network error - please check your connection';
-      } else {
-        //Something else happened
-      //  Alert.alert('Error message:', error.message);
-        errorMessage = error.message;
-      }
+      // if (error.response) {
+      //   //Server responded with error status
+      //   // console.error('Response data:', error.response.data);
+      //  Alert.alert('Response status:', error.response.status);
+      //   errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
+      // } else if (error.request) {
+      //   //Request was made but no response received
+      //   Alert.alert('Request error:', error.request);
+      //   errorMessage = 'Network error - please check your connection';
+      // } else {
+      //   //Something else happened
+      //   Alert.alert('Error message:', errorMessage);
+        
+      // }
       
-      Alert.alert('Error', errorMessage);
+      // Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }

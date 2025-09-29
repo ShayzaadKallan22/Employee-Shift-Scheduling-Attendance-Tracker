@@ -351,8 +351,8 @@ exports.requestLeave = async (req, res) => {
         //This prevents double booking of leave days.
         if (existingLeaves.length > 0) {
             return res.status(400).json({ 
-                message: 'You already have an approved or pending leave for the selected dates',
-                conflictingLeaves: existingLeaves
+                success: false,
+                message: 'You already have an approved or pending leave for the selected dates'
             });
         }
 

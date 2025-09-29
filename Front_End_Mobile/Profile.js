@@ -138,11 +138,11 @@ if(loading){
           </Text>
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
            style={styles.editPictureButton}
            onPress={() => console.log('Change photo pressed')}>
           <Icon name="camera-outline" size={20} color="#ffffff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <View style={styles.profileCard}>

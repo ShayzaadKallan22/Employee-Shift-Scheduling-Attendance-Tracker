@@ -245,10 +245,8 @@ exports.cancelShift = async (req, res) => {
             } 
         }
 
-        res.json({ 
-            message: `Shift cancellation successful. This is cancellation strike #${newCount}.`,
-            cancellation_id: result.insertId,
-            managers_notified: managerRows.length
+        res.status(200).json({ 
+            message: `Shift cancellation successful. You have cancelled ${newCount} shift(s).`,
         });
 
     } catch (err) {
