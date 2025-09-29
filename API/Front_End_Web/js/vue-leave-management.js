@@ -220,18 +220,65 @@ async fetchLeaveRequests() {
   //   }
   // },
 
-// In the respondToLeave method, update to include rejection reason
+// // In the respondToLeave method, update to include rejection reason
+// async respondToLeave(leaveId, action, rejectionReason = '', customMessage = '') {
+//   try {
+//     const response = await fetch('http://localhost:3000/api/leave/respond', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ 
+//         leave_id: leaveId, 
+//         action,
+//         rejection_reason: rejectionReason,
+//         custom_message: customMessage
+//       })
+//     });
+
+//     if (response.ok) {
+//       this.showToast(`Leave request ${action === 'approved' ? 'approved' : 'rejected'} successfully!`, 'success');
+//       this.fetchLeaveRequests();
+//     } else {
+//       this.showToast('Failed to update leave request. Please try again.', 'error');
+//     }
+//   } catch (err) {
+//     console.error('Error:', err);
+//     this.showToast('An error occurred. Please check your connection.', 'error');
+//   }
+// },
+
+// In vue-leave-management.js, update the respondToLeave method
 async respondToLeave(leaveId, action, rejectionReason = '', customMessage = '') {
   try {
+    // Get manager ID from localStorage (same as your profile code)
+    const userData = localStorage.getItem('user');
+    let manager_id = null;
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        manager_id = user.id;
+        console.log('Using manager ID from localStorage:', manager_id);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    const requestBody = { 
+      leave_id: leaveId, 
+      action,
+      rejection_reason: rejectionReason,
+      custom_message: customMessage
+    };
+
+    // Add manager_id to the request body if available
+    if (manager_id) {
+      requestBody.manager_id = manager_id;
+    }
+
     const response = await fetch('http://localhost:3000/api/leave/respond', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        leave_id: leaveId, 
-        action,
-        rejection_reason: rejectionReason,
-        custom_message: customMessage
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (response.ok) {
@@ -345,7 +392,31 @@ isPeakPeriod(startDate, endDate) {
   return false;
 },
 
-// Submit rejection with reason
+// // Submit rejection with reason
+// submitRejection() {
+//   if (!this.rejectionReason && this.rejectionReason !== 'other') {
+//     this.showToast('Please select a rejection reason', 'error');
+//     return;
+//   }
+  
+//   if (this.rejectionReason === 'other' && !this.customRejectionMessage.trim()) {
+//     this.showToast('Please provide a reason for rejection', 'error');
+//     return;
+//   }
+  
+//   this.respondToLeave(
+//     this.rejectingLeaveId, 
+//     'rejected', 
+//     this.rejectionReason,
+//     this.customRejectionMessage
+//   );
+  
+//   // Close modal
+//   const rejectionModal = bootstrap.Modal.getInstance(document.getElementById('rejectionModal'));
+//   rejectionModal.hide();
+// },
+
+// In vue-leave-management.js, update the submitRejection method
 submitRejection() {
   if (!this.rejectionReason && this.rejectionReason !== 'other') {
     this.showToast('Please select a rejection reason', 'error');
@@ -563,7 +634,8 @@ showCalendar(request) {
     this.leaveStartDate = new Date(request.start_date);
     this.leaveEndDate = new Date(request.end_date);
     
-    this.currentDate = new Date();
+    // this.currentDate = new Date();
+    this.currentDate = new Date(request.start_date);
     this.renderSimpleCalendar();
     
     if (!this.calendarModal) {
