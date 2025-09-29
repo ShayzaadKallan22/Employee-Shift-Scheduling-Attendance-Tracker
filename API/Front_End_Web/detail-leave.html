@@ -27,6 +27,39 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     <script src="lib/chart/chart.min.js"></script>
     <script src="lib/chart.js/dist/chart.umd.js"></script>
+
+    <style>
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #00a4e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .employee-avatar-lg {
+            width: 50px;
+            height: 50px;
+            font-size: 22px;
+        }
+
+        .avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #2a2e38;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+    </style>
 </head>
 
 <body>
@@ -53,27 +86,32 @@
                         </div>
                     </div> -->
                     <div class="d-flex align-items-center ms-4 mb-4">
-    <div class="position-relative">
-        <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
-        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
-    </div>
-    <div class="ms-3">
-        <h6 class="mb-0" id="profile-name">
-            <a href="my-profile.html" style="color: inherit; text-decoration: none;">
-                Loading...
-            </a>
-        </h6>
-        <span>Manager</span>
-    </div>
-</div>
+                        <div class="position-relative">
+                            <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                            <div
+                                class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0" id="profile-name">
+                                <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                                    Loading...
+                                </a>
+                            </h6>
+                            <span>Manager</span>
+                        </div>
+                    </div>
                     <div class="navbar-nav w-100">
                         <a href="index.html" class="nav-item nav-link"><i
                                 class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                         <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
                             Shifts</a>
-                        <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime QR</a>
-                        <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal QR</a>
-                        <a href="payroll.html" class="nav-item nav-link"><i class="fa fa-money-bill me-2"></i>Payroll</a>
+                        <a href="overtime.html" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>Overtime
+                            QR</a>
+                        <a href="normalQR.html" class="nav-item nav-link"><i class="fas fa-qrcode me-2"></i>Normal
+                            QR</a>
+                        <a href="payroll.html" class="nav-item nav-link"><i
+                                class="fa fa-money-bill me-2"></i>Payroll</a>
                         <div class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i
                                     class="fa fa-user-plus me-2"></i>Registration</a>
@@ -84,9 +122,12 @@
                                         class="fa fa-info-circle me-2"></i>Status</a> -->
                             </div>
                         </div>
-                        <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
-                        <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
-                        <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
+                        <a href="status.html" class="nav-item nav-link"><i
+                                class="fa fa-sign-out-alt me-2"></i>Status</a>
+                        <a href="leave.html" class="nav-item nav-link active"><i
+                                class="fa fa-sign-out-alt me-2"></i>Leave</a>
+                        <a href="events.html" class="nav-item nav-link"><i
+                                class="fa fa-calendar-day me-2"></i>Events</a>
                         <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     </div>
                 </nav>
@@ -96,16 +137,147 @@
             <!-- Content -->
             <div class="content">
                 <!-- Navbar Start -->
-                <div id="navbar-container"></div>
+                <div id="navbar-container">
+          <nav
+            class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
+          >
+            <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+              <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+            </a>
+            <a href="#" class="sidebar-toggler flex-shrink-0">
+              <i class="fa fa-bars"></i>
+            </a>
+            <div class="navbar-nav align-items-center ms-auto">
+              <!-- Messages dropdown -->
+              <div class="nav-item dropdown me-3">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-envelope me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Messages</span>
+                  <span
+                    id="messageCount"
+                    class="badge bg-success ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-messages"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="message-employee.html"
+                    class="dropdown-item text-center"
+                    >See all messages</a
+                  >
+                </div>
+              </div>
+
+              <!-- Notification dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-bell me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Notifications</span>
+                  <span
+                    id="notificationCount"
+                    class="badge bg-danger ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-notifications"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="ViewAllNotifications.html"
+                    class="dropdown-item text-center"
+                    >See all notifications</a
+                  >
+                </div>
+              </div>
+
+              <!-- User dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <img
+                    class="rounded-circle me-lg-2"
+                    src="img/user.jpg"
+                    alt=""
+                    style="width: 40px; height: 40px"
+                  />
+                  <span class="d-none d-lg-inline-flex" id="nav-profile-name"
+                    >Loading...</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                >
+                  <a href="my-profile.html" class="dropdown-item">My Profile</a>
+                  <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
                 <!-- Navbar End -->
 
                 <!-- Leave Table -->
-                <div class="container-fluid pt-4 px-4">
+                <div class="container-fluid pt-4 px-4" style="margin-top:55px">
                     <div class="bg-secondary rounded p-4">
                         <h4 class="mb-4"><i class="fa fa-sign-out-alt me-2"></i>Detailed Leave Management</h4>
                         <div id="vue-detailed-leave">
                             <div v-if="error" class="alert alert-danger">
                                 Error loading leave data: {{ error }}
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-dark border-0 text-light"
+                                            placeholder="Search employees by name or role..." v-model="searchQuery"
+                                            @input="filterEmployees">
+                                        <button class="btn btn-info"
+                                            style="background-color: #00a4e0; border-color: #00a4e0; color: #000;">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="table-responsive">
@@ -174,31 +346,47 @@
                                     </tbody>
                                 </table> -->
                                 <table class="table table-hover mb-0">
-  <thead class="text-white">
-    <tr>
-      <th>Employee</th>
-      <th>Role</th>
-      <th v-for="type in leaveTypes" :key="type.leave_type_id">{{ type.name_ }}</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-if="loading">
-      <td :colspan="leaveTypes.length + 3" class="text-center">Loading leave data...</td>
-    </tr>
-    <template v-else v-for="employee in employees" :key="employee.employee_id">
-      <tr data-bs-toggle="collapse" 
-          :data-bs-target="'#leaveDetails' + employee.employee_id"
-          style="cursor: pointer;">
-        <td>
+                                    <thead class="text-white">
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Role</th>
+                                            <th v-for="type in leaveTypes" :key="type.leave_type_id">{{ type.name_ }}
+                                            </th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-if="loading">
+                                            <td :colspan="leaveTypes.length + 3" class="text-center">Loading leave
+                                                data...</td>
+                                        </tr>
+                                        <!-- <template v-else v-for="employee in employees" :key="employee.employee_id"> -->
+                                        <template v-else v-for="employee in displayEmployees"
+                                            :key="employee.employee_id">
+                                            <tr data-bs-toggle="collapse"
+                                                :data-bs-target="'#leaveDetails' + employee.employee_id"
+                                                style="cursor: pointer;">
+                                                <!-- <td>
           <div class="d-flex align-items-center">
             <img src="img/user.jpg" class="rounded-circle me-2" alt="" 
                  style="width: 30px; height: 30px;">
             <span>{{ employee.first_name }} {{ employee.last_name }} </span>
           </div>
-        </td>
-        <td>{{ employee.role_title }}</td>
-        <!-- <td v-for="type in leaveTypes" :key="type.leave_type_id">
+        </td> -->
+
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="employee-avatar me-2">
+                                                            {{ getEmployeeInitials(employee) }}
+                                                        </div>
+                                                        <div>
+                                                            <span>{{ employee.first_name }} {{ employee.last_name
+                                                                }}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ employee.role_title }}</td>
+                                                <!-- <td v-for="type in leaveTypes" :key="type.leave_type_id">
           <span :class="{
             'text-danger': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 3,
             'text-warning': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 7
@@ -206,104 +394,98 @@
             {{ getRemainingDays(employee, type.leave_type_id) }}
           </span>
         </td> -->
-        <td v-for="type in leaveTypes" :key="type.leave_type_id">
-  <template v-if="type.leave_type_id == 2"> <!-- Sick Leave -->
-    {{ getRemainingDays(employee, type.leave_type_id) }}
-    <i v-if="hasSickNote(employee)" 
-       class="fas fa-file-pdf ms-2 text-danger cursor-pointer"
-       @click="viewSickNote(getSickNote(employee), employee)"
-       title="View sick note"></i>
-    <i v-else
-       class="fas fa-file-pdf ms-2 text-secondary cursor-not-allowed"
-       title="No sick note attached"></i>
-  </template>
-  <template v-else>
-    {{ getRemainingDays(employee, type.leave_type_id) }}
-  </template>
-</td>
-        <td>
-          <span class="badge" :class="{
+                                                <td v-for="type in leaveTypes" :key="type.leave_type_id">
+                                                    <template v-if="type.leave_type_id == 2"> <!-- Sick Leave -->
+                                                        {{ getRemainingDays(employee, type.leave_type_id) }}
+                                                        <i v-if="hasSickNote(employee)"
+                                                            class="fas fa-file-pdf ms-2 text-danger cursor-pointer"
+                                                            @click="viewSickNote(getSickNote(employee), employee)"
+                                                            title="View sick note"></i>
+                                                        <i v-else
+                                                            class="fas fa-file-pdf ms-2 text-secondary cursor-not-allowed"
+                                                            title="No sick note attached"></i>
+                                                    </template>
+                                                    <template v-else>
+                                                        {{ getRemainingDays(employee, type.leave_type_id) }}
+                                                    </template>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" :class="{
             'bg-success': employee.status_ === 'Working',
             'text-warning': employee.status_ === 'On Leave',
             'bg-secondary': employee.status_ === 'Not Working'
           }">
-            {{ employee.status_ }}
-          </span>
-        </td>
-      </tr>
-      <tr class="collapse fade bg-secondary" :id="'leaveDetails' + employee.employee_id">
-        <td :colspan="leaveTypes.length + 3">
-          <div class="p-3" style="max-height: 200px; overflow-y: auto;">
-            <h6 class="mb-3">Recent Leave Requests</h6>
-            <ul class="list-group list-group-flush" 
-                v-if="employee.leave_requests && employee.leave_requests.length">
-              <li v-for="request in employee.leave_requests" :key="request.leave_id"
-                  class="list-group-item bg-dark text-white d-flex justify-content-between">
-                <!-- <span>
+                                                        {{ employee.status_ }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr class="collapse fade bg-secondary"
+                                                :id="'leaveDetails' + employee.employee_id">
+                                                <td :colspan="leaveTypes.length + 3">
+                                                    <div class="p-3" style="max-height: 200px; overflow-y: auto;">
+                                                        <h6 class="mb-3">Recent Leave Requests</h6>
+                                                        <ul class="list-group list-group-flush"
+                                                            v-if="employee.leave_requests && employee.leave_requests.length">
+                                                            <li v-for="request in employee.leave_requests"
+                                                                :key="request.leave_id"
+                                                                class="list-group-item bg-dark text-white d-flex justify-content-between">
+                                                                <!-- <span>
                   {{ getLeaveTypeName(request.leave_type_id, request) }}: 
                   {{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
                   ({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
                 </span> -->
-                <span v-html="getLeaveTypeName(request.leave_type_id, request, employee)"></span>: 
-{{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
-({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
-                <!-- <span class="badge" :class="{
+                                                                <span
+                                                                    v-html="getLeaveTypeName(request.leave_type_id, request, employee)"></span>
+                                                                {{ formatDate(request.start_date) }} to {{
+                                                                formatDate(request.end_date) }}
+                                                                ({{ request.days_taken || (new Date(request.end_date) -
+                                                                new Date(request.start_date)) / (1000 * 60 * 60 * 24) +
+                                                                1 }} days)
+                                                                <!-- <span class="badge" :class="{
                   'bg-success': request.status_ === 'approved',
                   'bg-warning': request.status_ === 'pending',
                   'bg-danger': request.status_ === 'rejected'
                 }">
                   {{ request.status_ }}
                 </span> -->
-                <span class="badge bg-transparent" :style="{
+                                                                <span class="badge bg-transparent" :style="{
   color: request.status_ === 'approved' ? '#198754' :
          request.status_ === 'pending'  ? '#ffc107' :
          request.status_ === 'rejected' ? '#dc3545' : ''
 }">
-  {{ request.status_ }}
-</span>
+                                                                    {{ request.status_ }}
+                                                                </span>
 
-              </li>
-            </ul>
-            <div v-else class="text-muted">No recent leave requests</div>
-          </div>
-        </td>
-      </tr>
-    </template>
-  </tbody>
-</table>
+                                                            </li>
+                                                        </ul>
+                                                        <div v-else class="text-muted">No recent leave requests</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
                             </div>
 
 
                             <!-- Summary Cards -->
                             <div class="row g-4 mt-4 mb-4">
-                                <!-- <div class="col-sm-6 col-xl-3">
-                                    <div class="bg-dark rounded p-4 text-center">
-                                        <h6 class="mb-0">Total Active Employees</h6>
-                                        <h3 class="text-primary mt-2">{{ stats.totalEmployees }}</h3>
-                                    </div>
-                                </div> -->
-                                <div class="col-sm-6 col-xl-3">
-                                    <div class="bg-dark rounded p-4 text-center">
+                                <div class="col-md-6">
+                                    <div class="bg-dark rounded p-4 text-center h-100">
                                         <h6 class="mb-0">On Leave Today</h6>
                                         <h3 class="text-warning mt-2">{{ stats.onLeaveToday }}</h3>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-xl-3">
-                                    <div class="bg-dark rounded p-4 text-center">
+                                <div class="col-md-6">
+                                    <div class="bg-dark rounded p-4 text-center h-100">
                                         <h6 class="mb-0">Pending Requests</h6>
                                         <h3 class="text-danger mt-2">{{ stats.pendingRequests }}</h3>
                                     </div>
                                 </div>
-                                <!-- <div class="col-sm-6 col-xl-3">
-                                    <div class="bg-dark rounded p-4 text-center">
-                                        <h6 class="mb-0">Leave This Month</h6>
-                                        <h3 class="text-success mt-2">{{ stats.leaveThisMonth }}</h3>
-                                    </div>
-                                </div> -->
                             </div>
                         </div>
 
-                        
+
                         <!-- Visual Insights -->
                         <div class="bg-dark rounded p-4 mb-4">
                             <div class="d-flex align-items-center mb-4">
@@ -340,7 +522,7 @@
         <script src="lib/chart/chart.min.js"></script>
         <script src="lib/chart.js/dist/chart.umd.js"></script>
         <script src="js/vue-detailed-leave.js"></script>
-         <script src="js/components.js"></script>
+        <script src="js/components.js"></script>
 
 </body>
 

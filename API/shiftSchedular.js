@@ -202,6 +202,7 @@ class MonthlyShiftScheduler {
                 JOIN t_role r ON e.role_id = r.role_id
                 WHERE e.type_ = 'employee' 
                 AND e.status_ IN ('Working', 'Not Working')
+                AND e.role_id != 7
                 ORDER BY r.title, e.employee_id
             `);
 

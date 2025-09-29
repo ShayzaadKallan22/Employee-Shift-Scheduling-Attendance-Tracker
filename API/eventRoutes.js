@@ -169,7 +169,7 @@ router.post('/events', validateEventDates, async (req, res) => {
       }
       
       // Schedule notifications
-      await sendEventNotifications(result.insertId);
+      // await sendEventNotifications(result.insertId);
     }
     
     res.status(201).json({ 
@@ -910,75 +910,75 @@ router.get('/:eventId/required-roles', async (req, res) => {
   }
 });
 
-// Notification function for event assignments
-const sendEventNotifications = async (eventId) => {
-  try {
-    const [event] = await db.query(
-      `SELECT event_name, start_date, start_time, location 
-       FROM t_event WHERE event_id = ?`,
-      [eventId]
-    );
+// // Notification function for event assignments
+// const sendEventNotifications = async (eventId) => {
+//   try {
+//     const [event] = await db.query(
+//       `SELECT event_name, start_date, start_time, location 
+//        FROM t_event WHERE event_id = ?`,
+//       [eventId]
+//     );
     
-    if (event.length === 0) return;
+//     if (event.length === 0) return;
     
-    const eventData = event[0];
-    const eventDate = new Date(eventData.start_date);
+//     const eventData = event[0];
+//     const eventDate = new Date(eventData.start_date);
     
-    // Calculate notification date (7 days before event)
-    const notificationDate = new Date(eventDate);
-    notificationDate.setDate(notificationDate.getDate() - 7);
+//     // Calculate notification date (7 days before event)
+//     const notificationDate = new Date(eventDate);
+//     notificationDate.setDate(notificationDate.getDate() - 7);
     
-    // Get all employees assigned to this event
-    const [assignedEmployees] = await db.query(
-      `SELECT e.employee_id, e.first_name, e.email 
-       FROM t_event_employee ee
-       JOIN t_employee e ON ee.employee_id = e.employee_id
-       WHERE ee.event_id = ?`,
-      [eventId]
-    );
+//     // Get all employees assigned to this event
+//     const [assignedEmployees] = await db.query(
+//       `SELECT e.employee_id, e.first_name, e.email 
+//        FROM t_event_employee ee
+//        JOIN t_employee e ON ee.employee_id = e.employee_id
+//        WHERE ee.event_id = ?`,
+//       [eventId]
+//     );
     
-    for (const employee of assignedEmployees) {
-      // Create notification with future sent_time
-      await db.execute(
-        `INSERT INTO t_notification 
-         (employee_id, message, sent_time, read_status, notification_type_id)
-         VALUES (?, ?, ?, 'unread', 7)`, // 7 = event type
-        [
-          employee.employee_id,
-          `Your role has been assigned to event "${eventData.event_name}" on ${eventData.start_date} at ${eventData.start_time} (${eventData.location}). Check your schedule to see if you'll be working during the event.`,
-          notificationDate
-        ]
-      );
+//     for (const employee of assignedEmployees) {
+//       // Create notification with future sent_time
+//       await db.execute(
+//         `INSERT INTO t_notification 
+//          (employee_id, message, sent_time, read_status, notification_type_id)
+//          VALUES (?, ?, ?, 'unread', 7)`, // 7 = event type
+//         [
+//           employee.employee_id,
+//           `Your role has been assigned to event "${eventData.event_name}" on ${eventData.start_date} at ${eventData.start_time} (${eventData.location}). Check your schedule to see if you'll be working during the event.`,
+//           notificationDate
+//         ]
+//       );
       
-      console.log(`Notification scheduled for employee ${employee.employee_id} for event ${eventId}`);
-    }
+//       console.log(`Notification scheduled for employee ${employee.employee_id} for event ${eventId}`);
+//     }
     
-  } catch (err) {
-    console.error('Error creating event notifications:', err);
-  }
-};
+//   } catch (err) {
+//     console.error('Error creating event notifications:', err);
+//   }
+// };
 
 // Get event notifications for an employee
-router.get('/employee/:employeeId/event-notifications', async (req, res) => {
-  const { employeeId } = req.params;
+// router.get('/employee/:employeeId/event-notifications', async (req, res) => {
+//   const { employeeId } = req.params;
   
-  try {
-    const [notifications] = await db.query(
-      `SELECT n.*, e.event_name, e.start_date, e.start_time, e.location
-       FROM t_notification n
-       LEFT JOIN t_event e ON n.message LIKE CONCAT('%', e.event_name, '%')
-       WHERE n.employee_id = ? 
-       AND n.notification_type_id = 7
-       ORDER BY n.sent_time DESC`,
-      [employeeId]
-    );
+//   try {
+//     const [notifications] = await db.query(
+//       `SELECT n.*, e.event_name, e.start_date, e.start_time, e.location
+//        FROM t_notification n
+//        LEFT JOIN t_event e ON n.message LIKE CONCAT('%', e.event_name, '%')
+//        WHERE n.employee_id = ? 
+//        AND n.notification_type_id = 7
+//        ORDER BY n.sent_time DESC`,
+//       [employeeId]
+//     );
     
-    res.status(200).json(notifications);
-  } catch (err) {
-    console.error('Error fetching event notifications:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+//     res.status(200).json(notifications);
+//   } catch (err) {
+//     console.error('Error fetching event notifications:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
 
 // Mark notification as read
 router.patch('/notification/:notificationId/read', async (req, res) => {
@@ -1081,50 +1081,50 @@ const sendImmediateEventNotifications = async (eventId, messageType = 'assignmen
   }
 };
 
-// Weekly event reminder check
-const checkEventReminders = async () => {
-  try {
-    const currentDate = new Date();
-    console.log('Checking for event reminders...');
+// // Weekly event reminder check
+// const checkEventReminders = async () => {
+//   try {
+//     const currentDate = new Date();
+//     console.log('Checking for event reminders...');
     
-    // Find events happening in the next 7 days
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
+//     // Find events happening in the next 7 days
+//     const nextWeek = new Date();
+//     nextWeek.setDate(nextWeek.getDate() + 7);
     
-    const [upcomingEvents] = await pool.execute(
-      `SELECT e.event_id, e.event_name, e.start_date, e.start_time, e.location
-       FROM t_event e
-       WHERE e.start_date BETWEEN ? AND ?
-       AND e.start_date > CURDATE()`,
-      [currentDate, nextWeek]
-    );
+//     const [upcomingEvents] = await pool.execute(
+//       `SELECT e.event_id, e.event_name, e.start_date, e.start_time, e.location
+//        FROM t_event e
+//        WHERE e.start_date BETWEEN ? AND ?
+//        AND e.start_date > CURDATE()`,
+//       [currentDate, nextWeek]
+//     );
     
-    for (const event of upcomingEvents) {
-      // Check if reminders were already sent this week
-      const eventDate = new Date(event.start_date);
-      const [existingReminders] = await pool.execute(
-        `SELECT COUNT(*) as count 
-         FROM t_notification 
-         WHERE message LIKE CONCAT('%', ?, '%') 
-         AND message LIKE '%Reminder%'
-         AND sent_time > DATE_SUB(NOW(), INTERVAL 2 DAY)`,
-        [event.event_name]
-      );
+//     for (const event of upcomingEvents) {
+//       // Check if reminders were already sent this week
+//       const eventDate = new Date(event.start_date);
+//       const [existingReminders] = await pool.execute(
+//         `SELECT COUNT(*) as count 
+//          FROM t_notification 
+//          WHERE message LIKE CONCAT('%', ?, '%') 
+//          AND message LIKE '%Reminder%'
+//          AND sent_time > DATE_SUB(NOW(), INTERVAL 2 DAY)`,
+//         [event.event_name]
+//       );
       
-      if (existingReminders[0].count === 0) {
-        // Send reminder notification
-        await sendImmediateEventNotifications(event.event_id, 'reminder');
-        console.log(`Sent reminder for event: ${event.event_name}`);
-      }
-    }
+//       if (existingReminders[0].count === 0) {
+//         // Send reminder notification
+//         await sendImmediateEventNotifications(event.event_id, 'reminder');
+//         console.log(`Sent reminder for event: ${event.event_name}`);
+//       }
+//     }
     
-  } catch (err) {
-    console.error('Error in event reminder check:', err);
-  }
-};
-const cron = require('node-cron');
-// Schedule weekly reminder check (daily at 10:00 AM)
-cron.schedule('0 10 * * *', checkEventReminders);
+//   } catch (err) {
+//     console.error('Error in event reminder check:', err);
+//   }
+// };
+// const cron = require('node-cron');
+// // Schedule weekly reminder check (daily at 10:00 AM)
+// cron.schedule('0 10 * * *', checkEventReminders);
 
 // Debug endpoint to test notifications manually
 router.post('/:eventId/debug-notifications', async (req, res) => {
@@ -1185,6 +1185,85 @@ router.get('/employee/:employeeId/shifts', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+router.post('/:eventId/assignment-notifications', async (req, res) => {
+  const { eventId } = req.params;
+  
+  try {
+    // Get event details
+    const [eventRows] = await db.execute(
+      `SELECT event_name, start_date FROM t_event WHERE event_id = ?`,
+      [eventId]
+    );
+    
+    if (eventRows.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    const event = eventRows[0];
+    
+    // Get assigned staff
+    const [staffRows] = await db.execute(
+      `SELECT ee.employee_id, e.first_name, e.email 
+       FROM t_event_employee ee 
+       JOIN t_employee e ON ee.employee_id = e.employee_id 
+       WHERE ee.event_id = ?`,
+      [eventId]
+    );
+    
+    // Create immediate assignment notifications only
+    for (const staff of staffRows) {
+      await db.execute(
+        `INSERT INTO t_notification 
+         (employee_id, message, sent_time, read_status, notification_type_id) 
+         VALUES (?, ?, NOW(), 'unread', 7)`,
+        [
+          staff.employee_id,
+          `You have been assigned to event "${event.event_name}" starting on ${new Date(event.start_date).toLocaleDateString()}.`
+        ]
+      );
+    }
+    
+    // Store event reminder info in a separate table or use existing t_event table
+    // We'll add a column to track if 7-day reminder was sent
+    await db.execute(
+      `UPDATE t_event SET reminder_sent = 0 WHERE event_id = ?`,
+      [eventId]
+    );
+    
+    res.json({ 
+      message: 'Assignment notifications sent successfully',
+      notified: staffRows.length
+    });
+    
+  } catch (err) {
+    console.error('Error sending assignment notifications:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get employee event notifications
+router.get('/employee/:employeeId/event-notifications', async (req, res) => {
+  const { employeeId } = req.params;
+  
+  try {
+    const [notifications] = await db.execute(
+      `SELECT n.* FROM t_notification n
+       WHERE n.employee_id = ? 
+       AND n.notification_type_id = 7
+       ORDER BY n.sent_time DESC`,
+      [employeeId]
+    );
+    
+    res.json(notifications);
+  } catch (err) {
+    console.error('Error fetching event notifications:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 
 module.exports = router;

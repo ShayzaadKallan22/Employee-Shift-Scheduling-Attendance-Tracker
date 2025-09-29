@@ -12,7 +12,7 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
     try {
         const MIN_BUDGET = 30000;  //Minimum allowed budget (R10,000)
         const MAX_BUDGET = 130000;  //Maximum allowed budget (R100,000)
-        const BUFFER_PERCENTAGE = 0.2; //20% buffer above/below actual spend
+        const BUFFER_PERCENTAGE = 0.4; //20% buffer above/below actual spend
         
         //Ensure actualSpend is a proper number
         const cleanActualSpend = parseFloat(actualSpend) || 0;

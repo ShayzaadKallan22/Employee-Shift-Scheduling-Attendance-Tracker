@@ -100,7 +100,6 @@ canvas {
 }
 
 
-/*** Layout ***/
 .sidebar {
     position: fixed;
     top: 0;
@@ -110,7 +109,7 @@ canvas {
     height: 100vh;
     overflow-y: auto;
     background: var(--secondary);
-    transition: 0.5s;
+    transition: margin-left 0.5s ease;
     z-index: 999;
 }
 
@@ -118,35 +117,38 @@ canvas {
     margin-left: 250px;
     min-height: 100vh;
     background: var(--dark);
-    transition: 0.5s;
+    transition: margin-left 0.5s ease, width 0.5s ease;
 }
 
+/* Desktop behavior */
 @media (min-width: 992px) {
     .sidebar {
-        margin-left: 0;
+        margin-left: 0; /* Visible by default */
     }
 
-    .sidebar.open {
-        margin-left: -250px;
+    .sidebar.collapsed {
+        margin-left: -250px; /* Hidden when collapsed */
     }
 
     .content {
+        margin-left: 250px;
         width: calc(100% - 250px);
     }
 
-    .content.open {
-        width: 100%;
+    .content.expanded {
         margin-left: 0;
+        width: 100%;
     }
 }
 
+/* Mobile behavior */
 @media (max-width: 991.98px) {
     .sidebar {
-        margin-left: -250px;
+        margin-left: -250px; /* Hidden by default */
     }
 
-    .sidebar.open {
-        margin-left: 0;
+    .sidebar.collapsed {
+        margin-left: 0; /* Show when toggled on mobile */
     }
 
     .content {
@@ -157,6 +159,57 @@ canvas {
 
 
 /*** Navbar ***/
+
+#navbar-container.expanded {
+    left: 0 !important;
+    width: 100% !important;
+}
+
+#navbar-container {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    z-index: 1030;
+    width: calc(100% - 250px);
+    transition: left 0.5s ease, width 0.5s ease;
+}
+
+@media (max-width: 991.98px) {
+    #navbar-container {
+        left: 0;
+        width: 100%;
+    }
+}
+
+/*** Navbar Sticky Fix - More Specific ***/
+nav.navbar.sticky-top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1020 !important;
+}
+
+.bg-secondary.navbar-dark.sticky-top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1020 !important;
+}
+
+/* Even more specific with parent container */
+#navbar-container .navbar.sticky-top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1020 !important;
+}
+
+#navbar-container {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    z-index: 1030;
+    width: calc(100% - 250px);
+}
 
 
 /* Make the "Messages" and "Notifications" text white */
@@ -622,4 +675,123 @@ body {
 
 #exportModal .export-btn i {
     margin-right: 8px;
+}
+
+
+
+
+/* Loading animation for rejection reasons */
+#rejectionModal .spinner-border.text-danger {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
+}
+
+/* Icon styling */
+#rejectionModal .fa-times-circle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#rejectionModal .fa-clipboard-list {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-edit {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-times {
+  opacity: 0.8;
+}
+
+#rejectionModal .fa-ban {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Focus states for accessibility */
+#rejectionModal .form-check-input:focus-visible {
+  outline: 2px solid var(--rejection-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+#rejectionModal * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal body */
+#rejectionModal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--rejection-primary);
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--rejection-primary-dark);
+}
+
+/* Loading animation for rejection reasons */
+#rejectionModal .spinner-border.text-danger {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
+}
+
+/* Icon styling */
+#rejectionModal .fa-times-circle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#rejectionModal .fa-clipboard-list {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-edit {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-times {
+  opacity: 0.8;
+}
+
+#rejectionModal .fa-ban {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Focus states for accessibility */
+#rejectionModal .form-check-input:focus-visible {
+  outline: 2px solid var(--rejection-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+#rejectionModal * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal body */
+#rejectionModal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--rejection-primary);
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--rejection-primary-dark);
 }

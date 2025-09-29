@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
           description: '',
           start_date: '',
           end_date: '',
-          start_time: '18:00',
-          end_time: '23:00',
+          start_time: '17:00',
+          end_time: '02:00',
           location: 'Night Lounge',
           expected_attendance: null,
           organizer_id: null,
@@ -99,39 +99,72 @@ availableRoles: [
     },
     methods: {
 
-      // Add to your methods object
-async viewEmployeeShifts(employeeId) {
-  try {
-    const response = await fetch(`http://localhost:3000/api/employee/${employeeId}/shifts`);
-    if (response.ok) {
-      const shifts = await response.json();
       
-      // Filter shifts to only show those during the event
-      const eventShifts = shifts.filter(shift => {
-        const shiftDate = new Date(shift.date_);
-        const eventStart = new Date(this.currentEvent.start_date);
-        const eventEnd = new Date(this.currentEvent.end_date);
-        return shiftDate >= eventStart && shiftDate <= eventEnd;
-      });
+// async viewEmployeeShifts(employeeId) {
+//   try {
+//     const response = await fetch(`http://localhost:3000/api/employee/${employeeId}/shifts`);
+//     if (response.ok) {
+//       const shifts = await response.json();
       
-      if (eventShifts.length > 0) {
-        let shiftInfo = `Shifts during event:\n`;
-        eventShifts.forEach(shift => {
-          shiftInfo += `${shift.date_}: ${shift.start_time} - ${shift.end_time}\n`;
-        });
-        alert(shiftInfo);
-      } else {
-        alert('No shifts scheduled during event dates');
-      }
-    }
-  } catch (err) {
-    console.error('Error fetching employee shifts:', err);
-    alert('Error loading shift information');
-  }
-},
+//       // Filter shifts to only show those during the event
+//       const eventShifts = shifts.filter(shift => {
+//         const shiftDate = new Date(shift.date_);
+//         const eventStart = new Date(this.currentEvent.start_date);
+//         const eventEnd = new Date(this.currentEvent.end_date);
+//         return shiftDate >= eventStart && shiftDate <= eventEnd;
+//       });
+      
+//       if (eventShifts.length > 0) {
+//         let shiftInfo = `Shifts during event:\n`;
+//         eventShifts.forEach(shift => {
+//           shiftInfo += `${shift.date_}: ${shift.start_time} - ${shift.end_time}\n`;
+//         });
+//         alert(shiftInfo);
+//       } else {
+//         alert('No shifts scheduled during event dates');
+//       }
+//     }
+//   } catch (err) {
+//     console.error('Error fetching employee shifts:', err);
+//     alert('Error loading shift information');
+//   }
+// },
 
     // Fix the mapping function - make sure it matches EXACTLY the enum values
-mapRoleTitleToEnum(roleTitle) {
+
+async viewEmployeeShifts(employeeId) {
+    try {
+      const response = await fetch(`http://localhost:3000/api/employee/${employeeId}/shifts`);
+      if (response.ok) {
+        const shifts = await response.json();
+        
+        // Filter shifts to only show those during the event
+        const eventShifts = shifts.filter(shift => {
+          const shiftDate = new Date(shift.date_);
+          const eventStart = new Date(this.currentEvent.start_date);
+          const eventEnd = new Date(this.currentEvent.end_date);
+          return shiftDate >= eventStart && shiftDate <= eventEnd;
+        });
+        
+        if (eventShifts.length > 0) {
+          let shiftInfo = `Shifts during event:\n`;
+          eventShifts.forEach(shift => {
+            shiftInfo += `${shift.date_}: ${shift.start_time} - ${shift.end_time}\n`;
+          });
+          this.showToast(shiftInfo, 'info');
+        } else {
+          this.showToast('No shifts scheduled during event dates', 'warning');
+        }
+      } else {
+        this.showToast('Error loading shift information', 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching employee shifts:', err);
+      this.showToast('Error loading shift information', 'error');
+    }
+  },
+
+    mapRoleTitleToEnum(roleTitle) {
   const mapping = {
     'Bartender': 'bartender',
     'Sparkler Girl': 'sparkler_girl', // MUST match exactly 'sparkler_girl'
@@ -188,7 +221,28 @@ mapRoleTitleToEnum(roleTitle) {
     return new Date().toISOString().split('T')[0];
   },
 
-  // Add this method to your Vue component
+  
+// async checkForNewNotifications() {
+//   try {
+//     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+//     if (userData) {
+//       const user = JSON.parse(userData);
+//       const response = await fetch(`http://localhost:3000/api/employee/${user.employee_id}/event-notifications`);
+      
+//       if (response.ok) {
+//         const notifications = await response.json();
+//         const unreadCount = notifications.filter(n => n.read_status === 'unread').length;
+        
+//         // Update UI with notification count
+//         this.unreadNotifications = unreadCount;
+//       }
+//     }
+//   } catch (err) {
+//     console.error('Error checking notifications:', err);
+//   }
+// },
+
+// In vue-event-management.js
 async checkForNewNotifications() {
   try {
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
@@ -202,6 +256,14 @@ async checkForNewNotifications() {
         
         // Update UI with notification count
         this.unreadNotifications = unreadCount;
+        
+        // Show toast for unread notifications
+        const newNotifications = notifications.filter(n => n.read_status === 'unread');
+        if (newNotifications.length > 0) {
+          // Show only the latest notification to avoid spam
+          const latestNotification = newNotifications[0];
+          this.showToast(latestNotification.message, 'info');
+        }
       }
     }
   } catch (err) {
@@ -323,8 +385,8 @@ async fetchEvents() {
           description: '',
           start_date: '',
           end_date: '',
-          start_time: '18:00',
-          end_time: '23:00',
+          start_time: '17:00',
+          end_time: '02:00',
           location: 'Night Lounge',
           expected_attendance: null,
           organizer_id: this.currentEvent.organizer_id,
@@ -332,31 +394,31 @@ async fetchEvents() {
         };
       },
       
-validateEventDates(eventData) {
-  const startDate = new Date(eventData.start_date);
-  const endDate = new Date(eventData.end_date);
+// validateEventDates(eventData) {
+//   const startDate = new Date(eventData.start_date);
+//   const endDate = new Date(eventData.end_date);
   
-  // Check if event spans more than 7 days
-  const diffTime = Math.abs(endDate - startDate);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+//   // Check if event spans more than 7 days
+//   const diffTime = Math.abs(endDate - startDate);
+//   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   
-  if (diffDays > 7) {
-    alert('Event cannot span more than 7 days');
-    return false;
-  }
+//   if (diffDays > 7) {
+//     alert('Event cannot span more than 7 days');
+//     return false;
+//   }
   
-  // Check for closed days
-  for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-    const dayOfWeek = date.getDay();
+//   // Check for closed days
+//   for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+//     const dayOfWeek = date.getDay();
     
-    if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) { // Tue, Wed, Thu
-      alert('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose different dates.');
-      return false;
-    }
-  }
+//     if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) { // Tue, Wed, Thu
+//       alert('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose different dates.');
+//       return false;
+//     }
+//   }
   
-  return true;
-},
+//   return true;
+// },
 
 //       async saveEvent() {
 //   this.saving = true;
@@ -431,86 +493,188 @@ validateEventDates(eventData) {
 //   }
 // },
       
+
+validateEventDates(eventData) {
+    const startDate = new Date(eventData.start_date);
+    const endDate = new Date(eventData.end_date);
+    
+    // Check if event spans more than 7 days
+    const diffTime = Math.abs(endDate - startDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    if (diffDays > 7) {
+      this.showToast('Event cannot span more than 7 days', 'warning');
+      return false;
+    }
+    
+    // Check for closed days
+    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+      const dayOfWeek = date.getDay();
+      
+      if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) { // Tue, Wed, Thu
+        this.showToast('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose different dates.', 'warning');
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
+// async saveEvent() {
+//   this.saving = true;
+//   try {
+//     const url = this.isEditing 
+//       // ? `http://localhost:3000/api/events/${this.currentEvent.event_id}`
+//       ? `http://localhost:3000/api/${this.currentEvent.event_id}`
+//       : 'http://localhost:3000/api/events';
+    
+//     const method = this.isEditing ? 'PUT' : 'POST';
+    
+//     // Get user data
+//     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+//     let organizerId = this.currentEvent.organizer_id || 1;
+    
+//     if (userData) {
+//       const user = JSON.parse(userData);
+//       organizerId = user.employee_id || user.id || organizerId;
+//     }
+    
+//     // Convert role IDs to role titles for the mapping
+//     const roleTitles = this.currentEvent.requiredRoles.map(roleId => {
+//       const role = this.availableRoles.find(r => r.value === roleId);
+//       return role ? role.label : null;
+//     }).filter(title => title !== null);
+
+//     const eventData = {
+//       event_name: this.currentEvent.event_name || '',
+//       description: this.currentEvent.description || '',
+//       start_date: this.currentEvent.start_date || null,
+//       end_date: this.currentEvent.end_date || null,
+//       start_time: this.currentEvent.start_time || null,
+//       end_time: this.currentEvent.end_time || null,
+//       location: this.currentEvent.location || 'Night Lounge',
+//       expected_attendance: this.currentEvent.expected_attendance || null,
+//       organizer_id: organizerId,
+//       // roleIds: this.currentEvent.requiredRoles
+//       roleIds: this.currentEvent.requiredRoles.map(id => parseInt(id))
+//     };
+
+//     // Validate dates before sending to server
+//     if (!this.validateEventDates(eventData)) {
+//       this.saving = false;
+//       return;
+//     }
+    
+//     const response = await fetch(url, {
+//       method: method,
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(eventData)
+//     });
+    
+//     if (response.ok) {
+//       const result = await response.json();
+//       const eventId = this.isEditing ? this.currentEvent.event_id : result.event_id;
+      
+//       // // Assign staff using role titles (which will be mapped to enum values)
+//       // if (roleTitles.length > 0) {
+//       //   await this.assignAllStaffByRole(eventId, roleTitles);
+//       // }
+
+//       // In saveEvent method, replace the staff assignment part with:
+// if (this.currentEvent.requiredRoles && this.currentEvent.requiredRoles.length > 0) {
+//   await this.assignAllStaffByRole(eventId, this.currentEvent.requiredRoles);
+// }
+      
+//       alert(`Event ${this.isEditing ? 'updated' : 'created'} successfully!`);
+//       this.eventModal.hide();
+//       await this.fetchEvents();
+      
+//     } else {
+//       const errorText = await response.text();
+//       alert('Failed to save event: ' + errorText);
+//     }
+//   } catch (err) {
+//     console.error('Error saving event:', err);
+//     alert('Error saving event: ' + err.message);
+//   } finally {
+//     this.saving = false;
+//   }
+// },      
+
+
 async saveEvent() {
-  this.saving = true;
-  try {
-    const url = this.isEditing 
-      // ? `http://localhost:3000/api/events/${this.currentEvent.event_id}`
-      ? `http://localhost:3000/api/${this.currentEvent.event_id}`
-      : 'http://localhost:3000/api/events';
-    
-    const method = this.isEditing ? 'PUT' : 'POST';
-    
-    // Get user data
-    const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
-    let organizerId = this.currentEvent.organizer_id || 1;
-    
-    if (userData) {
-      const user = JSON.parse(userData);
-      organizerId = user.employee_id || user.id || organizerId;
-    }
-    
-    // Convert role IDs to role titles for the mapping
-    const roleTitles = this.currentEvent.requiredRoles.map(roleId => {
-      const role = this.availableRoles.find(r => r.value === roleId);
-      return role ? role.label : null;
-    }).filter(title => title !== null);
+    this.saving = true;
+    try {
+      const url = this.isEditing 
+        ? `http://localhost:3000/api/${this.currentEvent.event_id}`
+        : 'http://localhost:3000/api/events';
+      
+      const method = this.isEditing ? 'PUT' : 'POST';
+      
+      // Get user data
+      const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+      let organizerId = this.currentEvent.organizer_id || 1;
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        organizerId = user.employee_id || user.id || organizerId;
+      }
+      
+      // Convert role IDs to role titles for the mapping
+      const roleTitles = this.currentEvent.requiredRoles.map(roleId => {
+        const role = this.availableRoles.find(r => r.value === roleId);
+        return role ? role.label : null;
+      }).filter(title => title !== null);
 
-    const eventData = {
-      event_name: this.currentEvent.event_name || '',
-      description: this.currentEvent.description || '',
-      start_date: this.currentEvent.start_date || null,
-      end_date: this.currentEvent.end_date || null,
-      start_time: this.currentEvent.start_time || null,
-      end_time: this.currentEvent.end_time || null,
-      location: this.currentEvent.location || 'Night Lounge',
-      expected_attendance: this.currentEvent.expected_attendance || null,
-      organizer_id: organizerId,
-      // roleIds: this.currentEvent.requiredRoles
-      roleIds: this.currentEvent.requiredRoles.map(id => parseInt(id))
-    };
+      const eventData = {
+        event_name: this.currentEvent.event_name || '',
+        description: this.currentEvent.description || '',
+        start_date: this.currentEvent.start_date || null,
+        end_date: this.currentEvent.end_date || null,
+        start_time: this.currentEvent.start_time || null,
+        end_time: this.currentEvent.end_time || null,
+        location: this.currentEvent.location || 'Night Lounge',
+        expected_attendance: this.currentEvent.expected_attendance || null,
+        organizer_id: organizerId,
+        roleIds: this.currentEvent.requiredRoles.map(id => parseInt(id))
+      };
 
-    // Validate dates before sending to server
-    if (!this.validateEventDates(eventData)) {
+      // Validate dates before sending to server
+      if (!this.validateEventDates(eventData)) {
+        this.saving = false;
+        return;
+      }
+      
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        const eventId = this.isEditing ? this.currentEvent.event_id : result.event_id;
+        
+        // Assign staff by role
+        if (this.currentEvent.requiredRoles && this.currentEvent.requiredRoles.length > 0) {
+          await this.assignAllStaffByRole(eventId, this.currentEvent.requiredRoles);
+        }
+        
+        this.showToast(`Event ${this.isEditing ? 'updated' : 'created'} successfully!`, 'success');
+        this.eventModal.hide();
+        await this.fetchEvents();
+        
+      } else {
+        const errorText = await response.text();
+        this.showToast(`Failed to save event: ${errorText}`, 'error');
+      }
+    } catch (err) {
+      console.error('Error saving event:', err);
+      this.showToast(`Error saving event: ${err.message}`, 'error');
+    } finally {
       this.saving = false;
-      return;
     }
-    
-    const response = await fetch(url, {
-      method: method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(eventData)
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      const eventId = this.isEditing ? this.currentEvent.event_id : result.event_id;
-      
-      // // Assign staff using role titles (which will be mapped to enum values)
-      // if (roleTitles.length > 0) {
-      //   await this.assignAllStaffByRole(eventId, roleTitles);
-      // }
-
-      // In saveEvent method, replace the staff assignment part with:
-if (this.currentEvent.requiredRoles && this.currentEvent.requiredRoles.length > 0) {
-  await this.assignAllStaffByRole(eventId, this.currentEvent.requiredRoles);
-}
-      
-      alert(`Event ${this.isEditing ? 'updated' : 'created'} successfully!`);
-      this.eventModal.hide();
-      await this.fetchEvents();
-      
-    } else {
-      const errorText = await response.text();
-      alert('Failed to save event: ' + errorText);
-    }
-  } catch (err) {
-    console.error('Error saving event:', err);
-    alert('Error saving event: ' + err.message);
-  } finally {
-    this.saving = false;
-  }
-},      
+  },
 
 async saveEventRoles(eventId, roles) {
         try {
@@ -641,12 +805,87 @@ async assignAllStaffByRole(eventId, roleIds) {
   } catch (err) {
     console.error('Error in assignAllStaffByRole:', err);
   }
-}, 
+},
 
-async deleteEvent(eventId) {
-  if (!confirm('Are you sure you want to delete this event?')) {
-    return;
+async sendEventAssignmentNotifications(eventId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/${eventId}/assignment-notifications`, {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to send assignment notifications');
+    }
+  } catch (err) {
+    console.error('Error sending assignment notifications:', err);
   }
+},
+
+// async assignAllStaffByRole(eventId, roleIds) {
+//   console.log('=== Using Role ID approach ===');
+//   console.log('Event ID:', eventId);
+//   console.log('Selected role IDs:', roleIds);
+  
+//   try {
+//     // Use the new endpoint that accepts role IDs
+//     const assignResponse = await fetch(`http://localhost:3000/api/${eventId}/assign-by-role`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({ roleIds: roleIds.map(id => parseInt(id)) })
+//     });
+    
+//     console.log('Assign by role response status:', assignResponse.status);
+    
+//     if (assignResponse.ok) {
+//       const result = await assignResponse.json();
+//       console.log('✓ Successfully assigned staff by roles:', result.message);
+//       this.showToast(`Staff assigned successfully: ${result.message}`, 'success');
+//     } else {
+//       const errorText = await assignResponse.text();
+//       console.error('✗ Failed to assign staff by roles:', errorText);
+//       this.showToast(`Failed to assign staff: ${errorText}`, 'error');
+//     }
+//   } catch (err) {
+//     console.error('Error in assignAllStaffByRole:', err);
+//     this.showToast('Error assigning staff to event', 'error');
+//   }
+// },
+
+// async deleteEvent(eventId) {
+//   if (!confirm('Are you sure you want to delete this event?')) {
+//     return;
+//   }
+  
+//   try {
+//     const response = await fetch(`http://localhost:3000/api/${eventId}`, {
+//       method: 'DELETE'
+//     });
+    
+//     if (response.ok) {
+//       alert('Event deleted successfully!');
+//       // Refresh the events list and calendar
+//       await this.fetchEvents(); // Add this line
+//     } else {
+//       alert('Failed to delete event');
+//     }
+//   } catch (err) {
+//     console.error('Error deleting event:', err);
+//     alert('Error deleting event');
+//   }
+// },
+      
+async deleteEvent(eventId) {
+  // Create a custom confirmation dialog instead of using confirm()
+  const confirmed = await this.showConfirmationDialog(
+    'Delete Event', 
+    'Are you sure you want to delete this event? This action cannot be undone.',
+    'Delete',
+    'Cancel'
+  );
+  
+  if (!confirmed) return;
   
   try {
     const response = await fetch(`http://localhost:3000/api/${eventId}`, {
@@ -654,19 +893,102 @@ async deleteEvent(eventId) {
     });
     
     if (response.ok) {
-      alert('Event deleted successfully!');
-      // Refresh the events list and calendar
-      await this.fetchEvents(); // Add this line
+      this.showToast('Event deleted successfully!', 'success');
+      
+      // Close any open modals and remove backdrops
+      this.closeAllModals();
+      
+      await this.fetchEvents();
     } else {
-      alert('Failed to delete event');
+      this.showToast('Failed to delete event', 'error');
     }
   } catch (err) {
     console.error('Error deleting event:', err);
-    alert('Error deleting event');
+    this.showToast('Error deleting event', 'error');
   }
 },
+
+// Add this new method to close all modals and clean up backdrops
+closeAllModals() {
+  // Close all Bootstrap modals
+  const modals = document.querySelectorAll('.modal');
+  modals.forEach(modal => {
+    const bsModal = bootstrap.Modal.getInstance(modal);
+    if (bsModal) {
+      bsModal.hide();
+    }
+  });
+  
+  // Remove any lingering modal backdrops
+  const backdrops = document.querySelectorAll('.modal-backdrop');
+  backdrops.forEach(backdrop => {
+    backdrop.remove();
+  });
+  
+  // Remove modal-open class from body
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+  document.body.style.paddingRight = '';
+},
+
+  showConfirmationDialog(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+    return new Promise((resolve) => {
+      // Create modal HTML
+      const modalId = 'confirmation-modal-' + Date.now();
+      const modalHTML = `
+        <div class="modal fade" id="${modalId}" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title">${title}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <p>${message}</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${cancelText}</button>
+                <button type="button" class="btn btn-danger" id="${modalId}-confirm">${confirmText}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
       
-      formatDate(dateString) {
+      // Add to DOM
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      const modalElement = document.getElementById(modalId);
+      const modal = new bootstrap.Modal(modalElement);
+      
+      // Set up event listeners
+      const confirmButton = document.getElementById(`${modalId}-confirm`);
+      
+      const handleConfirm = () => {
+        cleanup();
+        resolve(true);
+      };
+      
+      const handleCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+      
+      const cleanup = () => {
+        confirmButton.removeEventListener('click', handleConfirm);
+        modalElement.removeEventListener('hidden.bs.modal', handleCancel);
+        modalElement.remove();
+      };
+      
+      confirmButton.addEventListener('click', handleConfirm);
+      modalElement.addEventListener('hidden.bs.modal', handleCancel);
+      
+      // Show modal
+      modal.show();
+    });
+  },
+      
+
+formatDate(dateString) {
         if (!dateString || dateString.startsWith('0000-00-00')) {
           return "None";
         }
@@ -836,28 +1158,51 @@ async deleteEvent(eventId) {
         this.generateCalendar();
       },
       
-      createEventForSelectedDate() {
-  if (!this.selectedDate) return;
+//       createEventForSelectedDate() {
+//   if (!this.selectedDate) return;
   
-  const selectedDate = new Date(this.selectedDate);
-  const dayOfWeek = selectedDate.getDay();
+//   const selectedDate = new Date(this.selectedDate);
+//   const dayOfWeek = selectedDate.getDay();
   
-  // Check if selected date is a closed day
-  if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) {
-    alert('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose a different date.');
-    return;
-  }
+//   // Check if selected date is a closed day
+//   if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) {
+//     alert('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose a different date.');
+//     return;
+//   }
   
-  const dateStr = selectedDate.toISOString().split('T')[0];
-  this.currentEvent.start_date = dateStr;
-  this.currentEvent.end_date = dateStr;
+//   const dateStr = selectedDate.toISOString().split('T')[0];
+//   this.currentEvent.start_date = dateStr;
+//   this.currentEvent.end_date = dateStr;
   
-  // Set default times
-  this.currentEvent.start_time = '18:00';
-  this.currentEvent.end_time = '23:00';
+//   // Set default times
+//   this.currentEvent.start_time = '17:00';
+//   this.currentEvent.end_time = '02:00';
   
-  this.showCreateEventModal();
-},
+//   this.showCreateEventModal();
+// },
+
+createEventForSelectedDate() {
+    if (!this.selectedDate) return;
+    
+    const selectedDate = new Date(this.selectedDate);
+    const dayOfWeek = selectedDate.getDay();
+    
+    // Check if selected date is a closed day
+    if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 4) {
+      this.showToast('Night Lounge is closed on Tuesdays, Wednesdays, and Thursdays. Please choose a different date.', 'warning');
+      return;
+    }
+    
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    this.currentEvent.start_date = dateStr;
+    this.currentEvent.end_date = dateStr;
+    
+    // Set default times
+    this.currentEvent.start_time = '17:00';
+    this.currentEvent.end_time = '02:00';
+    
+    this.showCreateEventModal();
+  },
 
 async viewEmployeeShifts(employeeId) {
     try {
@@ -901,24 +1246,74 @@ async viewEmployeeShifts(employeeId) {
       day: 'numeric'
     });
   },
-  
-  showError(message) {
-    // You can replace this with a more sophisticated notification system
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-    errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    errorDiv.innerHTML = `
-      <strong>Error!</strong> ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(errorDiv);
+
+  showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+
+    const toastId = 'toast-' + Date.now();
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                type === 'error' ? 'fa-exclamation-circle' : 
+                type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
     
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-      if (errorDiv.parentNode) {
-        errorDiv.parentNode.removeChild(errorDiv);
-      }
-    }, 5000);
+    const toastHTML = `
+      <div id="${toastId}" class="toast custom-toast toast-${type} toast-enter" role="alert">
+        <div class="toast-header bg-transparent border-bottom-0">
+          <i class="fas ${icon} toast-icon text-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info'}"></i>
+          <strong class="me-auto">Event Management</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          ${message}
+        </div>
+        <div class="toast-progress"></div>
+      </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, {
+      autohide: true,
+      delay: 3000
+    });
+
+    toast.show();
+
+    // Remove toast from DOM after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+      toastElement.classList.remove('toast-enter');
+      toastElement.classList.add('toast-exit');
+      
+      setTimeout(() => {
+        if (toastElement.parentNode) {
+          toastElement.parentNode.removeChild(toastElement);
+        }
+      }, 300);
+    });
+  },
+  
+  // showError(message) {
+  //   // You can replace this with a more sophisticated notification system
+  //   const errorDiv = document.createElement('div');
+  //   errorDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+  //   errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  //   errorDiv.innerHTML = `
+  //     <strong>Error!</strong> ${message}
+  //     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  //   `;
+  //   document.body.appendChild(errorDiv);
+    
+  //   // Auto-remove after 5 seconds
+  //   setTimeout(() => {
+  //     if (errorDiv.parentNode) {
+  //       errorDiv.parentNode.removeChild(errorDiv);
+  //     }
+  //   }, 5000);
+  // },
+
+  showError(message) {
+    this.showToast(message, 'error');
   },
   
   // Add a method to format time if needed

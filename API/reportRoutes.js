@@ -25,6 +25,50 @@ router.get('/employees', async (req, res) => {
 });
 
 // Payroll Report
+// router.get('/payroll', async (req, res) => {
+//     try {
+//         const { startDate, endDate, employeeId } = req.query;
+        
+//         if (!startDate || !endDate) {
+//             return res.status(400).json({ error: 'Start and end dates are required' });
+//         }
+        
+//         const query = `
+//             SELECT 
+//                 p.*,
+//                 CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+//                 e.employee_id,
+//                 e.base_hourly_rate,
+//                 e.overtime_hourly_rate,
+//                 r.title as role,
+//                 p.base_hours,
+//                 p.overtime_hours,
+//                 MIN(s.date_) as start_date,
+//                 MAX(s.date_) as end_date
+//             FROM t_payroll p
+//             JOIN t_employee e ON p.employee_id = e.employee_id
+//             JOIN t_role r ON e.role_id = r.role_id
+//             LEFT JOIN t_shift s ON p.employee_id = s.employee_id 
+//                 AND s.date_ BETWEEN ? AND ?
+//             WHERE p.payment_date BETWEEN ? AND ?
+//             ${employeeId ? 'AND p.employee_id = ?' : ''}
+//             GROUP BY p.payroll_id, e.employee_id
+//         `;
+        
+//         const params = [startDate, endDate, startDate, endDate];
+//         if (employeeId) params.push(employeeId);
+        
+//         const [results] = await db.query(query, params);
+//         res.json(results);
+//     } catch (error) {
+//         console.error('Error in payroll report:', error);
+//         res.status(500).json({ 
+//             error: 'Database operation failed',
+//             details: process.env.NODE_ENV === 'development' ? error.message : undefined
+//         });
+//     }
+// });
+
 router.get('/payroll', async (req, res) => {
     try {
         const { startDate, endDate, employeeId } = req.query;
@@ -43,8 +87,9 @@ router.get('/payroll', async (req, res) => {
                 r.title as role,
                 p.base_hours,
                 p.overtime_hours,
-                MIN(s.date_) as start_date,
-                MAX(s.date_) as end_date
+                p.payment_date,  -- Add payment date
+                MIN(s.date_) as shift_start_date,
+                MAX(s.date_) as shift_end_date
             FROM t_payroll p
             JOIN t_employee e ON p.employee_id = e.employee_id
             JOIN t_role r ON e.role_id = r.role_id
@@ -52,7 +97,8 @@ router.get('/payroll', async (req, res) => {
                 AND s.date_ BETWEEN ? AND ?
             WHERE p.payment_date BETWEEN ? AND ?
             ${employeeId ? 'AND p.employee_id = ?' : ''}
-            GROUP BY p.payroll_id, e.employee_id
+            GROUP BY p.payroll_id, e.employee_id, p.payment_date  -- Group by payment_date too
+            ORDER BY p.payment_date DESC, e.employee_id
         `;
         
         const params = [startDate, endDate, startDate, endDate];

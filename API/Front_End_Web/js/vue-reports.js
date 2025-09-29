@@ -146,104 +146,215 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   },
 
-            async generateReport() {
-                this.isLoading = true;
-                this.reportData = null;
+    //         async generateReport() {
+    //             this.isLoading = true;
+    //             this.reportData = null;
 
-                try {
-                    let url = '';
-                    const params = new URLSearchParams();
+    //             try {
+    //                 let url = '';
+    //                 const params = new URLSearchParams();
 
-                    // Common parameters
-                    if (this.startDate) params.append('startDate', this.startDate);
-                    if (this.endDate) params.append('endDate', this.endDate);
-                    if (this.employeeId && this.employeeId !== 'all') {
-                        params.append('employeeId', this.employeeId);
-                    }
+    //                 // Common parameters
+    //                 if (this.startDate) params.append('startDate', this.startDate);
+    //                 if (this.endDate) params.append('endDate', this.endDate);
+    //                 if (this.employeeId && this.employeeId !== 'all') {
+    //                     params.append('employeeId', this.employeeId);
+    //                 }
 
-                    // Report-specific endpoints
-                    switch (this.reportType) {
-                        case 'payroll':
-                        case 'payroll':
-                            url = `${this.apiBaseUrl}/payroll?${params.toString()}`;
-                            break;
-                        case 'attendance':
-                            if (this.shiftType && this.shiftType !== 'all') {
-        params.append('shiftType', this.shiftType);
+    //                 // Report-specific endpoints
+    //                 switch (this.reportType) {
+    //                     case 'payroll':
+    //                     case 'payroll':
+    //                         url = `${this.apiBaseUrl}/payroll?${params.toString()}`;
+    //                         break;
+    //                     case 'attendance':
+    //                         if (this.shiftType && this.shiftType !== 'all') {
+    //     params.append('shiftType', this.shiftType);
+    // }
+    // url = `${this.apiBaseUrl}/attendance?${params.toString()}`;
+    // break;
+    //                     case 'leave':
+    //                         url = `${this.apiBaseUrl}/leave?${params.toString()}`;
+    //                         break;
+    //                     case 'swaps':
+    //                         url = `${this.apiBaseUrl}/swaps?${params.toString()}`;
+    //                         break;
+    //                     default:
+    //                         throw new Error('Invalid report type');
+    //                 }
+
+    //                 const response = await fetch(url, {
+    //                     headers: {
+    //                         'Content-Type': 'application/json',
+    //                     }
+    //                 });
+
+    //                 if (!response.ok) {
+    //                     const error = await response.json();
+    //                     throw new Error(error.message || 'Failed to fetch report data');
+    //                 }
+
+    //                 this.reportData = await response.json();
+
+    //                 // Process data based on report type
+    //                 switch (this.reportType) {
+    //                     case 'payroll':
+    //                         this.processPayrollData(this.reportData);
+    //                         break;
+    //                     case 'attendance':
+    //                         this.processAttendanceData(this.reportData);
+    //                         break;
+    //                     case 'leave':
+    //                         this.processLeaveData(this.reportData);
+    //                         break;
+    //                     case 'swaps':
+    //                         this.processSwapsData(this.reportData);
+    //                         break;
+    //                 }
+
+    //                 this.$nextTick(() => {
+    //                     this.initCharts();
+    //                 });
+    //                 this.saveReportToStorage();
+    //             } catch (error) {
+    //                 console.error('Error generating report:', error);
+    //                 alert(`Failed to generate report: ${error.message}`);
+    //             } finally {
+    //                 this.isLoading = false;
+    //             }
+    //         },
+            // processPayrollData(data) {
+            //     this.payrollTableData = data.map(item => {
+            //         // Use the actual base hours from payroll record
+            //         const basePay = item.base_hours * item.base_hourly_rate;
+
+            //         // Use the actual overtime hours from payroll record
+            //         const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+
+            //         return {
+            //             employee: `${item.employee_name} (EMP-${item.employee_id})`,
+            //             role: item.role,
+            //             baseSalary: `R${basePay.toFixed(2)}`,
+            //             overtime: `R${overtimePay.toFixed(2)}`,
+            //             netPay: `R${(basePay + overtimePay).toFixed(2)}`, // Sum of base + overtime
+            //             workedHours: item.base_hours
+            //         };
+            //     });
+
+            //     this.payrollTotal = `R${data.reduce((sum, item) =>
+            //         sum + (item.base_hours * item.base_hourly_rate) + (item.overtime_hours * item.overtime_hourly_rate), 0).toFixed(2)}`;
+            // },
+
+            async generateReport(isAutoGenerate = false) {
+    // Don't show loading spinner for auto-generations to avoid UI flickering
+    if (!isAutoGenerate) {
+        this.isLoading = true;
     }
-    url = `${this.apiBaseUrl}/attendance?${params.toString()}`;
-    break;
-                        case 'leave':
-                            url = `${this.apiBaseUrl}/leave?${params.toString()}`;
-                            break;
-                        case 'swaps':
-                            url = `${this.apiBaseUrl}/swaps?${params.toString()}`;
-                            break;
-                        default:
-                            throw new Error('Invalid report type');
-                    }
+    
+    this.reportData = null;
 
-                    const response = await fetch(url, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
+    try {
+        let url = '';
+        const params = new URLSearchParams();
 
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to fetch report data');
-                    }
+        // Common parameters
+        if (this.startDate) params.append('startDate', this.startDate);
+        if (this.endDate) params.append('endDate', this.endDate);
+        if (this.employeeId && this.employeeId !== 'all') {
+            params.append('employeeId', this.employeeId);
+        }
 
-                    this.reportData = await response.json();
-
-                    // Process data based on report type
-                    switch (this.reportType) {
-                        case 'payroll':
-                            this.processPayrollData(this.reportData);
-                            break;
-                        case 'attendance':
-                            this.processAttendanceData(this.reportData);
-                            break;
-                        case 'leave':
-                            this.processLeaveData(this.reportData);
-                            break;
-                        case 'swaps':
-                            this.processSwapsData(this.reportData);
-                            break;
-                    }
-
-                    this.$nextTick(() => {
-                        this.initCharts();
-                    });
-                    this.saveReportToStorage();
-                } catch (error) {
-                    console.error('Error generating report:', error);
-                    alert(`Failed to generate report: ${error.message}`);
-                } finally {
-                    this.isLoading = false;
+        // Report-specific endpoints
+        switch (this.reportType) {
+            case 'payroll':
+                url = `${this.apiBaseUrl}/payroll?${params.toString()}`;
+                break;
+            case 'attendance':
+                if (this.shiftType && this.shiftType !== 'all') {
+                    params.append('shiftType', this.shiftType);
                 }
-            },
+                url = `${this.apiBaseUrl}/attendance?${params.toString()}`;
+                break;
+            case 'leave':
+                url = `${this.apiBaseUrl}/leave?${params.toString()}`;
+                break;
+            case 'swaps':
+                url = `${this.apiBaseUrl}/swaps?${params.toString()}`;
+                break;
+            default:
+                throw new Error('Invalid report type');
+        }
+
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to fetch report data');
+        }
+
+        this.reportData = await response.json();
+
+        // Process data based on report type
+        switch (this.reportType) {
+            case 'payroll':
+                this.processPayrollData(this.reportData);
+                break;
+            case 'attendance':
+                this.processAttendanceData(this.reportData);
+                break;
+            case 'leave':
+                this.processLeaveData(this.reportData);
+                break;
+            case 'swaps':
+                this.processSwapsData(this.reportData);
+                break;
+        }
+
+        this.$nextTick(() => {
+            this.initCharts();
+        });
+        this.saveReportToStorage();
+        
+    } catch (error) {
+        console.error('Error generating report:', error);
+        // Only show alert for manual generations, not auto-generations
+        if (!isAutoGenerate) {
+            alert(`Failed to generate report: ${error.message}`);
+        }
+    } finally {
+        this.isLoading = false;
+    }
+},
+            
             processPayrollData(data) {
-                this.payrollTableData = data.map(item => {
-                    // Use the actual base hours from payroll record
-                    const basePay = item.base_hours * item.base_hourly_rate;
+    this.payrollTableData = data.map(item => {
+        const basePay = item.base_hours * item.base_hourly_rate;
+        const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+        
+        return {
+            employee: `${item.employee_name} (EMP-${item.employee_id})`,
+            role: item.role,
+            baseSalary: `R${basePay.toFixed(2)}`,
+            overtime: `R${overtimePay.toFixed(2)}`,
+            netPay: `R${(basePay + overtimePay).toFixed(2)}`,
+            paymentDate: this.formatDate(item.payment_date), // Add formatted date
+            rawPaymentDate: item.payment_date, // Keep raw date for sorting
+            workedHours: item.base_hours,
+            baseHours: item.base_hours,
+            overtimeHours: item.overtime_hours
+        };
+    });
 
-                    // Use the actual overtime hours from payroll record
-                    const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+    // Sort by payment date (newest first)
+    this.payrollTableData.sort((a, b) => new Date(b.rawPaymentDate) - new Date(a.rawPaymentDate));
 
-                    return {
-                        employee: `${item.employee_name} (EMP-${item.employee_id})`,
-                        role: item.role,
-                        baseSalary: `R${basePay.toFixed(2)}`,
-                        overtime: `R${overtimePay.toFixed(2)}`,
-                        netPay: `R${(basePay + overtimePay).toFixed(2)}`, // Sum of base + overtime
-                        workedHours: item.base_hours
-                    };
-                });
-
-                this.payrollTotal = `R${data.reduce((sum, item) =>
-                    sum + (item.base_hours * item.base_hourly_rate) + (item.overtime_hours * item.overtime_hourly_rate), 0).toFixed(2)}`;
-            },
+    this.payrollTotal = `R${data.reduce((sum, item) =>
+        sum + (item.base_hours * item.base_hourly_rate) + (item.overtime_hours * item.overtime_hourly_rate), 0).toFixed(2)}`;
+},
 
             // processSwapsData(data) {
             //     this.swapsTableData = data.map(item => {
@@ -337,16 +448,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }));
 },
 
+            // processLeaveData(data) {
+            //     this.leaveTableData = data.map(item => ({
+            //         employee: `${item.employee_name} (EMP-${item.employee_id})`,
+            //         leaveType: item.leave_type,
+            //         startDate: this.formatDate(item.start_date),
+            //         endDate: this.formatDate(item.end_date),
+            //         daysTaken: item.days_taken,
+            //         status: item.status_
+            //     }));
+            // },
+
             processLeaveData(data) {
-                this.leaveTableData = data.map(item => ({
-                    employee: `${item.employee_name} (EMP-${item.employee_id})`,
-                    leaveType: item.leave_type,
-                    startDate: this.formatDate(item.start_date),
-                    endDate: this.formatDate(item.end_date),
-                    daysTaken: item.days_taken,
-                    status: item.status_
-                }));
-            },
+    this.leaveTableData = data.map(item => ({
+        employee: `${item.employee_name} (EMP-${item.employee_id})`,
+        leaveType: item.leave_type,
+        startDate: this.formatDate(item.start_date),
+        endDate: this.formatDate(item.end_date),
+        daysTaken: item.days_taken,
+        status: item.status_,
+        rawStartDate: item.start_date // Add for sorting
+    })).sort((a, b) => new Date(b.rawStartDate) - new Date(a.rawStartDate)); // Sort by date descending
+},
 
             formatDateTime(datetimeString) {
                 const options = {
@@ -388,123 +511,667 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }, 100);
             },
-            initPayrollCharts() {
-                const payrollCtx = document.getElementById('payrollChart');
-                const payrollPieCtx = document.getElementById('payrollPieChart');
+//             initPayrollCharts() {
+//                 const payrollCtx = document.getElementById('payrollChart');
+//                 const payrollPieCtx = document.getElementById('payrollPieChart');
 
-                if (!payrollCtx || !payrollPieCtx) {
-                    console.error('Chart canvases not found');
-                    return;
+//                 if (!payrollCtx || !payrollPieCtx) {
+//                     console.error('Chart canvases not found');
+//                     return;
+//                 }
+
+//                 // Bar Chart
+//                 this.chartInstances.payrollChart = new Chart(payrollCtx.getContext('2d'), {
+//                     type: 'bar',
+//                     data: {
+//                         labels: this.reportData.map(item =>
+//                             `${item.employee_name} (EMP-${item.employee_id})`),
+//                         datasets: [{
+//                             label: 'Total Pay',
+//                             data: this.reportData.map(item => parseFloat(item.total_amount)),
+//                             backgroundColor: 'rgba(255, 187, 0, 0.7)',
+//                             borderColor: 'rgba(255, 187, 0, 1)',
+//                             borderWidth: 1
+//                         }]
+//                     },
+
+//                     options: {
+//                         responsive: true,
+//                         plugins: {
+//                             legend: { display: false },
+//                             title: {
+//                                 display: true,
+//                                 text: 'Employee Payroll',
+//                                 color: '#fff'
+//                             }
+//                         },
+//                         scales: {
+//                             y: {
+//                                 beginAtZero: true,
+//                                 ticks: { color: '#fff' },
+//                                 grid: { color: 'rgba(255,255,255,0.1)' },
+//                                 title: {  
+//                                     display: true,
+//                                     text: 'Amount (R)',
+//                                     color: '#fff'
+//                                 }
+//                             },
+//                             x: {
+//                                 ticks: {
+//                                     color: '#fff',
+//                                     maxRotation: 45,
+//                                     minRotation: 45
+//                                 },
+//                                 title: {  
+//                                     display: true,
+//                                     text: 'Employees',
+//                                     color: '#fff'
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 });
+
+//                 // Pie Chart
+//                 const basePay = this.reportData.reduce((sum, item) =>
+//                     sum + (item.base_hours * item.base_hourly_rate), 0);
+//                 const overtimePay = this.reportData.reduce((sum, item) =>
+//                     sum + (item.overtime_hours * item.overtime_hourly_rate), 0);
+
+//                 this.chartInstances.payrollPieChart = new Chart(payrollPieCtx.getContext('2d'), {
+//                     type: 'doughnut',
+//                     data: {
+//                         labels: ['Base Salary', 'Overtime'],
+//                         datasets: [{
+//                             data: [basePay, overtimePay],
+//                             backgroundColor: [
+//                                 'rgba(0, 200, 83, 0.7)',
+//                                 'rgba(244, 67, 54, 0.7)'
+//                             ],
+//                             borderWidth: 0
+//                         }]
+//                     },
+//                     options: {
+//                         responsive: true,
+//                         plugins: {
+//                             legend: {
+//                                 position: 'bottom',
+//                                 labels: {
+//                                     color: '#fff',
+//                                     font: { size: 12 }
+//                                 }
+//                             }
+//                         },
+//                         cutout: '65%'
+//                     }
+//                 });
+
+                
+// const payrollInsight = document.createElement('div');
+// payrollInsight.className = 'insights-panel';
+// payrollInsight.innerHTML = `
+//     <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+//         this.nextElementSibling.classList.toggle('show')">
+//         <span><i class="fas fa-lightbulb me-2"></i>Payroll Insights</span>
+//         <i class="fas fa-chevron-down"></i>
+//     </button>
+//     <div class="insights-content">
+//         <ul>
+//             <li>Total payroll cost: ${this.payrollTotal}</li>
+//             <li>Overtime accounts for ${((overtimePay/(basePay+overtimePay)*100).toFixed(1))}% of total payroll</li>
+//             <li>Consider reviewing overtime trends for cost optimization opportunities</li>
+//             ${basePay > overtimePay*3 ? '<li>Overtime costs are within healthy limits (less than 25% of base pay)</li>' : 
+//               '<li class="text-warning">Overtime costs are high (more than 25% of base pay). Consider hiring additional staff.</li>'}
+//         </ul>
+//     </div>
+// `;
+// payrollPieCtx.closest('.bg-secondary').appendChild(payrollInsight);
+//             },
+
+
+// initPayrollCharts() {
+//     const payrollCtx = document.getElementById('payrollChart');
+//     const payrollPieCtx = document.getElementById('payrollPieChart');
+
+//     if (!payrollCtx || !payrollPieCtx) {
+//         console.error('Chart canvases not found');
+//         return;
+//     }
+
+//     // Group data by payment date for better visualization
+//     const dataByDate = {};
+//     this.reportData.forEach(item => {
+//         const dateKey = this.formatDate(item.payment_date);
+//         if (!dataByDate[dateKey]) {
+//             dataByDate[dateKey] = {
+//                 total: 0,
+//                 basePay: 0,
+//                 overtimePay: 0,
+//                 employees: []
+//             };
+//         }
+//         const basePay = item.base_hours * item.base_hourly_rate;
+//         const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+        
+//         dataByDate[dateKey].total += basePay + overtimePay;
+//         dataByDate[dateKey].basePay += basePay;
+//         dataByDate[dateKey].overtimePay += overtimePay;
+//         dataByDate[dateKey].employees.push(item.employee_name);
+//     });
+
+//     const dates = Object.keys(dataByDate).sort((a, b) => new Date(a) - new Date(b));
+
+//     // Bar Chart - Payroll by Date
+//     this.chartInstances.payrollChart = new Chart(payrollCtx.getContext('2d'), {
+//         type: 'bar',
+//         data: {
+//             labels: dates,
+//             datasets: [
+//                 {
+//                     label: 'Base Salary',
+//                     data: dates.map(date => dataByDate[date].basePay),
+//                     backgroundColor: 'rgba(54, 162, 235, 0.7)',
+//                     borderColor: 'rgba(54, 162, 235, 1)',
+//                     borderWidth: 1
+//                 },
+//                 {
+//                     label: 'Overtime',
+//                     data: dates.map(date => dataByDate[date].overtimePay),
+//                     backgroundColor: 'rgba(255, 99, 132, 0.7)',
+//                     borderColor: 'rgba(255, 99, 132, 1)',
+//                     borderWidth: 1
+//                 }
+//             ]
+//         },
+//         options: {
+//             responsive: true,
+//             plugins: {
+//                 legend: { 
+//                     display: true,
+//                     labels: { color: '#fff' }
+//                 },
+//                 title: {
+//                     display: true,
+//                     text: 'Payroll by Payment Date',
+//                     color: '#fff'
+//                 },
+//                 tooltip: {
+//                     callbacks: {
+//                         afterTitle: function(context) {
+//                             const date = context[0].label;
+//                             const employees = dataByDate[date].employees;
+//                             return `Employees: ${employees.join(', ')}`;
+//                         },
+//                         label: function(context) {
+//                             const datasetLabel = context.dataset.label || '';
+//                             const value = context.parsed.y;
+//                             return `${datasetLabel}: R${value.toFixed(2)}`;
+//                         },
+//                         footer: function(context) {
+//                             const date = context[0].label;
+//                             const total = dataByDate[date].total;
+//                             return `Total: R${total.toFixed(2)}`;
+//                         }
+//                     }
+//                 }
+//             },
+//             scales: {
+//                 y: {
+//                     beginAtZero: true,
+//                     ticks: { 
+//                         color: '#fff',
+//                         callback: function(value) {
+//                             return 'R' + value;
+//                         }
+//                     },
+//                     grid: { color: 'rgba(255,255,255,0.1)' },
+//                     title: {  
+//                         display: true,
+//                         text: 'Amount (R)',
+//                         color: '#fff'
+//                     }
+//                 },
+//                 x: {
+//                     ticks: {
+//                         color: '#fff',
+//                         maxRotation: 45,
+//                         minRotation: 45
+//                     },
+//                     title: {  
+//                         display: true,
+//                         text: 'Payment Dates',
+//                         color: '#fff'
+//                     }
+//                 }
+//             }
+//         }
+//     });
+
+//     // Pie Chart (unchanged)
+//     const basePay = this.reportData.reduce((sum, item) =>
+//         sum + (item.base_hours * item.base_hourly_rate), 0);
+//     const overtimePay = this.reportData.reduce((sum, item) =>
+//         sum + (item.overtime_hours * item.overtime_hourly_rate), 0);
+
+//     this.chartInstances.payrollPieChart = new Chart(payrollPieCtx.getContext('2d'), {
+//         type: 'doughnut',
+//         data: {
+//             labels: ['Base Salary', 'Overtime'],
+//             datasets: [{
+//                 data: [basePay, overtimePay],
+//                 backgroundColor: [
+//                     'rgba(54, 162, 235, 0.7)',
+//                     'rgba(255, 99, 132, 0.7)'
+//                 ],
+//                 borderWidth: 0
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             plugins: {
+//                 legend: {
+//                     position: 'bottom',
+//                     labels: {
+//                         color: '#fff',
+//                         font: { size: 12 }
+//                     }
+//                 },
+//                 tooltip: {
+//                     callbacks: {
+//                         label: function(context) {
+//                             const label = context.label || '';
+//                             const value = context.parsed;
+//                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
+//                             const percentage = Math.round((value / total) * 100);
+//                             return `${label}: R${value.toFixed(2)} (${percentage}%)`;
+//                         }
+//                     }
+//                 }
+//             },
+//             cutout: '65%'
+//         }
+//     });
+// },
+
+initPayrollCharts() {
+    const payrollCtx = document.getElementById('payrollChart');
+    const payrollPieCtx = document.getElementById('payrollPieChart');
+
+    if (!payrollCtx || !payrollPieCtx) {
+        console.error('Chart canvases not found');
+        return;
+    }
+
+    // Determine chart type based on employee filter
+    const showEmployeeComparison = this.employeeId === 'all';
+    
+    let chartConfig;
+    
+    if (showEmployeeComparison) {
+        // Employee Comparison Chart (when "All Employees" is selected)
+        chartConfig = this.createEmployeeComparisonChart();
+    } else {
+        // Date-based Chart (when specific employee is selected)
+        chartConfig = this.createDateBasedChart();
+    }
+
+    // Bar Chart
+    this.chartInstances.payrollChart = new Chart(payrollCtx.getContext('2d'), chartConfig.barChart);
+
+    // Pie Chart (same for both views)
+    const basePay = this.reportData.reduce((sum, item) =>
+        sum + (item.base_hours * item.base_hourly_rate), 0);
+    const overtimePay = this.reportData.reduce((sum, item) =>
+        sum + (item.overtime_hours * item.overtime_hourly_rate), 0);
+
+    this.chartInstances.payrollPieChart = new Chart(payrollPieCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Base Salary', 'Overtime'],
+            datasets: [{
+                data: [basePay, overtimePay],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#fff',
+                        font: { size: 12 }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: showEmployeeComparison ? 'Total Payroll Distribution' : 'Employee Pay Distribution',
+                    color: '#fff'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: R${value.toFixed(2)} (${percentage}%)`;
+                        }
+                    }
                 }
+            },
+            cutout: '65%'
+        }
+    });
 
-                // Bar Chart
-                this.chartInstances.payrollChart = new Chart(payrollCtx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: this.reportData.map(item =>
-                            `${item.employee_name} (EMP-${item.employee_id})`),
-                        datasets: [{
-                            label: 'Total Pay',
-                            data: this.reportData.map(item => parseFloat(item.total_amount)),
-                            backgroundColor: 'rgba(255, 187, 0, 0.7)',
-                            borderColor: 'rgba(255, 187, 0, 1)',
-                            borderWidth: 1
-                        }]
+    // Update insights panel
+    this.updatePayrollInsights(showEmployeeComparison);
+},
+
+createEmployeeComparisonChart() {
+    // Group data by employee for comparison
+    const employeeData = {};
+    this.reportData.forEach(item => {
+        const employeeKey = `${item.employee_name} (EMP-${item.employee_id})`;
+        if (!employeeData[employeeKey]) {
+            employeeData[employeeKey] = {
+                total: 0,
+                basePay: 0,
+                overtimePay: 0,
+                paymentDates: new Set()
+            };
+        }
+        
+        const basePay = item.base_hours * item.base_hourly_rate;
+        const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+        
+        employeeData[employeeKey].total += basePay + overtimePay;
+        employeeData[employeeKey].basePay += basePay;
+        employeeData[employeeKey].overtimePay += overtimePay;
+        employeeData[employeeKey].paymentDates.add(item.payment_date);
+    });
+
+    // Sort employees by total pay (descending)
+    const sortedEmployees = Object.entries(employeeData)
+        .sort(([,a], [,b]) => b.total - a.total)
+        .slice(0, 15); // Limit to top 15 employees for readability
+
+    return {
+        barChart: {
+            type: 'bar',
+            data: {
+                labels: sortedEmployees.map(([employee]) => 
+                    employee.split(' ')[0] + '...' // Show abbreviated names
+                ),
+                datasets: [
+                    {
+                        label: 'Base Salary',
+                        data: sortedEmployees.map(([, data]) => data.basePay),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
                     },
-
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Employee Payroll',
-                                color: '#fff'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#fff' },
-                                grid: { color: 'rgba(255,255,255,0.1)' },
-                                title: {  
-                                    display: true,
-                                    text: 'Amount (R)',
-                                    color: '#fff'
-                                }
+                    {
+                        label: 'Overtime',
+                        data: sortedEmployees.map(([, data]) => data.overtimePay),
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { 
+                        display: true,
+                        labels: { color: '#fff' }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Employee Pay Comparison',
+                        color: '#fff'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                const fullName = sortedEmployees[context[0].dataIndex][0];
+                                return fullName;
                             },
-                            x: {
-                                ticks: {
-                                    color: '#fff',
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                },
-                                title: {  
-                                    display: true,
-                                    text: 'Employees',
-                                    color: '#fff'
-                                }
+                            afterTitle: function(context) {
+                                const employeeKey = sortedEmployees[context[0].dataIndex][0];
+                                const dates = Array.from(employeeData[employeeKey].paymentDates)
+                                    .sort()
+                                    .map(date => new Date(date).toLocaleDateString());
+                                return `Payment Dates: ${dates.join(', ')}`;
+                            },
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label || '';
+                                const value = context.parsed.y;
+                                return `${datasetLabel}: R${value.toFixed(2)}`;
+                            },
+                            footer: function(context) {
+                                const employeeKey = sortedEmployees[context[0].dataIndex][0];
+                                const total = employeeData[employeeKey].total;
+                                return `Total: R${total.toFixed(2)}`;
                             }
                         }
                     }
-                });
-
-                // Pie Chart
-                const basePay = this.reportData.reduce((sum, item) =>
-                    sum + (item.base_hours * item.base_hourly_rate), 0);
-                const overtimePay = this.reportData.reduce((sum, item) =>
-                    sum + (item.overtime_hours * item.overtime_hourly_rate), 0);
-
-                this.chartInstances.payrollPieChart = new Chart(payrollPieCtx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Base Salary', 'Overtime'],
-                        datasets: [{
-                            data: [basePay, overtimePay],
-                            backgroundColor: [
-                                'rgba(0, 200, 83, 0.7)',
-                                'rgba(244, 67, 54, 0.7)'
-                            ],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: '#fff',
-                                    font: { size: 12 }
-                                }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            color: '#fff',
+                            callback: function(value) {
+                                return 'R' + value;
                             }
                         },
-                        cutout: '65%'
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: {  
+                            display: true,
+                            text: 'Amount (R)',
+                            color: '#fff'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#fff',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        title: {  
+                            display: true,
+                            text: 'Employees',
+                            color: '#fff'
+                        }
                     }
-                });
+                }
+            }
+        }
+    };
+},
 
-                
-const payrollInsight = document.createElement('div');
-payrollInsight.className = 'insights-panel';
-payrollInsight.innerHTML = `
-    <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
-        this.nextElementSibling.classList.toggle('show')">
-        <span><i class="fas fa-lightbulb me-2"></i>Payroll Insights</span>
-        <i class="fas fa-chevron-down"></i>
-    </button>
-    <div class="insights-content">
-        <ul>
-            <li>Total payroll cost: ${this.payrollTotal}</li>
-            <li>Overtime accounts for ${((overtimePay/(basePay+overtimePay)*100).toFixed(1))}% of total payroll</li>
-            <li>Consider reviewing overtime trends for cost optimization opportunities</li>
-            ${basePay > overtimePay*3 ? '<li>Overtime costs are within healthy limits (less than 25% of base pay)</li>' : 
-              '<li class="text-warning">Overtime costs are high (more than 25% of base pay). Consider hiring additional staff.</li>'}
-        </ul>
-    </div>
-`;
-payrollPieCtx.closest('.bg-secondary').appendChild(payrollInsight);
+createDateBasedChart() {
+    // Group data by payment date for specific employee
+    const dataByDate = {};
+    this.reportData.forEach(item => {
+        const dateKey = this.formatDate(item.payment_date);
+        if (!dataByDate[dateKey]) {
+            dataByDate[dateKey] = {
+                total: 0,
+                basePay: 0,
+                overtimePay: 0
+            };
+        }
+        
+        const basePay = item.base_hours * item.base_hourly_rate;
+        const overtimePay = item.overtime_hours * item.overtime_hourly_rate;
+        
+        dataByDate[dateKey].total += basePay + overtimePay;
+        dataByDate[dateKey].basePay += basePay;
+        dataByDate[dateKey].overtimePay += overtimePay;
+    });
+
+    const dates = Object.keys(dataByDate).sort((a, b) => new Date(a) - new Date(b));
+
+    return {
+        barChart: {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Base Salary',
+                        data: dates.map(date => dataByDate[date].basePay),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Overtime',
+                        data: dates.map(date => dataByDate[date].overtimePay),
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
             },
-            initAttendanceCharts() {
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { 
+                        display: true,
+                        labels: { color: '#fff' }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Payroll Timeline',
+                        color: '#fff'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label || '';
+                                const value = context.parsed.y;
+                                return `${datasetLabel}: R${value.toFixed(2)}`;
+                            },
+                            footer: function(context) {
+                                const date = context[0].label;
+                                const total = dataByDate[date].total;
+                                return `Total: R${total.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            color: '#fff',
+                            callback: function(value) {
+                                return 'R' + value;
+                            }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: {  
+                            display: true,
+                            text: 'Amount (R)',
+                            color: '#fff'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#fff',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        title: {  
+                            display: true,
+                            text: 'Payment Dates',
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        }
+    };
+},
+
+updatePayrollInsights(showEmployeeComparison) {
+    // Remove existing insights
+    const existingInsights = document.querySelector('.insights-panel');
+    if (existingInsights) {
+        existingInsights.remove();
+    }
+
+    const payrollPieCtx = document.getElementById('payrollPieChart');
+    if (!payrollPieCtx) return;
+
+    const basePay = this.reportData.reduce((sum, item) =>
+        sum + (item.base_hours * item.base_hourly_rate), 0);
+    const overtimePay = this.reportData.reduce((sum, item) =>
+        sum + (item.overtime_hours * item.overtime_hourly_rate), 0);
+    const totalPay = basePay + overtimePay;
+
+    const payrollInsight = document.createElement('div');
+    payrollInsight.className = 'insights-panel';
+    
+    if (showEmployeeComparison) {
+        // Employee comparison insights
+        const employeeCount = new Set(this.reportData.map(item => item.employee_id)).size;
+        const avgPayPerEmployee = totalPay / employeeCount;
+        
+        payrollInsight.innerHTML = `
+            <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+                this.nextElementSibling.classList.toggle('show')">
+                <span><i class="fas fa-lightbulb me-2"></i>Payroll Insights</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="insights-content">
+                <ul>
+                    <li>Total payroll for ${employeeCount} employees: ${this.payrollTotal}</li>
+                    <li>Average pay per employee: R${avgPayPerEmployee.toFixed(2)}</li>
+                    <li>Overtime accounts for ${((overtimePay/totalPay)*100).toFixed(1)}% of total payroll</li>
+                    ${overtimePay > basePay * 0.3 ? 
+                      '<li class="text-warning">High overtime costs detected (>30% of base pay)</li>' : 
+                      '<li>Overtime costs are within normal limits</li>'}
+                    <li>Date range covered: ${this.formattedDateRange}</li>
+                </ul>
+            </div>
+        `;
+    } else {
+        // Single employee insights
+        const employee = this.reportData[0];
+        const employeeName = `${employee.employee_name} `;
+        const paymentDates = new Set(this.reportData.map(item => item.payment_date)).size;
+        
+        payrollInsight.innerHTML = `
+            <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+                this.nextElementSibling.classList.toggle('show')">
+                <span><i class="fas fa-lightbulb me-2"></i>Payroll Insights - ${employeeName}</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="insights-content">
+                <ul>
+                    <li>Total pay for ${paymentDates} payment period(s): ${this.payrollTotal}</li>
+                    <li>Base hours worked: ${this.reportData.reduce((sum, item) => sum + parseFloat(item.base_hours), 0).toFixed(1)}</li>
+                    <li>Overtime hours worked: ${this.reportData.reduce((sum, item) => sum + parseFloat(item.overtime_hours), 0).toFixed(1)}</li>
+                    <li>Overtime accounts for ${((overtimePay/totalPay)*100).toFixed(1)}% of total pay</li>
+                    <li>Date range: ${this.formattedDateRange}</li>
+                </ul>
+            </div>
+        `;
+    }
+
+    payrollPieCtx.closest('.bg-secondary').appendChild(payrollInsight);
+},
+
+initAttendanceCharts() {
                 const attendanceCtx = document.getElementById('attendanceChart');
                 const attendanceGaugeCtx = document.getElementById('attendanceGauge');
 
@@ -644,144 +1311,346 @@ attendanceInsight.innerHTML = `
 `;
 attendanceGaugeCtx.closest('.bg-secondary').appendChild(attendanceInsight);
             },
-            initLeaveCharts() {
-                const leaveTrendCtx = document.getElementById('leaveTrendChart');
-                const leaveTypeCtx = document.getElementById('leaveTypeChart');
 
-                if (!leaveTrendCtx || !leaveTypeCtx) return;
+//             initLeaveCharts() {
+//                 const leaveTrendCtx = document.getElementById('leaveTrendChart');
+//                 const leaveTypeCtx = document.getElementById('leaveTypeChart');
 
-                // Process leave data
-                const leaveByMonth = {};
-                const leaveByType = {};
+//                 if (!leaveTrendCtx || !leaveTypeCtx) return;
 
-                this.reportData.forEach(record => {
-                    const month = new Date(record.start_date).toLocaleString('default', { month: 'short' });
-                    leaveByMonth[month] = (leaveByMonth[month] || 0) + record.days_taken;
+//                 // Process leave data
+//                 const leaveByMonth = {};
+//                 const leaveByType = {};
 
-                    if (!leaveByType[record.leave_type]) {
-                        leaveByType[record.leave_type] = 0;
-                    }
-                    leaveByType[record.leave_type] += record.days_taken;
-                });
+//                 this.reportData.forEach(record => {
+//                     const month = new Date(record.start_date).toLocaleString('default', { month: 'short' });
+//                     leaveByMonth[month] = (leaveByMonth[month] || 0) + record.days_taken;
 
-                // Line Chart - Leave Trend
-                this.chartInstances.leaveTrendChart = new Chart(leaveTrendCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: Object.keys(leaveByMonth),
-                        datasets: [{
-                            label: 'Days Taken',
-                            data: Object.values(leaveByMonth),
-                            borderColor: 'rgba(33, 150, 243, 1)',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Monthly Leave Trend',
-                                color: '#fff'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#fff' },
-                                grid: { color: 'rgba(255,255,255,0.1)' },
-                                title: {  
-                                    display: true,
-                                    text: 'Days Taken',
-                                    color: '#fff'
-                                }
-                            },
-                            x: {
-                                ticks: { color: '#fff' },
-                                title: {  
-                                    display: true,
-                                    text: 'Month',
-                                    color: '#fff'
-                                }
-                            }
-                        }
-                    }
-                });
+//                     if (!leaveByType[record.leave_type]) {
+//                         leaveByType[record.leave_type] = 0;
+//                     }
+//                     leaveByType[record.leave_type] += record.days_taken;
+//                 });
 
-                // Bar Chart - Leave by Type
-                this.chartInstances.leaveTypeChart = new Chart(leaveTypeCtx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(leaveByType),
-                        datasets: [{
-                            label: 'Days Taken',
-                            data: Object.values(leaveByType),
-                            backgroundColor: [
-                                'rgba(255, 152, 0, 0.7)',
-                                'rgba(156, 39, 176, 0.7)',
-                                'rgba(76, 175, 80, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 152, 0, 1)',
-                                'rgba(156, 39, 176, 1)',
-                                'rgba(76, 175, 80, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Leave by Type',
-                                color: '#fff'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#fff' },
-                                grid: { color: 'rgba(255,255,255,0.1)' }
-                            },
-                            x: {
-                                ticks: { color: '#fff' }
-                            }
-                        }
-                    }
-                });
-                const leaveInsight = document.createElement('div');
-leaveInsight.className = 'insights-panel';
-leaveInsight.innerHTML = `
-    <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
-        this.nextElementSibling.classList.toggle('show')">
-        <span><i class="fas fa-sign-out-alt me-2"></i>Leave Insights</span>
-        <i class="fas fa-chevron-down"></i>
-    </button>
-    <div class="insights-content">
-        <ul>
-            <li>Total leave days taken: ${Object.values(leaveByMonth).reduce((a,b) => a+b, 0)}</li>
-            <li>Most common leave type: ${Object.entries(leaveByType).sort((a,b) => b[1]-a[1])[0][0]}</li>
-            <li>Approval rate: ${(this.reportData.filter(l => l.status_ === 'approved').length / this.reportData.length * 100).toFixed(1)}%</li>
-            ${Object.values(leaveByMonth).some(m => m > 15) ? 
-              '<li class="text-warning">Notice: Some months have unusually high leave days</li>' : ''}
-            ${Object.entries(leaveByType).find(t => t[0].toLowerCase().includes('sick')) && 
-             Object.entries(leaveByType).find(t => t[0].toLowerCase().includes('sick'))[1] > 10 ?
-              '<li>Consider reviewing sick leave patterns for potential health initiatives</li>' : ''}
-            ${this.employeeId !== 'all' ? 
-              `<li>This employee has taken ${this.reportData.reduce((sum, item) => sum + item.days_taken, 0)} leave days in this period</li>` : ''}
-        </ul>
-    </div>
-`;
-leaveTypeCtx.closest('.bg-secondary').appendChild(leaveInsight);
+//                 // Line Chart - Leave Trend
+//                 this.chartInstances.leaveTrendChart = new Chart(leaveTrendCtx.getContext('2d'), {
+//                     type: 'line',
+//                     data: {
+//                         labels: Object.keys(leaveByMonth),
+//                         datasets: [{
+//                             label: 'Days Taken',
+//                             data: Object.values(leaveByMonth),
+//                             borderColor: 'rgba(33, 150, 243, 1)',
+//                             backgroundColor: 'rgba(33, 150, 243, 0.1)',
+//                             tension: 0.3,
+//                             fill: true
+//                         }]
+//                     },
+//                     options: {
+//                         responsive: true,
+//                         plugins: {
+//                             legend: { display: false },
+//                             title: {
+//                                 display: true,
+//                                 text: 'Monthly Leave Trend',
+//                                 color: '#fff'
+//                             }
+//                         },
+//                         scales: {
+//                             y: {
+//                                 beginAtZero: true,
+//                                 ticks: { color: '#fff' },
+//                                 grid: { color: 'rgba(255,255,255,0.1)' },
+//                                 title: {  
+//                                     display: true,
+//                                     text: 'Days Taken',
+//                                     color: '#fff'
+//                                 }
+//                             },
+//                             x: {
+//                                 ticks: { color: '#fff' },
+//                                 title: {  
+//                                     display: true,
+//                                     text: 'Month',
+//                                     color: '#fff'
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 });
+
+//                 // Bar Chart - Leave by Type
+//                 this.chartInstances.leaveTypeChart = new Chart(leaveTypeCtx.getContext('2d'), {
+//                     type: 'bar',
+//                     data: {
+//                         labels: Object.keys(leaveByType),
+//                         datasets: [{
+//                             label: 'Days Taken',
+//                             data: Object.values(leaveByType),
+//                             backgroundColor: [
+//                                 'rgba(255, 152, 0, 0.7)',
+//                                 'rgba(156, 39, 176, 0.7)',
+//                                 'rgba(76, 175, 80, 0.7)'
+//                             ],
+//                             borderColor: [
+//                                 'rgba(255, 152, 0, 1)',
+//                                 'rgba(156, 39, 176, 1)',
+//                                 'rgba(76, 175, 80, 1)'
+//                             ],
+//                             borderWidth: 1
+//                         }]
+//                     },
+//                     options: {
+//                         responsive: true,
+//                         plugins: {
+//                             legend: { display: false },
+//                             title: {
+//                                 display: true,
+//                                 text: 'Leave by Type',
+//                                 color: '#fff'
+//                             }
+//                         },
+//                         scales: {
+//                             y: {
+//                                 beginAtZero: true,
+//                                 ticks: { color: '#fff' },
+//                                 grid: { color: 'rgba(255,255,255,0.1)' }
+//                             },
+//                             x: {
+//                                 ticks: { color: '#fff' }
+//                             }
+//                         }
+//                     }
+//                 });
+//                 const leaveInsight = document.createElement('div');
+// leaveInsight.className = 'insights-panel';
+// leaveInsight.innerHTML = `
+//     <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+//         this.nextElementSibling.classList.toggle('show')">
+//         <span><i class="fas fa-sign-out-alt me-2"></i>Leave Insights</span>
+//         <i class="fas fa-chevron-down"></i>
+//     </button>
+//     <div class="insights-content">
+//         <ul>
+//             <li>Total leave days taken: ${Object.values(leaveByMonth).reduce((a,b) => a+b, 0)}</li>
+//             <li>Most common leave type: ${Object.entries(leaveByType).sort((a,b) => b[1]-a[1])[0][0]}</li>
+//             <li>Approval rate: ${(this.reportData.filter(l => l.status_ === 'approved').length / this.reportData.length * 100).toFixed(1)}%</li>
+//             ${Object.values(leaveByMonth).some(m => m > 15) ? 
+//               '<li class="text-warning">Notice: Some months have unusually high leave days</li>' : ''}
+//             ${Object.entries(leaveByType).find(t => t[0].toLowerCase().includes('sick')) && 
+//              Object.entries(leaveByType).find(t => t[0].toLowerCase().includes('sick'))[1] > 10 ?
+//               '<li>Consider reviewing sick leave patterns for potential health initiatives</li>' : ''}
+//             ${this.employeeId !== 'all' ? 
+//               `<li>This employee has taken ${this.reportData.reduce((sum, item) => sum + item.days_taken, 0)} leave days in this period</li>` : ''}
+//         </ul>
+//     </div>
+// `;
+// leaveTypeCtx.closest('.bg-secondary').appendChild(leaveInsight);
                 
-            },
+//             },
 
-            initSwapsCharts() {
+initLeaveCharts() {
+    const leaveTrendCtx = document.getElementById('leaveTrendChart');
+    const leaveTypeCtx = document.getElementById('leaveTypeChart');
+
+    if (!leaveTrendCtx || !leaveTypeCtx) return;
+
+    // Process leave data with proper chronological ordering
+    const leaveByMonth = {};
+    const leaveByType = {};
+
+    this.reportData.forEach(record => {
+        const date = new Date(record.start_date);
+        const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        
+        if (!leaveByMonth[monthYear]) {
+            leaveByMonth[monthYear] = {
+                label: monthName,
+                days: 0,
+                timestamp: date.getTime()
+            };
+        }
+        leaveByMonth[monthYear].days += record.days_taken;
+
+        if (!leaveByType[record.leave_type]) {
+            leaveByType[record.leave_type] = 0;
+        }
+        leaveByType[record.leave_type] += record.days_taken;
+    });
+
+    // Sort months chronologically
+    const sortedMonths = Object.entries(leaveByMonth)
+        .sort(([,a], [,b]) => a.timestamp - b.timestamp) // Ascending order
+        .map(([_, data]) => data);
+
+    // Line Chart - Leave Trend (chronological order)
+    this.chartInstances.leaveTrendChart = new Chart(leaveTrendCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: sortedMonths.map(month => month.label),
+            datasets: [{
+                label: 'Days Taken',
+                data: sortedMonths.map(month => month.days),
+                borderColor: 'rgba(33, 150, 243, 1)',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: 'rgba(33, 150, 243, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    display: false 
+                },
+                title: {
+                    display: true,
+                    text: 'Monthly Leave Trend',
+                    color: '#fff'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Days Taken: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    title: {  
+                        display: true,
+                        text: 'Days Taken',
+                        color: '#fff'
+                    }
+                },
+                x: {
+                    ticks: { 
+                        color: '#fff'
+                    },
+                    title: {  
+                        display: true,
+                        text: 'Month',
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+
+    // Bar Chart - Leave by Type (unchanged)
+    this.chartInstances.leaveTypeChart = new Chart(leaveTypeCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(leaveByType),
+            datasets: [{
+                label: 'Days Taken',
+                data: Object.values(leaveByType),
+                backgroundColor: [
+                    'rgba(255, 152, 0, 0.7)',
+                    'rgba(156, 39, 176, 0.7)',
+                    'rgba(76, 175, 80, 0.7)',
+                    'rgba(244, 67, 54, 0.7)',
+                    'rgba(33, 150, 243, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(255, 152, 0, 1)',
+                    'rgba(156, 39, 176, 1)',
+                    'rgba(76, 175, 80, 1)',
+                    'rgba(244, 67, 54, 1)',
+                    'rgba(33, 150, 243, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Leave by Type',
+                    color: '#fff'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                x: {
+                    ticks: { color: '#fff' }
+                }
+            }
+        }
+    });
+
+    // Update insights panel with proper month ordering
+    this.updateLeaveInsights(sortedMonths, leaveByType);
+},
+
+updateLeaveInsights(monthsData, leaveByType) {
+    // Remove existing insights
+    const existingInsights = document.querySelector('.insights-panel');
+    if (existingInsights) {
+        existingInsights.remove();
+    }
+
+    const leaveTypeCtx = document.getElementById('leaveTypeChart');
+    if (!leaveTypeCtx) return;
+
+    const totalDays = monthsData.reduce((sum, month) => sum + month.days, 0);
+    const approvedCount = this.reportData.filter(l => l.status_ === 'approved').length;
+    const totalCount = this.reportData.length;
+    const approvalRate = totalCount > 0 ? (approvedCount / totalCount * 100).toFixed(1) : 0;
+
+    // Find trends
+    const recentMonths = monthsData.slice(-6); // Last 6 months
+    const avgRecent = recentMonths.reduce((sum, month) => sum + month.days, 0) / recentMonths.length;
+    const hasIncreasingTrend = monthsData.length >= 3 && 
+        monthsData[monthsData.length - 1].days > monthsData[monthsData.length - 2].days;
+
+    const leaveInsight = document.createElement('div');
+    leaveInsight.className = 'insights-panel';
+    leaveInsight.innerHTML = `
+        <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+            this.nextElementSibling.classList.toggle('show')">
+            <span><i class="fas fa-sign-out-alt me-2"></i>Leave Insights</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="insights-content">
+            <ul>
+                <li>Total leave days taken: ${totalDays}</li>
+                <li>Covering ${monthsData.length} month(s) from ${monthsData[0]?.label || 'N/A'} to ${monthsData[monthsData.length - 1]?.label || 'N/A'}</li>
+                <li>Most common leave type: ${Object.entries(leaveByType).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A'}</li>
+                <li>Approval rate: ${approvalRate}%</li>
+                ${hasIncreasingTrend ? '<li class="text-warning">Trend: Leave usage is increasing in recent months</li>' : ''}
+                ${avgRecent > 10 ? '<li class="text-info">Recent average: ' + avgRecent.toFixed(1) + ' days per month</li>' : ''}
+                ${this.employeeId !== 'all' ? 
+                  `<li>This employee has taken ${this.reportData.reduce((sum, item) => sum + item.days_taken, 0)} leave days in this period</li>` : 
+                  `<li>Average per employee: ${(totalDays / new Set(this.reportData.map(item => item.employee_id)).size).toFixed(1)} days</li>`}
+            </ul>
+        </div>
+    `;
+    leaveTypeCtx.closest('.bg-secondary').appendChild(leaveInsight);
+},
+
+initSwapsCharts() {
     // Clear existing charts first
     if (this.chartInstances.swapsStatusChart) {
         this.chartInstances.swapsStatusChart.destroy();
@@ -1914,11 +2783,74 @@ showExportOptions() {
                 return null;
             }
         },
-        watch: {
-            reportType() {
-                this.generateReport();
-            },
+    //     watch: {
+    //         reportType() {
+    //             this.generateReport();
+    //         },
 
+    //          employeeId() {
+    //     // Regenerate charts when employee filter changes
+    //     if (this.reportData && this.reportType === 'payroll') {
+    //         this.$nextTick(() => {
+    //             this.initCharts();
+    //         });
+    //     }
+    // }
+
+    //     }
+
+    watch: {
+    reportType() {
+        this.generateReport(false);
+    },
+    employeeId(newVal, oldVal) {
+        if (newVal !== oldVal && this.reportData) {
+            setTimeout(() => {
+                this.generateReport(true); // Auto-generation
+            }, 300);
         }
+    },
+    employeeId: {
+        handler(newVal, oldVal) {
+            // Auto-generate report when employee filter changes, but wait a bit for user to finish selecting
+            if (newVal !== oldVal && this.reportData) {
+                setTimeout(() => {
+                    this.generateReport();
+                }, 300); // Small delay to ensure user has finished selecting
+            }
+        },
+        immediate: false
+    },
+    startDate: {
+        handler(newVal, oldVal) {
+            if (newVal !== oldVal && this.reportData) {
+                setTimeout(() => {
+                    this.generateReport();
+                }, 300);
+            }
+        },
+        immediate: false
+    },
+    endDate: {
+        handler(newVal, oldVal) {
+            if (newVal !== oldVal && this.reportData) {
+                setTimeout(() => {
+                    this.generateReport();
+                }, 300);
+            }
+        },
+        immediate: false
+    },
+    shiftType: {
+        handler(newVal, oldVal) {
+            if (this.reportType === 'attendance' && newVal !== oldVal && this.reportData) {
+                setTimeout(() => {
+                    this.generateReport();
+                }, 300);
+            }
+        },
+        immediate: false
+    }
+}
     }).mount('#app');
 });

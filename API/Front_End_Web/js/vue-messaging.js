@@ -525,25 +525,35 @@ async fetchCancellations() {
                 },
 
                 formatTime(timeString) {
-                    if (!timeString) return '';
-                    
-                    try {
-                        const date = new Date(timeString);
-                        const now = new Date();
-                        const diffInHours = (now - date) / (1000 * 60 * 60);
-                        
-                        if (diffInHours < 24) {
-                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        } else if (diffInHours < 48) {
-                            return 'Yesterday';
-                        } else {
-                            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                        }
-                    } catch (e) {
-                        console.error('Error formatting time:', e);
-                        return '';
-                    }
-                },
+    if (!timeString) return '';
+    
+    try {
+        const date = new Date(timeString);
+        const now = new Date();
+        const diffInHours = (now - date) / (1000 * 60 * 60);
+        const diffInDays = diffInHours / 24;
+        
+        // For today's messages, show time only
+        if (diffInDays < 1) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } 
+        // For yesterday's messages, show "Yesterday + time"
+        else if (diffInDays < 2) {
+            return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        // For older messages (within 7 days), show day + time
+        else if (diffInDays < 7) {
+            return `${date.toLocaleDateString([], { weekday: 'short' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        // For very old messages, show date + time
+        else {
+            return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+    } catch (e) {
+        console.error('Error formatting time:', e);
+        return '';
+    }
+},
                 
                 // Shift cancellation methods
                 approveCancellation(cancellation) {

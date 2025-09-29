@@ -323,141 +323,729 @@
     }
 
     /* Add these styles to your existing CSS */
-.calendar-day.leave-day {
-  background-color: rgba(255, 193, 7, 0.3) !important;
-  border: 1px solid #ffc107 !important;
+    .calendar-day.leave-day {
+      background-color: rgba(255, 193, 7, 0.3) !important;
+      border: 1px solid #ffc107 !important;
+    }
+
+    .calendar-day.leave-day.has-event {
+      background-color: rgba(255, 193, 7, 0.5) !important;
+      border: 1px solid #ffc107 !important;
+      box-shadow: 0 0 5px rgba(255, 193, 7, 0.8);
+    }
+
+    .calendar-day.leave-day .day-number {
+      font-weight: bold;
+      color: #ffc107;
+    }
+
+    .calendar-day.leave-day.today {
+      border: 2px solid #ff6b6b !important;
+      box-shadow: 0 0 5px rgba(255, 107, 107, 0.8);
+    }
+
+    /* Legend for the calendar */
+    .calendar-legend {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+    }
+
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+    }
+
+    .legend-leave {
+      background-color: rgba(255, 193, 7, 0.3);
+      border: 1px solid #ffc107;
+    }
+
+    .legend-event {
+      background-color: rgba(78, 115, 223, 0.2);
+      border: 1px solid #4e73df;
+    }
+
+    .legend-today {
+      background-color: rgba(255, 107, 107, 0.1);
+      border: 2px solid #ff6b6b;
+    }
+
+    /* Add these styles */
+    tr.recommendation-row {
+      border-left: 4px solid transparent;
+    }
+
+    tr.recommendation-row.text-danger {
+      border-left-color: #dc3545;
+      background-color: rgba(220, 53, 69, 0.05);
+    }
+
+    tr.recommendation-row.text-success {
+      border-left-color: #198754;
+      background-color: rgba(25, 135, 84, 0.05);
+    }
+
+    tr.recommendation-row.text-warning {
+      border-left-color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+
+    tr.recommendation-row.text-info {
+      border-left-color: #0dcaf0;
+      background-color: rgba(13, 202, 240, 0.05);
+    }
+
+    .ai-recommendation {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin: 5px 0;
+    }
+
+    /* Simple spacer row between leave requests */
+    .request-spacer {
+      height: 12px;
+      background-color: #1b42b5 !important;
+      /* Dark background color */
+      /* background-color: #1a1f2e !important; Dark background color */
+    }
+
+    .request-spacer td {
+      padding: 0 !important;
+      border: none !important;
+      background-color: #191C24 !important;
+      /* Dark background color */
+    }
+
+    /* Ensure proper spacing */
+    .request-main-row {
+      border-bottom: none;
+    }
+
+    .recommendation-row {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Keep existing recommendation styling */
+    tr.recommendation-row {
+      border-left: 4px solid transparent;
+    }
+
+    tr.recommendation-row.text-danger {
+      border-left-color: #dc3545;
+      background-color: rgba(220, 53, 69, 0.05);
+    }
+
+    tr.recommendation-row.text-success {
+      border-left-color: #198754;
+      background-color: rgba(25, 135, 84, 0.05);
+    }
+
+    tr.recommendation-row.text-warning {
+      border-left-color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+
+    tr.recommendation-row.text-info {
+      border-left-color: #0dcaf0;
+      background-color: rgba(13, 202, 240, 0.05);
+    }
+
+    /* Custom Toast Styles */
+    .custom-toast {
+      background: #2a3042;
+      border: 1px solid #4e73df;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      color: white;
+      min-width: 300px;
+    }
+
+    .toast-success {
+      border-color: #198754;
+      background: linear-gradient(135deg, #2a3042 0%, #1a3a2a 100%);
+    }
+
+    .toast-error {
+      border-color: #dc3545;
+      background: linear-gradient(135deg, #2a3042 0%, #3a1a1a 100%);
+    }
+
+    .toast-icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+
+    .toast-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #4e73df;
+      width: 100%;
+      transform-origin: left;
+      animation: progressBar 3s linear forwards;
+    }
+
+    .toast-success .toast-progress {
+      background: #198754;
+    }
+
+    .toast-error .toast-progress {
+      background: #dc3545;
+    }
+
+    @keyframes progressBar {
+      0% {
+        transform: scaleX(1);
+      }
+
+      100% {
+        transform: scaleX(0);
+      }
+    }
+
+    .toast-enter {
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .toast-exit {
+      animation: slideOutRight 0.3s ease-out forwards;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+
+    /* Loading animation for rejection reasons */
+#rejectionModal .spinner-border.text-danger {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
 }
 
-.calendar-day.leave-day.has-event {
-  background-color: rgba(255, 193, 7, 0.5) !important;
-  border: 1px solid #ffc107 !important;
-  box-shadow: 0 0 5px rgba(255, 193, 7, 0.8);
+/* Icon styling */
+#rejectionModal .fa-times-circle {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.calendar-day.leave-day .day-number {
-  font-weight: bold;
-  color: #ffc107;
+#rejectionModal .fa-clipboard-list {
+  color: var(--rejection-primary);
 }
 
-.calendar-day.leave-day.today {
-  border: 2px solid #ff6b6b !important;
-  box-shadow: 0 0 5px rgba(255, 107, 107, 0.8);
+#rejectionModal .fa-edit {
+  color: var(--rejection-primary);
 }
 
-/* Legend for the calendar */
-.calendar-legend {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 15px;
-  flex-wrap: wrap;
+#rejectionModal .fa-times {
+  opacity: 0.8;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
+#rejectionModal .fa-ban {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.legend-color {
-  width: 15px;
-  height: 15px;
+/* Focus states for accessibility */
+#rejectionModal .form-check-input:focus-visible {
+  outline: 2px solid var(--rejection-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+#rejectionModal * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal body */
+#rejectionModal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
   border-radius: 3px;
 }
 
-.legend-leave {
-  background-color: rgba(255, 193, 7, 0.3);
-  border: 1px solid #ffc107;
+#rejectionModal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--rejection-primary);
+  border-radius: 3px;
 }
 
-.legend-event {
-  background-color: rgba(78, 115, 223, 0.2);
+#rejectionModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--rejection-primary-dark);
+}
+
+/* Loading animation for rejection reasons */
+#rejectionModal .spinner-border.text-danger {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
+}
+
+/* Icon styling */
+#rejectionModal .fa-times-circle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#rejectionModal .fa-clipboard-list {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-edit {
+  color: var(--rejection-primary);
+}
+
+#rejectionModal .fa-times {
+  opacity: 0.8;
+}
+
+#rejectionModal .fa-ban {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Focus states for accessibility */
+#rejectionModal .form-check-input:focus-visible {
+  outline: 2px solid var(--rejection-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+#rejectionModal * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal body */
+#rejectionModal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb {
+  background: var(--rejection-primary);
+  border-radius: 3px;
+}
+
+#rejectionModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--rejection-primary-dark);
+}
+
+/* ===== REJECTION MODAL THEME ===== */
+:root {
+  /* Rejection modal specific variables */
+  --rejection-primary: #dc3545;
+  --rejection-primary-light: #f8d7da;
+  --rejection-primary-dark: #c82333;
+  --rejection-secondary: #6c757d;
+  --rejection-success: #28a745;
+  --rejection-warning: #ffc107;
+  --rejection-info: #17a2b8;
+  --rejection-light: #f8f9fa;
+  --rejection-dark: #343a40;
+  --rejection-border: #dee2e6;
+  --rejection-shadow: rgba(220, 53, 69, 0.25);
+}
+
+/* Leave Rejection Modal Theme */
+.rejection-modal-theme .modal-content {
+  background: linear-gradient(135deg, #1a1f2e 0%, #2a3042 100%);
   border: 1px solid #4e73df;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  color: white;
 }
 
-.legend-today {
-  background-color: rgba(255, 107, 107, 0.1);
-  border: 2px solid #ff6b6b;
-}
-
-/* Add these styles */
-tr.recommendation-row {
-  border-left: 4px solid transparent;
-}
-
-tr.recommendation-row.text-danger {
-  border-left-color: #dc3545;
-  background-color: rgba(220, 53, 69, 0.05);
-}
-
-tr.recommendation-row.text-success {
-  border-left-color: #198754;
-  background-color: rgba(25, 135, 84, 0.05);
-}
-
-tr.recommendation-row.text-warning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
-}
-
-tr.recommendation-row.text-info {
-  border-left-color: #0dcaf0;
-  background-color: rgba(13, 202, 240, 0.05);
-}
-
-.ai-recommendation {
-  font-size: 0.9rem;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin: 5px 0;
-}
-
-/* Simple spacer row between leave requests */
-.request-spacer {
-  height: 12px;
-  background-color: #1b42b5 !important; /* Dark background color */
-  /* background-color: #1a1f2e !important; Dark background color */
-}
-
-.request-spacer td {
-  padding: 0 !important;
-  border: none !important;
-  background-color: #191C24 !important; /* Dark background color */
-}
-
-/* Ensure proper spacing */
-.request-main-row {
-  border-bottom: none;
-}
-
-.recommendation-row {
+/* Modal Header Styling */
+.rejection-modal-theme .modal-header {
+  background: linear-gradient(135deg, var(--rejection-primary) 0%, var(--rejection-primary-dark) 100%);
+  color: white;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 15px 15px 0 0;
 }
 
-/* Keep existing recommendation styling */
-tr.recommendation-row {
-  border-left: 4px solid transparent;
+.rejection-modal-theme .modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: white;
 }
 
-tr.recommendation-row.text-danger {
-  border-left-color: #dc3545;
-  background-color: rgba(220, 53, 69, 0.05);
+.rejection-modal-theme .btn-close {
+  filter: invert(1) brightness(2);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
 }
 
-tr.recommendation-row.text-success {
-  border-left-color: #198754;
-  background-color: rgba(25, 135, 84, 0.05);
+.rejection-modal-theme .btn-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
-tr.recommendation-row.text-warning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
+/* Modal Body Styling */
+.rejection-modal-theme .modal-body {
+  padding: 2rem;
+  background: transparent;
 }
 
-tr.recommendation-row.text-info {
-  border-left-color: #0dcaf0;
-  background-color: rgba(13, 202, 240, 0.05);
+/* Reason Selection Styling */
+.rejection-modal-theme .form-check {
+  border: 2px solid #4e757d;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(42, 48, 66, 0.8);
+}
+
+.rejection-modal-theme .form-check:hover {
+  border-color: var(--rejection-primary);
+  box-shadow: 0 2px 8px var(--rejection-shadow);
+  transform: translateY(-2px);
+}
+
+.rejection-modal-theme .form-check-input {
+  background-color: #2a3042;
+  border-color: #4e757d;
+}
+
+.rejection-modal-theme .form-check-input:checked {
+  background-color: var(--rejection-primary);
+  border-color: var(--rejection-primary);
+}
+
+.rejection-modal-theme .form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+  border-color: var(--rejection-primary);
+}
+
+.rejection-modal-theme .form-check-label {
+  cursor: pointer;
+  width: 100%;
+  color: white;
+}
+
+.rejection-modal-theme .form-check strong {
+  color: white;
+  font-weight: 600;
+}
+
+.rejection-modal-theme .form-check small {
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+
+/* Custom Reason Textarea */
+.rejection-modal-theme textarea.form-control {
+  background-color: #2a3042;
+  border: 2px solid #4e757d;
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  resize: vertical;
+  min-height: 100px;
+  color: white;
+}
+
+.rejection-modal-theme textarea.form-control:focus {
+  background-color: #2a3042;
+  border-color: var(--rejection-primary);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  color: white;
+}
+
+.rejection-modal-theme textarea.form-control::placeholder {
+  color: #6c757d;
+}
+
+/* Info Alert Styling */
+.rejection-modal-theme .alert-info {
+  background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(23, 162, 184, 0.1) 100%);
+  border: 1px solid rgba(13, 202, 240, 0.3);
+  border-radius: 8px;
+  color: #0dcaf0;
+  border-left: 4px solid var(--rejection-info);
+}
+
+.rejection-modal-theme .alert-info i {
+  color: var(--rejection-info);
+}
+
+/* Modal Footer Styling */
+.rejection-modal-theme .modal-footer {
+  background: rgba(42, 48, 66, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  gap: 1rem;
+  border-radius: 0 0 15px 15px;
+}
+
+/* Button Styling */
+.rejection-modal-theme .btn-secondary {
+  background: var(--rejection-secondary);
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.rejection-modal-theme .btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.rejection-modal-theme .btn-danger {
+  background: linear-gradient(135deg, var(--rejection-primary) 0%, var(--rejection-primary-dark) 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.rejection-modal-theme .btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--rejection-primary-dark) 0%, #a71e2a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--rejection-shadow);
+}
+
+.rejection-modal-theme .btn-danger:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* Form Label Styling */
+.rejection-modal-theme .form-label {
+  color: white;
+  font-weight: 600;
+}
+
+.rejection-modal-theme .form-text {
+  color: #adb5bd;
+}
+
+/* Text Muted Styling */
+.rejection-modal-theme .text-muted {
+  color: #adb5bd !important;
+}
+
+/* Loading animation for rejection reasons */
+.rejection-modal-theme .spinner-border.text-danger {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
+}
+
+/* Icon styling */
+.rejection-modal-theme .fa-times-circle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rejection-modal-theme .fa-clipboard-list {
+  color: var(--rejection-primary);
+}
+
+.rejection-modal-theme .fa-edit {
+  color: var(--rejection-primary);
+}
+
+.rejection-modal-theme .fa-times {
+  opacity: 0.8;
+}
+
+.rejection-modal-theme .fa-ban {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rejection-modal-theme .fa-info-circle {
+  color: var(--rejection-info);
+}
+
+/* Focus states for accessibility */
+.rejection-modal-theme .form-check-input:focus-visible {
+  outline: 2px solid var(--rejection-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+.rejection-modal-theme * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal body */
+.rejection-modal-theme .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rejection-modal-theme .modal-body::-webkit-scrollbar-track {
+  background: #2a3042;
+  border-radius: 3px;
+}
+
+.rejection-modal-theme .modal-body::-webkit-scrollbar-thumb {
+  background: var(--rejection-primary);
+  border-radius: 3px;
+}
+
+.rejection-modal-theme .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--rejection-primary-dark);
+}
+
+/* Animation for modal appearance */
+@keyframes rejectionModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rejection-modal-theme .modal-content {
+  animation: rejectionModalSlideIn 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .rejection-modal-theme .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .rejection-modal-theme .modal-footer {
+    flex-direction: column-reverse;
+  }
+  
+  .rejection-modal-theme .btn {
+    width: 100%;
+  }
+}
+
+/* Text center alignment */
+.rejection-modal-theme .text-center {
+  text-align: center !important;
+}
+
+/* Visually hidden utility */
+.rejection-modal-theme .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Border utilities */
+.rejection-modal-theme .border-start-4 {
+  border-left-width: 4px !important;
+}
+
+.rejection-modal-theme .border-info {
+  border-color: var(--rejection-info) !important;
+}
+
+/* Flex utilities */
+.rejection-modal-theme .d-flex {
+  display: flex !important;
+}
+
+.rejection-modal-theme .align-items-center {
+  align-items: center !important;
+}
+
+.rejection-modal-theme .justify-content-center {
+  justify-content: center !important;
+}
+
+.rejection-modal-theme .me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.rejection-modal-theme .me-3 {
+  margin-right: 1rem !important;
+}
+
+.rejection-modal-theme .mt-1 {
+  margin-top: 0.25rem !important;
+}
+
+.rejection-modal-theme .mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.rejection-modal-theme .mb-2 {
+  margin-bottom: 0.5rem !important;
+}
+
+.rejection-modal-theme .mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.rejection-modal-theme .mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.rejection-modal-theme .py-4 {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+/* Font size utilities */
+.rejection-modal-theme .fa-lg {
+  font-size: 1.33333em !important;
+  line-height: 0.75em !important;
+  vertical-align: -0.0667em !important;
+}
+
+/* Font weight utilities */
+.rejection-modal-theme .fw-semibold {
+  font-weight: 600 !important;
 }
   </style>
 </head>
@@ -490,7 +1078,23 @@ tr.recommendation-row.text-info {
             <span>Admin</span>
           </div>
         </div> -->
-        
+
+        <div class="d-flex align-items-center ms-4 mb-4">
+          <div class="position-relative">
+            <img class="rounded-circle" src="img/user.jpg" alt="" style="width: 40px; height: 40px;">
+            <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1">
+            </div>
+          </div>
+          <div class="ms-3">
+            <h6 class="mb-0" id="profile-name">
+              <a href="my-profile.html" style="color: inherit; text-decoration: none;">
+                Loading...
+              </a>
+            </h6>
+            <span>Manager</span>
+          </div>
+        </div>
+
         <div class="navbar-nav w-100">
           <a href="index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
           <a href="view-shifts.html" class="nav-item nav-link"><i class="fa fa-calendar me-2"></i>View
@@ -505,7 +1109,7 @@ tr.recommendation-row.text-info {
               <a href="registration.html" class="dropdown-item ps-5"><i class="fa fa-user-edit me-2"></i>New</a>
             </div>
           </div>
-          <a href="status.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Status</a>
+          <a href="status.html" class="nav-item nav-link"><i class="fa fa-info alt me-2"></i>Status</a>
           <a href="leave.html" class="nav-item nav-link active"><i class="fa fa-sign-out-alt me-2"></i>Leave</a>
           <a href="events.html" class="nav-item nav-link"><i class="fa fa-calendar-day me-2"></i>Events</a>
           <a href="reports.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
@@ -517,10 +1121,127 @@ tr.recommendation-row.text-info {
     <!-- Content Start -->
     <div class="content">
       <!-- Navbar Start -->
-      <div id="navbar-container"></div>
+      <div id="navbar-container">
+          <nav
+            class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
+          >
+            <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+              <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+            </a>
+            <a href="#" class="sidebar-toggler flex-shrink-0">
+              <i class="fa fa-bars"></i>
+            </a>
+            <div class="navbar-nav align-items-center ms-auto">
+              <!-- Messages dropdown -->
+              <div class="nav-item dropdown me-3">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-envelope me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Messages</span>
+                  <span
+                    id="messageCount"
+                    class="badge bg-success ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-messages"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="message-employee.html"
+                    class="dropdown-item text-center"
+                    >See all messages</a
+                  >
+                </div>
+              </div>
+
+              <!-- Notification dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fa fa-bell me-lg-2"></i>
+                  <span class="d-none d-lg-inline-flex">Notifications</span>
+                  <span
+                    id="notificationCount"
+                    class="badge bg-danger ms-1"
+                    style="font-size: 0.75rem; display: none"
+                    >0</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                  style="width: 350px"
+                >
+                  <div
+                    id="recent-notifications"
+                    class="overflow-auto"
+                    style="max-height: 400px"
+                  >
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="dropdown-divider m-0" />
+                  <a
+                    href="ViewAllNotifications.html"
+                    class="dropdown-item text-center"
+                    >See all notifications</a
+                  >
+                </div>
+              </div>
+
+              <!-- User dropdown -->
+              <div class="nav-item dropdown">
+                <a
+                  href="#"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  <img
+                    class="rounded-circle me-lg-2"
+                    src="img/user.jpg"
+                    alt=""
+                    style="width: 40px; height: 40px"
+                  />
+                  <span class="d-none d-lg-inline-flex" id="nav-profile-name"
+                    >Loading...</span
+                  >
+                </a>
+                <div
+                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                >
+                  <a href="my-profile.html" class="dropdown-item">My Profile</a>
+                  <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
       <!-- Navbar End -->
 
-      <div class="main-content">
+      <div class="main-content" style="margin-top:55px">
         <!-- Leave Management Start -->
         <div class="container-fluid pt-4 px-4">
           <div class="row g-4">
@@ -532,87 +1253,160 @@ tr.recommendation-row.text-info {
                     <div class="d-flex align-items-center justify-content-between mb-4">
                       <h5 class="mb-0">Leave Requests</h5>
                       <div>
-    <button @click="fetchLeaveRequests" class="btn btn-sm btn-outline-info me-2" 
-            :disabled="isLoading">
-      <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i> Refresh
-    </button>
-                      <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
-                        Leave</a>
-                    </div>
+                        <button @click="fetchLeaveRequests" class="btn btn-sm btn-outline-info me-2"
+                          :disabled="isLoading">
+                          <i class="fas fa-sync-alt" :class="{'fa-spin': isLoading}"></i> Refresh
+                        </button>
+                        <a href="detail-leave.html" class="btn btn-sm btn-info">View Detailed Employee
+                          Leave</a>
+                      </div>
                     </div>
 
-                    <!-- In leave.html, replace the table section with this code -->
-
-<div class="table-responsive">
-  <table class="table text-start align-middle table-bordered table-hover mb-0">
-    <thead>
-      <tr class="text-white">
-        <th scope="col">Employee</th>
-        <th scope="col">Date Range</th>
-        <th scope="col">Type & Days Remaining</th>
-        <th scope="col">Standby Availability</th>
-        <th scope="col">Decision</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-if="isLoading">
-        <td colspan="5" class="text-center">Loading leave requests...</td>
-      </tr>
-      <tr v-else-if="leaveRequests.length === 0">
-        <td colspan="5" class="text-center">No pending leave requests</td>
-      </tr>
-      <template v-else v-for="(request, index) in leaveRequests" :key="request.leave_id">
-        <!-- Spacer row between requests -->
-        <tr v-if="index > 0" class="request-spacer">
-          <td colspan="5" class="p-2 bg-dark"></td>
-        </tr>
-        
-        <!-- Main request row -->
-        <tr class="request-main-row">
-          <td>
-            <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
-              {{ request.first_name }} {{ request.last_name }} 
-            </a>
-            <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
-              @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
-              :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
-            </i>
-          </td>
-          <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
-          <td>
-            <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request) }})</span>
-          </td>
-          <td>
-            <span :class="getStandbyClass(request)" class="standby-info" 
-                  @click="showStandbyDetails(request)" style="cursor: pointer;" 
-                  title="Click for details">
-              <i class="fas fa-users me-1"></i>
-              {{ getStandbyInfo(request) }}
-            </span>
-          </td>
-          <td>
-            <button @click="respondToLeave(request.leave_id, 'approved')"
-                    class="btn btn-sm btn-success me-1">Approve</button>
-            <button @click="respondToLeave(request.leave_id, 'rejected')"
-                    class="btn btn-sm btn-danger">Reject</button>
-          </td>
-        </tr>
-        <!-- Recommendation row -->
-        <tr class="recommendation-row" :class="getRecommendationClass(request)">
-          <td colspan="5" class="p-2">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-robot me-2"></i>
-              <div>
-                <strong>System Recommendation:</strong> {{ generateRecommendation(request) }}
-                <div class="small mt-1">{{ getEventDetails(request) }}</div>
-              </div>
+<!-- Rejection Reason Modal -->
+<div class="modal fade rejection-modal-theme" id="rejectionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-times-circle me-2"></i>
+          Reject Leave Request
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-4">
+          <label class="form-label fw-semibold text-white mb-3">
+            <i class="fas fa-clipboard-list me-2"></i>
+            Select Rejection Reason:
+          </label>
+          <div v-if="rejectionReasons && rejectionReasons.length > 0">
+            <div v-for="reason in rejectionReasons" :key="reason.value" class="form-check mb-3">
+              <input class="form-check-input" type="radio" 
+                     :id="`reason-${reason.value}`" 
+                     v-model="rejectionReason" :value="reason.value">
+              <label class="form-check-label" :for="`reason-${reason.value}`">
+                <strong>{{ reason.text }}</strong><br>
+                <small class="text-muted">{{ reason.description }}</small>
+              </label>
             </div>
-          </td>
-        </tr>
-      </template>
-    </tbody>
-  </table>
+          </div>
+          <div v-else class="text-center py-4">
+            <div class="spinner-border text-danger" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Analyzing leave request...</p>
+          </div>
+        </div>
+        
+        <div v-if="rejectionReason === 'other'" class="mb-4">
+          <label class="form-label fw-semibold text-white mb-2">
+            <i class="fas fa-edit me-2"></i>
+            Custom Reason:
+          </label>
+          <textarea class="form-control" v-model="customRejectionMessage" 
+                    placeholder="Please provide a clear and professional explanation for the rejection..." 
+                    rows="4"></textarea>
+          <div class="form-text">This message will be sent directly to the employee.</div>
+        </div>
+        
+        <div class="alert alert-info border-start-4 border-info">
+          <div class="d-flex">
+            <i class="fas fa-info-circle fa-lg text-info me-3 mt-1"></i>
+            <div>
+              <strong>Notification:</strong> An automatic message will be sent to the employee explaining the rejection reason. The employee can respond through the messaging system to discuss the decision.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" @click="submitRejection" 
+                :disabled="!rejectionReason || (rejectionReason === 'other' && !customRejectionMessage.trim())">
+          <i class="fas fa-ban me-2"></i>
+          Reject Leave Request
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+
+                    <div class="table-responsive">
+                      <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                          <tr class="text-white">
+                            <th scope="col">Employee</th>
+                            <th scope="col">Date Range</th>
+                            <th scope="col">Type & Days Remaining</th>
+                            <th scope="col">Standby Availability</th>
+                            <th scope="col">Decision</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-if="isLoading">
+                            <td colspan="5" class="text-center">Loading leave requests...</td>
+                          </tr>
+                          <tr v-else-if="leaveRequests.length === 0">
+                            <td colspan="5" class="text-center">No pending leave requests</td>
+                          </tr>
+                          <template v-else v-for="(request, index) in leaveRequests" :key="request.leave_id">
+                            <!-- Spacer row between requests -->
+                            <tr v-if="index > 0" class="request-spacer">
+                              <td colspan="5" class="p-2 bg-dark"></td>
+                            </tr>
+
+                            <!-- Main request row -->
+                            <tr class="request-main-row">
+                              <td>
+                                <a href="#" @click.prevent="showEmployeeLeaveHistory(request)" class="text-white">
+                                  {{ request.first_name }} {{ request.last_name }}
+                                </a>
+                                <i v-if="request.has_events" class="fas fa-calendar-day event-indicator ms-2"
+                                  @click.stop="showCalendar(request)" data-bs-toggle="tooltip" data-bs-placement="right"
+                                  :title="getEventTooltip(request.employee_id, request.start_date, request.end_date)">
+                                </i>
+                              </td>
+                              <td>{{ formatDate(request.start_date) }} → {{ formatDate(request.end_date) }}</td>
+                              <td>
+                                <span class="badge">{{ request.leave_type }} ({{ calculateDaysRemaining(request)
+                                  }})</span>
+                              </td>
+                              <td>
+                                <span :class="getStandbyClass(request)" class="standby-info"
+                                  @click="showStandbyDetails(request)" style="cursor: pointer;"
+                                  title="Click for details">
+                                  <i class="fas fa-users me-1"></i>
+                                  {{ getStandbyInfo(request) }}
+                                </span>
+                              </td>
+                              <td>
+                                <button @click="respondToLeave(request.leave_id, 'approved')"
+                                  class="btn btn-sm btn-success me-1">Approve</button>
+                                <!-- <button @click="respondToLeave(request.leave_id, 'rejected')"
+                                  class="btn btn-sm btn-danger">Reject</button> -->
+                                  <button @click="showRejectionModal(request)" class="btn btn-danger btn-sm">
+  Reject
+</button>
+                              </td>
+                            </tr>
+                            <!-- Recommendation row -->
+                            <tr class="recommendation-row" :class="getRecommendationClass(request)">
+                              <td colspan="5" class="p-2">
+                                <div class="d-flex align-items-center">
+                                  <i class="fas fa-robot me-2"></i>
+                                  <div>
+                                    <strong>System Recommendation:</strong> {{ generateRecommendation(request) }}
+                                    <div class="small mt-1">{{ getEventDetails(request) }}</div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <!-- Employee Leave History Modal -->
@@ -665,42 +1459,43 @@ tr.recommendation-row.text-info {
                     </div>
                   </div>
                   <div class="modal fade" id="standbyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark">
-        <div class="modal-header">
-          <h5 class="modal-title">Standby Details for {{ standbyDetails.employee }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            <strong>Availability:</strong> 
-            <span :class="standbyDetails.available > 0 ? 'text-success' : 'text-danger'">
-              {{ standbyDetails.available }}/{{ standbyDetails.total }} standby employees available
-            </span>
-          </p>
-          
-          <div v-if="standbyDetails.employees.length > 0">
-            <h6>Available Standby Employees:</h6>
-            <ul class="list-group">
-              <li v-for="employee in standbyDetails.employees" :key="employee.employee_id" 
-                  class="list-group-item bg-secondary text-white">
-                {{ employee.first_name }} {{ employee.last_name }} 
-                - Status: {{ employee.status_ }}
-              </li>
-            </ul>
-          </div>
-          
-          <div v-else>
-            <p class="text-warning">No standby employees available during this period.</p>
-            <p class="text-muted">All standby employees are either on leave or have conflicting schedules.</p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+                    <div class="modal-dialog">
+                      <div class="modal-content bg-dark">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Standby Details for {{ standbyDetails.employee }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>
+                            <strong>Availability:</strong>
+                            <span :class="standbyDetails.available > 0 ? 'text-success' : 'text-danger'">
+                              {{ standbyDetails.available }}/{{ standbyDetails.total }} standby employees available
+                            </span>
+                          </p>
+
+                          <div v-if="standbyDetails.employees.length > 0">
+                            <h6>Available Standby Employees:</h6>
+                            <ul class="list-group">
+                              <li v-for="employee in standbyDetails.employees" :key="employee.employee_id"
+                                class="list-group-item bg-secondary text-white">
+                                {{ employee.first_name }} {{ employee.last_name }}
+                                - Status: {{ employee.status_ }}
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div v-else>
+                            <p class="text-warning">No standby employees available during this period.</p>
+                            <p class="text-muted">All standby employees are either on leave or have conflicting
+                              schedules.</p>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -827,6 +1622,10 @@ tr.recommendation-row.text-info {
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js'></script>
   <script src="js/components.js"></script>
+
+  <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <!-- Toast notifications will be dynamically inserted here -->
+  </div>
 </body>
 
 </html>
