@@ -1172,145 +1172,199 @@ updatePayrollInsights(showEmployeeComparison) {
 },
 
 initAttendanceCharts() {
-                const attendanceCtx = document.getElementById('attendanceChart');
-                const attendanceGaugeCtx = document.getElementById('attendanceGauge');
+    const attendanceCtx = document.getElementById('attendanceChart');
+    const attendanceGaugeCtx = document.getElementById('attendanceGauge');
 
-                if (!attendanceCtx || !attendanceGaugeCtx) return;
+    if (!attendanceCtx || !attendanceGaugeCtx) return;
 
-                // Process attendance data
-                const statusCounts = {
-                    completed: 0,
-                    missed: 0
-                };
+    //Process attendance data with proper chronological ordering
+    const statusCounts = {
+        completed: 0,
+        missed: 0
+    };
 
-                this.reportData.forEach(record => {
-                    statusCounts[record.status_] = (statusCounts[record.status_] || 0) + 1;
-                });
+    //Group by date with proper sorting
+    const datesMap = new Map();
+    
+    this.reportData.forEach(record => {
+        statusCounts[record.status_] = (statusCounts[record.status_] || 0) + 1;
+        
+        const dateKey = record.date; //Use the actual date string
+        if (!datesMap.has(dateKey)) {
+            datesMap.set(dateKey, {
+                date: new Date(record.date),
+                completed: 0,
+                missed: 0
+            });
+        }
+        
+        if (record.status_ === 'completed') {
+            datesMap.get(dateKey).completed++;
+        } else {
+            datesMap.get(dateKey).missed++;
+        }
+    });
 
-                // Line Chart - Attendance Trend
-                const dates = [...new Set(this.reportData.map(item =>
-                    new Date(item.date).toLocaleDateString()))].sort();
+    //Sort dates chronologically
+    const sortedDates = Array.from(datesMap.values())
+        .sort((a, b) => a.date - b.date) // Ascending order
+        .map(item => ({
+            label: item.date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            }),
+            completed: item.completed,
+            rawDate: item.date
+        }));
 
-                const completedData = dates.map(date => {
-                    return this.reportData.filter(item =>
-                        new Date(item.date).toLocaleDateString() === date &&
-                        item.status_ === 'completed'
-                    ).length;
-                });
-
-                this.chartInstances.attendanceChart = new Chart(attendanceCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: dates,
-                        datasets: [{
-                            label: 'Completed Shifts',
-                            data: completedData,
-                            borderColor: 'rgba(0, 200, 83, 1)',
-                            backgroundColor: 'rgba(0, 200, 83, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Daily Shift Completion',
-                                color: '#fff'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#fff' },
-                                grid: { color: 'rgba(255,255,255,0.1)' },
-                                title: {  
-                                    display: true,
-                                    text: 'Number of Shifts',
-                                    color: '#fff'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: '#fff',
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                },
-                                title: {  
-                                    display: true,
-                                    text: 'Date',
-                                    color: '#fff'
-                                }
-                            }
+    //Line Chart - Attendance Trend (chronological order)
+    this.chartInstances.attendanceChart = new Chart(attendanceCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: sortedDates.map(item => item.label),
+            datasets: [{
+                label: 'Completed Shifts',
+                data: sortedDates.map(item => item.completed),
+                borderColor: 'rgba(0, 200, 83, 1)',
+                backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: 'rgba(0, 200, 83, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Daily Shift Completion',
+                    color: '#fff'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Completed Shifts: ${context.parsed.y}`;
                         }
                     }
-                });
-
-                // Gauge Chart - Attendance Summary
-                const totalRecords = this.reportData.length;
-                const attendanceRate = totalRecords > 0 ?
-                    (statusCounts.completed / totalRecords * 100).toFixed(1) : 0;
-
-                this.chartInstances.attendanceGauge = new Chart(attendanceGaugeCtx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Completed', 'Missed'],
-                        datasets: [{
-                            data: [attendanceRate, 100 - attendanceRate],
-                            backgroundColor: [
-                                'rgba(0, 200, 83, 0.7)',
-                                'rgba(244, 67, 54, 0.7)'
-                            ],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        circumference: 180,
-                        rotation: -90,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: '#fff' }
-                            },
-                            title: {
-                                display: true,
-                                text: `${attendanceRate}% Completion`,
-                                color: '#fff',
-                                position: 'bottom'
-                            }
-                        },
-                        cutout: '70%'
-                    }
-                })
-                
-                const attendanceInsight = document.createElement('div');
-attendanceInsight.className = 'insights-panel';
-attendanceInsight.innerHTML = `
-    <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
-        this.nextElementSibling.classList.toggle('show')">
-        <span><i class="fas fa-calendar-check me-2"></i>Attendance Insights</span>
-        <i class="fas fa-chevron-down"></i>
-    </button>
-    <div class="insights-content">
-        <ul>
-            <li>Overall attendance rate: ${attendanceRate}%</li>
-            <li>${statusCounts.completed} shifts completed, ${statusCounts.missed || 0} shifts missed</li>
-            ${attendanceRate > 90 ? '<li>Excellent attendance rate! Keep up the good work.</li>' : 
-              attendanceRate > 75 ? '<li class="text-warning">Attendance could be improved. Consider following up with employees.</li>' : 
-              '<li class="text-danger">Low attendance rate. Immediate action recommended.</li>'}
-            ${completedData.some((val, i, arr) => val < arr[0]*0.7) ? 
-              '<li>Notice: Some days show significantly lower attendance than others</li>' : ''}
-            ${this.shiftType === 'overtime' ? '<li>Overtime shift completion rate: ' + 
-              (this.reportData.filter(r => r.status_ === 'completed').length / this.reportData.length * 100).toFixed(1) + '%</li>' : ''}
-        </ul>
-    </div>
-`;
-attendanceGaugeCtx.closest('.bg-secondary').appendChild(attendanceInsight);
+                }
             },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { 
+                        color: '#fff',
+                        stepSize: 1
+                    },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    title: {  
+                        display: true,
+                        text: 'Number of Shifts',
+                        color: '#fff'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#fff',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    title: {  
+                        display: true,
+                        text: 'Date',
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+
+    //Gauge Chart - Attendance Summary
+    const totalRecords = this.reportData.length;
+    const attendanceRate = totalRecords > 0 ?
+        (statusCounts.completed / totalRecords * 100).toFixed(1) : 0;
+
+    this.chartInstances.attendanceGauge = new Chart(attendanceGaugeCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Missed'],
+            datasets: [{
+                data: [attendanceRate, 100 - attendanceRate],
+                backgroundColor: [
+                    'rgba(0, 200, 83, 0.7)',
+                    'rgba(244, 67, 54, 0.7)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            circumference: 180,
+            rotation: -90,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#fff' }
+                },
+                title: {
+                    display: true,
+                    text: `${attendanceRate}% Completion`,
+                    color: '#fff',
+                    position: 'bottom'
+                }
+            },
+            cutout: '70%'
+        }
+    });
+    
+    //Update insights with proper date range
+    this.updateAttendanceInsights(sortedDates, statusCounts, attendanceRate);
+},
+
+updateAttendanceInsights(datesData, statusCounts, attendanceRate) {
+    //Remove existing insights
+    const existingInsights = document.querySelector('.insights-panel');
+    if (existingInsights) {
+        existingInsights.remove();
+    }
+
+    const attendanceGaugeCtx = document.getElementById('attendanceGauge');
+    if (!attendanceGaugeCtx) return;
+
+    const completedData = datesData.map(item => item.completed);
+    const dateRange = datesData.length > 0 ? 
+        `${datesData[0].label} to ${datesData[datesData.length - 1].label}` : 'No data';
+
+    const attendanceInsight = document.createElement('div');
+    attendanceInsight.className = 'insights-panel';
+    attendanceInsight.innerHTML = `
+        <button class="insights-toggle" onclick="this.classList.toggle('collapsed'); 
+            this.nextElementSibling.classList.toggle('show')">
+            <span><i class="fas fa-calendar-check me-2"></i>Attendance Insights</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="insights-content">
+            <ul>
+                <li>Date range: ${dateRange}</li>
+                <li>Overall attendance rate: ${attendanceRate}%</li>
+                <li>${statusCounts.completed} shifts completed, ${statusCounts.missed || 0} shifts missed</li>
+                <li>Covering ${datesData.length} day(s) of data</li>
+                ${attendanceRate > 90 ? '<li>Excellent attendance rate! Keep up the good work.</li>' : 
+                  attendanceRate > 75 ? '<li class="text-warning">Attendance could be improved. Consider following up with employees.</li>' : 
+                  '<li class="text-danger">Low attendance rate. Immediate action recommended.</li>'}
+                ${completedData.some((val, i, arr) => i > 0 && val < arr[0]*0.7) ? 
+                  '<li>Notice: Some days show significantly lower attendance than others</li>' : ''}
+                ${this.shiftType === 'overtime' ? '<li>Overtime shift completion rate: ' + 
+                  (this.reportData.filter(r => r.status_ === 'completed').length / this.reportData.length * 100).toFixed(1) + '%</li>' : ''}
+            </ul>
+        </div>
+    `;
+    attendanceGaugeCtx.closest('.bg-secondary').appendChild(attendanceInsight);
+},
 
 //             initLeaveCharts() {
 //                 const leaveTrendCtx = document.getElementById('leaveTrendChart');

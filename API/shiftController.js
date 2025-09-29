@@ -210,7 +210,7 @@ exports.cancelShift = async (req, res) => {
             //Create detailed notification message with reason
             const reasonText = getReasonText(reason); //Helper function to format reason
             let notificationMessage = `${shift.first_name} ${shift.last_name} ` +
-                                   `has cancelled their shift on ${shift.date_} at ${shift.start_time}.\n` +
+                                   `has cancelled their shift on ${shift.date_.toLocaleDateString('en-CA')} at ${shift.start_time}.\n` +
                                    `Reason: ${reasonText}.\n`;
             
             //Add notes if provided
@@ -220,30 +220,42 @@ exports.cancelShift = async (req, res) => {
             
             notificationMessage += `\nPlease verify and take necessary action.`;
 
-            const notificationValues = managerRows.map(manager => [
-                manager.employee_id,
-                notificationMessage,
-                new Date(),
-                'unread',
-                4
-            ]);
+                    const notificationValues = managerRows.map(manager => [
+                        manager.employee_id,
+                        notificationMessage,
+                        new Date(),
+                        'unread',
+                        4
+                    ]);
 
             console.log(notificationValues);
-            await db.query(
-                `INSERT INTO t_notification 
-                 (employee_id, message, sent_time, read_status, notification_type_id)
-                 VALUES ?`,
-                [notificationValues]
-            );
-            for(const mgr of managerRows) {
-                console.log(`Notified manager ${mgr.first_name} ${mgr.last_name} (${mgr.email}) about shift cancellation.`);
-                 await db.query(
-                `INSERT INTO t_message 
-                 (sender_id, receiver_id, content, sent_time, read_status)
-                 VALUES (?, ?, ?, NOW(), 'unread')`,
-                [employee_id,mgr.employee_id, notes]
-            );
-            } 
+           try {
+                // FIX 2: Wrap in try-catch to identify if this is the problem
+                await db.query(
+                    `INSERT INTO t_notification 
+                    (employee_id, message, sent_time, read_status, notification_type_id)
+                    VALUES ?`,
+                    [notificationValues] // Note: This needs to be wrapped in an array
+                );
+            } catch (notifErr) {
+                console.error('Error inserting notifications:', notifErr);
+                // Don't throw - cancellation was successful
+            }
+            
+           for(const mgr of managerRows) {
+                try {
+                    console.log(`Notifying manager ${mgr.first_name} ${mgr.last_name} (${mgr.email})`);
+                    await db.query(
+                        `INSERT INTO t_message 
+                        (sender_id, receiver_id, content, sent_time, read_status)
+                        VALUES (?, ?, ?, NOW(), 'unread')`,
+                        [employee_id, mgr.employee_id, notes || ''] // FIX 4: Handle null notes
+                    );
+                } catch (msgErr) {
+                    console.error(`Error inserting message for manager ${mgr.employee_id}:`, msgErr);
+                    // Continue to next manager
+                }
+            }
         }
 
         res.status(200).json({ 

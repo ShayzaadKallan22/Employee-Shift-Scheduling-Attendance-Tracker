@@ -28,7 +28,7 @@ async function handleShiftReplacements() {
             INNER JOIN t_shift s ON sc.shift_id = s.shift_id
             INNER JOIN t_employee e ON sc.employee_id = e.employee_id
             INNER JOIN t_role r ON e.role_id = r.role_id
-            WHERE sc.status_ = 'approved' 
+            WHERE sc.status_ IN ('pending', 'approved') 
             AND sc.processed = 0
         `);
 
