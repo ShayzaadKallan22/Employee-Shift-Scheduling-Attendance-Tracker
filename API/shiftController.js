@@ -15,6 +15,7 @@ exports.getUpcomingShifts = async (req, res) => {
         `SELECT s.*
          FROM t_shift s
          WHERE s.employee_id = ?  
+         AND s.status_ = 'scheduled'
          AND (
              s.date_ > CURDATE() 
              OR 
