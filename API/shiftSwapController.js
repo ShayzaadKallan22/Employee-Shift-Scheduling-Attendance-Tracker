@@ -19,6 +19,7 @@ exports.getShiftID = async (req, res) => {
       `SELECT shift_id FROM t_shift
        WHERE employee_id = ?
        AND ? BETWEEN date_ AND end_date
+       AND status_ = 'scheduled'
        LIMIT 1`,
       [employee_id, date]
     );

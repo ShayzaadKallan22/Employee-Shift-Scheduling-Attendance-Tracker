@@ -120,7 +120,7 @@ exports.scanQR = async (req, res) => {
          WHERE employee_id = ?`, ['Working', employee_id]
       );
 
-      return res.status(200).json({ message: `QR code has been accepted for clock in.}` });
+      return res.status(200).json({ message: `QR code has been accepted for clock in.` });
       
     } else if (qr.purpose === 'attendanceNormal' || qr.purpose === 'attendance') {
 
