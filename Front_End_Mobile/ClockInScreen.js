@@ -259,8 +259,7 @@ const ClockInScreen = () => {
   //Verify if location is within allowed range.
   const verifyLocation = (location) => {
   
-    return true;
-    
+    //Workplace coordinates (example: UJ APK)
     const workplaceCoords = { latitude: -26.1821, longitude: 27.9992 }; //UJ APK
     const distance = calculateDistance(
       location.coords.latitude,

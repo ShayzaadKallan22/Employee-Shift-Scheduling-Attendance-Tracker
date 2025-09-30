@@ -230,16 +230,15 @@ exports.cancelShift = async (req, res) => {
 
             console.log(notificationValues);
            try {
-                // FIX 2: Wrap in try-catch to identify if this is the problem
                 await db.query(
                     `INSERT INTO t_notification 
                     (employee_id, message, sent_time, read_status, notification_type_id)
                     VALUES ?`,
-                    [notificationValues] // Note: This needs to be wrapped in an array
+                    [notificationValues] 
                 );
             } catch (notifErr) {
                 console.error('Error inserting notifications:', notifErr);
-                // Don't throw - cancellation was successful
+                
             }
             
            for(const mgr of managerRows) {
@@ -249,11 +248,11 @@ exports.cancelShift = async (req, res) => {
                         `INSERT INTO t_message 
                         (sender_id, receiver_id, content, sent_time, read_status)
                         VALUES (?, ?, ?, NOW(), 'unread')`,
-                        [employee_id, mgr.employee_id, notes || ''] // FIX 4: Handle null notes
+                        [employee_id, mgr.employee_id, notes || ''] 
                     );
                 } catch (msgErr) {
                     console.error(`Error inserting message for manager ${mgr.employee_id}:`, msgErr);
-                    // Continue to next manager
+                    
                 }
             }
         }
