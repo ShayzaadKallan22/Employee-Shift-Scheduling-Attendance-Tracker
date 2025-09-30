@@ -319,7 +319,7 @@ exports.generateQR = async (req, res) => {
          AND e.status_ != 'On Leave'  
          AND s.status_ = 'completed'  
          AND s.shift_type = 'normal'
-         AND s.end_date = CURDATE()`,  
+         AND CONCAT(s.end_date, ' ', s.end_time) >= DATE_SUB(NOW(), INTERVAL 5 HOUR)`,  
          roles
       );
 
