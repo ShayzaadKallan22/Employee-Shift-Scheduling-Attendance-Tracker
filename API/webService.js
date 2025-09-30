@@ -123,34 +123,34 @@ cron.schedule('*/1 * * * *', () => {
 
 //Create shifts for the entire next month on the last Tuesday of each month at 10:00 UTC
 //This creates all shifts for the upcoming month
-cron.schedule('0 10 * * 2', async () => {
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
+// cron.schedule('0 10 * * 2', async () => {
+//     const today = new Date();
+//     const nextWeek = new Date(today);
+//     nextWeek.setDate(today.getDate() + 7);
     
-    //Check if next Tuesday would be in the next month
-    if (nextWeek.getMonth() !== today.getMonth()) {
-        console.log('Running monthly shift creation for upcoming month...');
-        try {
-            await createMonthlyShifts();
-            console.log('Monthly shift creation completed successfully');
-        } catch (error) {
-            console.error('Error in monthly shift creation:', error);
-        }
-    }
-});
+//     //Check if next Tuesday would be in the next month
+//     if (nextWeek.getMonth() !== today.getMonth()) {
+//         console.log('Running monthly shift creation for upcoming month...');
+//         try {
+//             await createMonthlyShifts();
+//             console.log('Monthly shift creation completed successfully');
+//         } catch (error) {
+//             console.error('Error in monthly shift creation:', error);
+//         }
+//     }
+// });
 
 //Update standby status every Tuesday at 10:00 UTC (weekly rotation)
 //This rotates standby employees every week while keeping the monthly shift schedule
-cron.schedule('0 10 * * 2', async () => {
-    console.log('Running weekly standby status update...');
-    try {
-        await updateWeeklyStandbyStatus();
-        console.log('Weekly standby status update completed successfully');
-    } catch (error) {
-        console.error('Error in weekly standby status update:', error);
-    }
-});
+// cron.schedule('0 10 * * 2', async () => {
+//     console.log('Running weekly standby status update...');
+//     try {
+//         await updateWeeklyStandbyStatus();
+//         console.log('Weekly standby status update completed successfully');
+//     } catch (error) {
+//         console.error('Error in weekly standby status update:', error);
+//     }
+// });
 //==========================END OF CRON JOBS==========================
 
 //SHAYZAAD - Cors Middleware
