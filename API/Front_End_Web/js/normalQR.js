@@ -38,7 +38,7 @@ createApp({
         } else {
           //Clear QR data if none is available
           this.normalQR = null;
-         // this.stopCountdown();
+         //this.stopCountdown();
         }
         
         //Record when we last successfully fetched data
@@ -64,12 +64,12 @@ createApp({
           if (!this.proofQR || this.proofQR !== data.proofQR.image) {
             this.proofQR = data.proofQR.image;
             this.proofExpiration = new Date(data.proofQR.expiration).toLocaleString();
-           // this.startProofCountdown();
+           //this.startProofCountdown();
           }
         } else {
           //Clear proof QR data if none is available
           this.proofQR = null;
-         // this.stopProofCountdown();
+         //this.stopProofCountdown();
         }
       } catch (error) {
         console.error('Error fetching proof QR:', error);

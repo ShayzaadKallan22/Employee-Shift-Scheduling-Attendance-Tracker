@@ -102,7 +102,7 @@ createApp({
             const today = new Date();
             today.setHours(0, 0, 0, 0); //Set to midnight (00:00:00) for comparison
 
-            // Calculate date ranges for 31-day periods
+            //Calculate date ranges for 31-day periods
             const thirtyOneDaysAgo = new Date(today);
             thirtyOneDaysAgo.setDate(today.getDate() - 31);
             
@@ -116,12 +116,12 @@ createApp({
               //Switch case to check filter
               switch (this.selectedFilter) {
                 case 'Previous Shift':
-                  // Shifts from the last 31 days (excluding today)
+                  //Shifts from the last 31 days (excluding today)
                   return shiftDate >= thirtyOneDaysAgo && shiftDate < today;
                 case "Today's Shifts":
                   return shiftDate.getTime() === today.getTime(); //Shifts today
                 case 'Next Shift':
-                  // Shifts for the next 31 days (excluding today)
+                  //Shifts for the next 31 days (excluding today)
                   return shiftDate > today && shiftDate <= thirtyOneDaysFromNow;
                 default:
                   return true; //No filtering
@@ -172,17 +172,17 @@ createApp({
           if (!dateString) return "N/A";
           const date = new Date(dateString);
           
-          // Get the day name (e.g., "Tuesday")
+          //Get the day name (e.g., "Tuesday")
           const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
           
-          // Format as 'dd-mm-yyyy' (using en-ZA locale and replace slashes)
+          //Format as 'dd-mm-yyyy' (using en-ZA locale and replace slashes)
           const formattedDate = date.toLocaleDateString('en-ZA', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
           }).replace(/\//g, '-');
 
-          // Combine: "Tuesday, 25-12-2023"
+          //Combine: "Tuesday, 25-12-2023"
           return `${dayName}, ${formattedDate}`;
         }
     },

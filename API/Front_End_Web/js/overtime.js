@@ -62,7 +62,7 @@ createApp({
       this.currentTime = new Date().toLocaleTimeString();
     },
     
-    // Format a date object into a readable string
+    //Format a date object into a readable string
     formatDate(date) {
       return date.toLocaleDateString('en-ZA', {
         weekday: 'long',
@@ -193,7 +193,7 @@ createApp({
         if (data.status === 'completed' && data.proofImage) {
           this.handleSessionCompleted(data.proofImage, data.proofQRId, data.proofExpiration);
         }
-        // Handle full session expiration
+        //Handle full session expiration
         else if (data.status === 'expired') {
           this.resetSession();
           this.errorMessage = 'Overtime session has expired.';
@@ -244,12 +244,12 @@ createApp({
     
     //Start monitoring proof QR status
     startProofMonitoring() {
-      // Clear any existing interval
+      //Clear any existing interval
       if (this.proofCheckInterval) {
         clearInterval(this.proofCheckInterval);
       }
       
-      // Check every second for proof QR
+      //Check every second for proof QR
       this.proofCheckInterval = setInterval(() => {
         this.checkProofStatus();
       }, 1000);
@@ -401,7 +401,7 @@ createApp({
         //Update the duration to reflect the new total duration
         this.duration += this.extendMinutes;
         
-        // Restart countdown with new expiration time
+        //Restart countdown with new expiration time
         //this.startCountdown(new Date(data.newExpiration));
 
         //Save new session to local storage after making edits

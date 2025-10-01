@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-//const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const pool = require('./db');
@@ -123,34 +122,34 @@ cron.schedule('*/1 * * * *', () => {
 
 //Create shifts for the entire next month on the last Tuesday of each month at 10:00 UTC
 //This creates all shifts for the upcoming month
-// cron.schedule('0 10 * * 2', async () => {
-//     const today = new Date();
-//     const nextWeek = new Date(today);
-//     nextWeek.setDate(today.getDate() + 7);
+cron.schedule('0 10 * * 2', async () => {
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
     
-//     //Check if next Tuesday would be in the next month
-//     if (nextWeek.getMonth() !== today.getMonth()) {
-//         console.log('Running monthly shift creation for upcoming month...');
-//         try {
-//             await createMonthlyShifts();
-//             console.log('Monthly shift creation completed successfully');
-//         } catch (error) {
-//             console.error('Error in monthly shift creation:', error);
-//         }
-//     }
-// });
+    //Check if next Tuesday would be in the next month
+    if (nextWeek.getMonth() !== today.getMonth()) {
+        console.log('Running monthly shift creation for upcoming month...');
+        try {
+            await createMonthlyShifts();
+            console.log('Monthly shift creation completed successfully');
+        } catch (error) {
+            console.error('Error in monthly shift creation:', error);
+        }
+    }
+});
 
 //Update standby status every Tuesday at 10:00 UTC (weekly rotation)
 //This rotates standby employees every week while keeping the monthly shift schedule
-// cron.schedule('0 10 * * 2', async () => {
-//     console.log('Running weekly standby status update...');
-//     try {
-//         await updateWeeklyStandbyStatus();
-//         console.log('Weekly standby status update completed successfully');
-//     } catch (error) {
-//         console.error('Error in weekly standby status update:', error);
-//     }
-// });
+cron.schedule('0 10 * * 2', async () => {
+    console.log('Running weekly standby status update...');
+    try {
+        await updateWeeklyStandbyStatus();
+        console.log('Weekly standby status update completed successfully');
+    } catch (error) {
+        console.error('Error in weekly standby status update:', error);
+    }
+});
 //==========================END OF CRON JOBS==========================
 
 //SHAYZAAD - Cors Middleware
@@ -380,18 +379,18 @@ app.post('/api/admin/update-standby', async (req, res) => {
 app.get('/api/admin/next-scheduled-operations', (req, res) => {
     const now = new Date();
     
-    // Find next month creation (last Tuesday of month)
+    //Find next month creation (last Tuesday of month)
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const lastDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
     let lastTuesdayOfNextMonth = new Date(lastDayOfNextMonth);
     
-    // Find last Tuesday of next month
+    //Find last Tuesday of next month
     while (lastTuesdayOfNextMonth.getDay() !== 2) {
         lastTuesdayOfNextMonth.setDate(lastTuesdayOfNextMonth.getDate() - 1);
     }
     lastTuesdayOfNextMonth.setHours(10, 0, 0, 0);
     
-    // Find next Tuesday for standby update
+    //Find next Tuesday for standby update
     let nextTuesday = new Date(now);
     const daysUntilTuesday = (2 + 7 - now.getDay()) % 7;
     if (daysUntilTuesday === 0 && now.getHours() >= 9) {
@@ -454,7 +453,7 @@ app.get('/profile', (req, res) => {
     res.json({ user: req.session.user });
 });
 
-app.listen(3000, '0.0.0.0', () => {  // Listen on all network interfaces
+app.listen(3000, '0.0.0.0', () => {  //Listen on all network interfaces
     console.log("Server running on http://localhost:3000");
 });
 
@@ -525,7 +524,7 @@ app.use('/api/messages', messageRoutes);
 //Yatin:
 const uploadsPath = path.join(__dirname, 'uploads');
 
-// Serve static files from uploads directory
+//Serve static files from uploads directory
 app.use('/uploads', express.static(uploadsPath, {
     setHeaders: (res, path) => {
         if (path.endsWith('.pdf')) {
@@ -591,7 +590,7 @@ app.use('/api', eventRoutes);
 // // Also run immediately on server start
 // checkEventNotifications();  
 
-// Add this check on server startup
+//Check server start up
 const ensureEventNotificationType = async () => {
   try {
     const [existing] = await pool.execute(
@@ -609,23 +608,23 @@ const ensureEventNotificationType = async () => {
   }
 };
 
-// Call this on server startup
+//Call this on server startup
 ensureEventNotificationType();
 
-const eventReminderState = new Map(); // In-memory storage for reminder status
+const eventReminderState = new Map(); //In-memory storage for reminder status
 
 const sendEventRemindersMemory = async () => {
   try {
     const currentDate = new Date();
     console.log('Checking for event reminders (7 days before event)...');
     
-    // Calculate date 7 days from now
+    //Calculate date 7 days from now
     const sevenDaysFromNow = new Date(currentDate);
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
     const sevenDaysFromNowStr = sevenDaysFromNow.toISOString().split('T')[0];
     
-    // Find events starting in exactly 7 days
-    const [eventsDueForReminder] = await pool.execute( // CHANGE db to pool
+    //Find events starting in exactly 7 days
+    const [eventsDueForReminder] = await pool.execute( 
       `SELECT e.event_id, e.event_name, e.start_date, 
               ee.employee_id, emp.first_name, emp.email
        FROM t_event e
@@ -640,7 +639,7 @@ const sendEventRemindersMemory = async () => {
       return;
     }
     
-    // Group by event
+    //Group by event
     const eventsMap = new Map();
     eventsDueForReminder.forEach(row => {
       if (!eventsMap.has(row.event_id)) {
@@ -657,7 +656,7 @@ const sendEventRemindersMemory = async () => {
       });
     });
     
-    // Send reminders only for events that haven't been reminded yet today
+    //Send reminders only for events that haven't been reminded yet today
     for (const [eventId, eventData] of eventsMap) {
       const reminderKey = `${eventId}-${currentDate.toISOString().split('T')[0]}`;
       
@@ -669,7 +668,7 @@ const sendEventRemindersMemory = async () => {
       console.log(`Sending 7-day reminders for event: ${eventData.event_name}`);
       
       for (const employee of eventData.employees) {
-        // Create the reminder notification
+        //Create the reminder notification
         await pool.execute( // CHANGE db to pool
           `INSERT INTO t_notification 
            (employee_id, message, sent_time, read_status, notification_type_id) 
@@ -683,13 +682,13 @@ const sendEventRemindersMemory = async () => {
         console.log(`7-day reminder sent to ${employee.first_name} (${employee.email})`);
       }
       
-      // Mark as sent in memory
+      //Mark as sent in memory
       eventReminderState.set(reminderKey, true);
     }
     
     console.log(`Sent 7-day reminders for ${eventsMap.size} events`);
     
-    // Clean up old memory entries (older than 2 days)
+    //Clean up old memory entries (older than 2 days)
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
     
@@ -705,9 +704,9 @@ const sendEventRemindersMemory = async () => {
   }
 };
 
-// Schedule the memory-based reminder check
-cron.schedule('0 9 * * *', sendEventRemindersMemory); // Daily at 9 AM
+//Schedule the memory-based reminder check
+cron.schedule('0 9 * * *', sendEventRemindersMemory); //Daily at 9 AM
 
-// Run immediately on server start
+//Run immediately on server start
 setTimeout(sendEventRemindersMemory, 10000);
 //End of Yatin's code

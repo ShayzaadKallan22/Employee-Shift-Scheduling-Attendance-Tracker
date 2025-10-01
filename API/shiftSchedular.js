@@ -1,5 +1,4 @@
-//AUTOMATIC MONTHLY SHIFT CREATION SYSTEM
-//Author: Shayzaad Kallan - Modified for Monthly Creation
+//AUTHOR: SHAYZAAD KALLAN
 
 const db = require('./db');
 
@@ -479,7 +478,7 @@ class MonthlyShiftScheduler {
                 return;
             }
 
-            // Get all non-working employee IDs who should be on standby
+            //Get all non-working employee IDs who should be on standby
             const allEmployeeIds = [];
             roleEmployees.forEach(roleGroup => {
                 roleGroup.employees.forEach(emp => {
@@ -490,7 +489,7 @@ class MonthlyShiftScheduler {
                 });
             });
 
-            // Set non-working employees to standby in one query
+            //Set non-working employees to standby in one query
             if (allEmployeeIds.length > 0) {
                 const placeholders = allEmployeeIds.map(() => '?').join(',');
                 await db.query(`
@@ -508,7 +507,7 @@ class MonthlyShiftScheduler {
     }
 }
 
-// Export the scheduler instance
+//Export the scheduler instance
 const monthlyShiftScheduler = new MonthlyShiftScheduler();
 
 module.exports = {
