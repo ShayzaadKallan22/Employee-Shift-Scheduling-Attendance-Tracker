@@ -62,18 +62,18 @@ createApp({
 
     methods: {
 
-    // Enhanced save methods with user-friendly modal confirmation
+    //Enhanced save methods with user-friendly modal confirmation
     async saveRoleRatesWithBudgetCheck() {
         this.calculateProjectedTotal();
         
         if (this.budgetExceeded) {
-            // Show over-budget confirmation modal
+            //Show over-budget confirmation modal
             this.showOverBudgetModal = true;
             this.pendingSaveAction = this.saveRoleRates;
             this.overBudgetAmount = this.budgetExcess;
             this.showRoleModal = false;
         } else {
-            // Show regular confirmation modal for under-budget changes
+            //Show regular confirmation modal for under-budget changes
             this.showSaveConfirmationModal = true;
             this.pendingSaveAction = this.saveRoleRates;
             this.confirmationType = 'role';
@@ -85,13 +85,13 @@ createApp({
         this.calculateProjectedTotal();
         
         if (this.budgetExceeded) {
-            // Show over-budget confirmation modal
+            //Show over-budget confirmation modal
             this.showOverBudgetModal = true;
             this.pendingSaveAction = this.saveEmployeeRates;
             this.overBudgetAmount = this.budgetExcess;
             this.showEmployeeModal = false;
         } else {
-            // Show regular confirmation modal for under-budget changes
+            //Show regular confirmation modal for under-budget changes
             this.showSaveConfirmationModal = true;
             this.pendingSaveAction = this.saveEmployeeRates;
             this.confirmationType = 'employee';
@@ -99,7 +99,7 @@ createApp({
         }
     },
 
-    // Execute the pending save action after confirmation
+    //Execute the pending save action after confirmation
     async executePendingSave() {
         if (this.pendingSaveAction) {
             await this.pendingSaveAction();
@@ -107,7 +107,7 @@ createApp({
         this.closeAllConfirmationModals();
     },
 
-    // Close all confirmation modals
+    //Close all confirmation modals
     closeAllConfirmationModals() {
         this.showSaveConfirmationModal = false;
         this.showOverBudgetModal = false;
@@ -179,9 +179,9 @@ createApp({
         return this.formatCurrency(value);
     },
 
-    // Notification methods to replace alerts
+    //Notification methods to replace alerts
     showSuccessNotification(message) {
-        // Create a custom notification element
+        //Create a custom notification element
         const notification = document.createElement('div');
         notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
         notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
@@ -193,7 +193,7 @@ createApp({
         
         document.body.appendChild(notification);
         
-        // Auto remove after 3 seconds
+        //Auto remove after 3 seconds
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
@@ -202,7 +202,7 @@ createApp({
     },
 
     showErrorNotification(message) {
-        // Create a custom notification element
+        //Create a custom notification element
         const notification = document.createElement('div');
         notification.className = 'alert alert-danger alert-dismissible fade show position-fixed';
         notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
@@ -214,7 +214,7 @@ createApp({
         
         document.body.appendChild(notification);
         
-        // Auto remove after 5 seconds
+        //Auto remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
@@ -229,7 +229,7 @@ createApp({
                 const data = await response.json();
                 this.budgetComparison = data;
             } else {
-                // Reset to default if no data
+                //Reset to default if no data
                 this.budgetComparison = {
                     currentBudget: this.globalBudget,
                     previousBudget: this.globalBudget,
@@ -399,13 +399,13 @@ createApp({
         let daysToSubtract;
         switch (dayOfWeek) {
             case 0: //Sunday
-                daysToSubtract = 5; // Go back 5 days to Tuesday
+                daysToSubtract = 5; //Go back 5 days to Tuesday
                 break;
             case 1: //Monday  
-                daysToSubtract = 6; // Go back 6 days to Tuesday
+                daysToSubtract = 6; //Go back 6 days to Tuesday
                 break;
             case 2: //Tuesday
-                daysToSubtract = 0; // Today is Tuesday
+                daysToSubtract = 0; //Today is Tuesday
                 break;
             default: //Wednesday through Saturday
                 daysToSubtract = dayOfWeek - 2; //Go back to this week's Tuesday
@@ -416,7 +416,7 @@ createApp({
         const mostRecentTuesday = new Date(today);
         mostRecentTuesday.setDate(today.getDate() - daysToSubtract);
         
-        // Fix the date formatting to ensure correct timezone handling
+        //Fix the date formatting to ensure correct timezone handling
         const year = mostRecentTuesday.getFullYear();
         const month = String(mostRecentTuesday.getMonth() + 1).padStart(2, '0');
         const day = String(mostRecentTuesday.getDate()).padStart(2, '0');
@@ -820,7 +820,6 @@ createApp({
         }
     },
     
-    // Keep your existing watchers too
     employeeRates: {
         handler() {
             if (this.showEmployeeModal) {

@@ -22,7 +22,7 @@ router.get('/summary', payrollController.getPayrollSummary);
 //Get detailed payment records
 router.get('/payments', payrollController.getPaymentDetails);
 
-// Get budget history
+//Get budget history
 router.get('/budget-history', async (req, res) => {
     try {
         const [rows] = await db.query(`
@@ -36,7 +36,7 @@ router.get('/budget-history', async (req, res) => {
     }
 });
 
-// Manual budget override
+//Manual budget override
 router.post('/set-budget', async (req, res) => {
     try {
         const { budget, date } = req.body;
