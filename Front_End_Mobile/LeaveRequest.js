@@ -571,7 +571,10 @@ const LeaveTypes = React.useMemo(() => [
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
       <View style={styles.appBar}>
-        <Text style={styles.appBarTitle}>Request Leave</Text>
+        <View style={styles.appBarContent}>
+          <Icon name="walk-outline" size={24} color="#ffffff" />
+          <Text style={styles.appBarTitle}>Request Leave</Text>
+        </View>
       </View>
 
       <ScrollView 
@@ -729,25 +732,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#1a1a1a',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    borderBottomColor: '#2a2a2a'
+  
+  },
+  appBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   appBarTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#ffffff',
-    marginLeft: 100,
+    color: '#fff',
+    marginLeft: 10,
   },
   formContainer: {
     backgroundColor: '#2c2c2c',
     borderRadius: 10,
     padding: 30,
     marginBottom: 30,
+    marginTop: 25,
     width: '100%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     left: 0,
     right: 0,
   },
