@@ -1,22 +1,23 @@
+// Yatin
 const db = require('./db');
 exports.sendMessage = async (req, res) => {
     const { sender_id, receiver_id, content } = req.body;
-    
+
     //validate required fields
     if (!sender_id || !receiver_id || !content) {
-        return res.status(400).json({ 
+        return res.status(400).json({
             error: "Missing required fields",
             required: ["sender_id", "receiver_id", "content"]
         });
     }
-    
+
     try {
         //validate employees exist
         const [sender] = await db.query('SELECT employee_id FROM t_employee WHERE employee_id = ?', [sender_id]);
         const [receiver] = await db.query('SELECT employee_id FROM t_employee WHERE employee_id = ?', [receiver_id]);
-        
+
         if (!sender.length || !receiver.length) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: "Sender or receiver not found",
                 sender_exists: sender.length > 0,
                 receiver_exists: receiver.length > 0
@@ -45,7 +46,7 @@ exports.sendMessage = async (req, res) => {
         res.status(201).json(message[0]);
     } catch (err) {
         console.error("Error sending message:", err);
-        res.status(500).json({ 
+        res.status(500).json({
             error: "Failed to send message",
             details: err.message
         });
@@ -54,7 +55,7 @@ exports.sendMessage = async (req, res) => {
 
 exports.getConversation = async (req, res) => {
     const { employee1_id, employee2_id } = req.params;
-    
+
     try {
         const [messages] = await db.query(`
             SELECT m.*, 
@@ -79,7 +80,7 @@ exports.getConversation = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
     const { message_ids } = req.body;
-    
+
     try {
         if (!Array.isArray(message_ids) || message_ids.length === 0) {
             return res.status(400).json({ error: "Invalid message IDs" });
