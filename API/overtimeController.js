@@ -108,7 +108,7 @@ cron.schedule('* * * * * *', async () => {
               );
             }
 
-            console.log(`Marked overtime shift ${shift.shift_id} as missed - employee ${shift.employee_id} did not clock in`);
+            //console.log(`Marked overtime shift ${shift.shift_id} as missed - employee ${shift.employee_id} did not clock in`);
           }
         }
       }
@@ -222,7 +222,7 @@ cron.schedule('* * * * * *', async () => {
               [newShiftStatus, shift.shift_id]
             );
             
-            console.log(`Updated overtime shift ${shift.shift_id} status to '${newShiftStatus}' after proof QR expired`);
+           // console.log(`Updated overtime shift ${shift.shift_id} status to '${newShiftStatus}' after proof QR expired`);
           }
 
           //Send notification to manager of missed overtime shift
@@ -319,7 +319,7 @@ exports.generateQR = async (req, res) => {
          AND e.status_ != 'On Leave'  
          AND s.status_ = 'completed'  
          AND s.shift_type = 'normal'
-         AND s.end_date = CURDATE()`,  
+         AND CONCAT(s.end_date, ' ', s.end_time) >= DATE_SUB(NOW(), INTERVAL 5 HOUR)`,  
          roles
       );
 
@@ -511,7 +511,7 @@ exports.endOvertime = async (req, res) => {
     //Generate proof QR code
     const proofData = `OVERTIME-ATTENDANCE-${uuidv4()}`;
     const proofImage = await QRCode.toDataURL(proofData);
-    const proofExpiration = new Date(Date.now() + 3 * 60 * 1000); // 1 minute for testing
+    const proofExpiration = new Date(Date.now() + 3 * 60 * 1000); // 3 minute for testing
 
     //Save proof QR to database
     const [qrResult] = await connection.query(

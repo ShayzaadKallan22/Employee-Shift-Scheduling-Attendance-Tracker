@@ -435,9 +435,9 @@ cron.schedule('* * * * * *', async () => {
                 shiftDate,
                 shift.start_time
             ]);
-            console.log("DATE: " + shiftDate);
-            console.log("TIME: " + shift.start_time);
-            console.log(`Extended QR code expiry time by 60 minutes for replacement employee`);
+            // console.log("DATE: " + shiftDate);
+            // console.log("TIME: " + shift.start_time);
+            // console.log(`Extended QR code expiry time by 60 minutes for replacement employee`);
 
             //Send additional notification to replacement employee about the extended time
             //const urgentNotificationMessage = `URGENT: You have been assigned an immediate replacement shift for ${shift.role_title}. Please arrive as soon as possible. QR code has been extended for 30 minutes to allow travel time.`;
@@ -453,7 +453,7 @@ cron.schedule('* * * * * *', async () => {
             // `, [replacementEmployee.employee_id, urgentNotificationMessage]);
 
 
-            console.log(`Successfully assigned replacement employee ${replacementEmployee.first_name} ${replacementEmployee.last_name} for missed shift ${shift.shift_id}`);
+           // console.log(`Successfully assigned replacement employee ${replacementEmployee.first_name} ${replacementEmployee.last_name} for missed shift ${shift.shift_id}`);
           }
         }
       }
@@ -658,7 +658,7 @@ cron.schedule('* * * * *', async () => {
       AND qr.expiration_time >= DATE_SUB(NOW(), INTERVAL 30 SECOND)
       AND DATE(qr.generation_time) = CURDATE()
     `);
-    console.log(expiredQRs);
+    //console.log(expiredQRs);
     for (const qr of expiredQRs) {
       //Find replacement shifts that should have used this QR code
       const [replacementShifts] = await connection.query(`
@@ -718,7 +718,7 @@ cron.schedule('* * * * *', async () => {
             );
           }
 
-          console.log(`Replacement employee ${shift.first_name} ${shift.last_name} failed to show up for shift ${shift.shift_id} - QR expired`);
+          //console.log(`Replacement employee ${shift.first_name} ${shift.last_name} failed to show up for shift ${shift.shift_id} - QR expired`);
         }
       }
     }

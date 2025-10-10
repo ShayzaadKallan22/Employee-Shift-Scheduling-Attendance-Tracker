@@ -1,5 +1,4 @@
-//AUTOMATED SHIFT REPLACEMENT SYSTEM
-//Author: SHAYZAAD KALLAN
+//AUTHOR: SHAYZAAD KALLAN
 
 const db = require('./db');
 const cron = require('node-cron');
@@ -69,7 +68,7 @@ async function processShiftReplacement(cancellation) {
 
         console.log(`Processing cancellation ${cancellation_id} for shift ${shift_id}`);
 
-        // Mark the original shift as "missed"
+        //Mark the original shift as "missed"
         const [originalEmployee] = await db.query(`
             SELECT first_name, last_name 
             FROM t_employee 

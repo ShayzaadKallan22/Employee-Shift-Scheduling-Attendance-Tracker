@@ -46,7 +46,7 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
             newBudget = cleanActualSpend + buffer;
             adjustmentReason = `Exceeded by R${overage.toFixed(2)}, added ${(BUFFER_PERCENTAGE * 100)}% buffer`;
             
-            console.log(`Budget exceeded by R${overage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
+         //   console.log(`Budget exceeded by R${overage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
             
         } else if (cleanActualSpend < currentBudget) {
             //Case 2: Budget wasn't fully used
@@ -58,7 +58,7 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
             newBudget = cleanActualSpend + buffer;
             adjustmentReason = `Under budget by R${underage.toFixed(2)}, reduced with ${(BUFFER_PERCENTAGE * 100)}% buffer`;
             
-            console.log(`Budget under by R${underage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
+          //  console.log(`Budget under by R${underage.toFixed(2)}. Setting new budget to actual spend (R${cleanActualSpend.toFixed(2)}) + ${(BUFFER_PERCENTAGE * 100)}% buffer (R${buffer.toFixed(2)})`);
             
         } else {
             //Case 3: Exactly on budget (rare)
@@ -66,7 +66,7 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
             newBudget = cleanActualSpend * (1 + BUFFER_PERCENTAGE);
             adjustmentReason = `Exactly on budget, maintained with ${(BUFFER_PERCENTAGE * 100)}% buffer`;
             
-            console.log(`Exactly on budget. Maintaining with ${(BUFFER_PERCENTAGE * 100)}% buffer`);
+         //   console.log(`Exactly on budget. Maintaining with ${(BUFFER_PERCENTAGE * 100)}% buffer`);
         }
         
         //Apply constraints
@@ -99,8 +99,8 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
             adjustmentReason
         ]);
         
-        console.log(`Budget adjusted: R${currentBudget.toFixed(2)} -> R${newBudget.toFixed(2)} (Actual spend: R${cleanActualSpend.toFixed(2)})`);
-        console.log(`Reason: ${adjustmentReason}`);
+        // console.log(`Budget adjusted: R${currentBudget.toFixed(2)} -> R${newBudget.toFixed(2)} (Actual spend: R${cleanActualSpend.toFixed(2)})`);
+        // console.log(`Reason: ${adjustmentReason}`);
         
         return newBudget;
     } catch (err) {
@@ -134,7 +134,7 @@ exports.updateRoleRates = async (req, res) => {
         const updates = req.body;
         const updatedRoleIds = updates.map(update => update.role_id);
 
-        console.log("To Update:" + updatedRoleIds)
+      //  console.log("To Update:" + updatedRoleIds)
         //Process each role update
         for (const update of updates) {
             //Update the role rates first
@@ -250,7 +250,7 @@ exports.updateEmployeeRates = async (req, res) => {
                 `, [update.employee_id]);
 
                 if (currentRates.length === 0) {
-                    continue; // Skip if employee not found
+                    continue; //Skip if employee not found
                 }
 
                 const current = currentRates[0];
@@ -261,7 +261,7 @@ exports.updateEmployeeRates = async (req, res) => {
                 
                 //Only update if rates have changed
                 if (baseRateChanged || overtimeRateChanged) {
-                    // Update the employee rates
+                    //Update the employee rates
                     await db.query(`
                         UPDATE t_employee 
                         SET base_hourly_rate = ?, overtime_hourly_rate = ?
@@ -279,9 +279,9 @@ exports.updateEmployeeRates = async (req, res) => {
                         2 //Payroll
                     ]);
                     
-                    console.log(`Updated rates for employee ${update.employee_id}: Base ${current.effective_base} -> ${update.base_hourly_rate}, Overtime ${current.effective_overtime} -> ${update.overtime_hourly_rate}`);
+                  //  console.log(`Updated rates for employee ${update.employee_id}: Base ${current.effective_base} -> ${update.base_hourly_rate}, Overtime ${current.effective_overtime} -> ${update.overtime_hourly_rate}`);
                 } else {
-                    console.log(`No rate changes for employee ${update.employee_id} - skipping notification`);
+                  //  console.log(`No rate changes for employee ${update.employee_id} - skipping notification`);
                 }
             }
         }
@@ -304,9 +304,9 @@ async function generatePayroll() {
         const paymentDate = new Date(saToday);
         paymentDate.setDate(saToday.getDate() - daysToSubtract);
         
-        console.log(`Today (SA Time): ${saToday.toDateString()} (day ${dayOfWeek})`);
-        console.log(`Days to subtract: ${daysToSubtract}`);
-        console.log(`Payment date calculated: ${paymentDate.toDateString()}`);
+        // console.log(`Today (SA Time): ${saToday.toDateString()} (day ${dayOfWeek})`);
+        // console.log(`Days to subtract: ${daysToSubtract}`);
+        // console.log(`Payment date calculated: ${paymentDate.toDateString()}`);
 
         //Set up date range for payroll period using SA timezone
         let startDateTime, endDateTime;
@@ -322,9 +322,9 @@ async function generatePayroll() {
         startDateTime.setHours(12, 0, 0, 0); //Previous Tuesday 12:00:00 PM SA Time
 
         //Format payment date for database (SA timezone)
-        const paymentDateStr = paymentDate.toLocaleDateString('en-CA', {timeZone: 'Africa/Johannesburg'}); // YYYY-MM-DD format
+        const paymentDateStr = paymentDate.toLocaleDateString('en-CA', {timeZone: 'Africa/Johannesburg'}); //YYYY-MM-DD format
 
-        console.log(`Generating payroll for period (SA Time): ${startDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})} to ${endDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})}, payment date: ${paymentDateStr}`);
+       // console.log(`Generating payroll for period (SA Time): ${startDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})} to ${endDateTime.toLocaleString('en-ZA', {timeZone: 'Africa/Johannesburg'})}, payment date: ${paymentDateStr}`);
 
         //query to include ALL active employees, not just those with shifts
         const payrollQuery = `
@@ -415,7 +415,7 @@ async function generatePayroll() {
 
         //Parameters using DATETIME format for precise time filtering (in SA timezone)
         //Convert SA time to UTC for database storage if needed, or keep as SA time if database is configured for SA timezone
-        const startDateTimeStr = startDateTime.toLocaleString('sv-SE', {timeZone: 'Africa/Johannesburg'}).replace(' ', ' '); // YYYY-MM-DD HH:MM:SS format
+        const startDateTimeStr = startDateTime.toLocaleString('sv-SE', {timeZone: 'Africa/Johannesburg'}).replace(' ', ' '); //YYYY-MM-DD HH:MM:SS format
         const endDateTimeStr = endDateTime.toLocaleString('sv-SE', {timeZone: 'Africa/Johannesburg'}).replace(' ', ' ');
         
         const params = [
@@ -464,7 +464,7 @@ async function generatePayroll() {
         //Adjust budget for next period automatically
         await adjustBudgetForNextPeriod(paymentDateStr, totalPayroll);
         
-        console.log(`Payroll generated successfully for ${paymentDateStr} - processed ${payrollData.length} employees, total: R${totalPayroll.toFixed(2)}`);
+       // console.log(`Payroll generated successfully for ${paymentDateStr} - processed ${payrollData.length} employees, total: R${totalPayroll.toFixed(2)}`);
         
     } catch (err) {
         console.error('Error generating payroll:', err);
@@ -517,8 +517,8 @@ exports.getPaymentDetails = async (req, res) => {
         
         const [rows] = await db.query(query, [paymentDate]);
         
-        console.log(`Retrieved payroll details for payment date: ${paymentDate}`);
-        console.log(rows);
+       // console.log(`Retrieved payroll details for payment date: ${paymentDate}`);
+       // console.log(rows);
 
         res.status(200).json(rows);
         
