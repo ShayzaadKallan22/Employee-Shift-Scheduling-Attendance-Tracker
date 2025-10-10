@@ -129,7 +129,12 @@ if(loading){
   return (
   <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
-      <Text style={styles.header}>My Profile</Text>
+      <View style={styles.appBar}>
+          <View style={styles.appBarContent}>
+            <Icon name="person" size={24} color="#ffffff" />
+              <Text style={styles.appBarTitle}> My Profile </Text>
+          </View>
+      </View>
 
       <View style={styles.profilePictureContainer}>
         <View style={styles.initialsContainer}>
@@ -194,6 +199,25 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0, 
   },
+  appBar: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2a2a'
+  },
+  appBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appBarTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 10,
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -209,6 +233,7 @@ const styles = StyleSheet.create({
   width: 100,
   height: 100,
   borderRadius: 50,
+  marginTop: 10,
   backgroundColor: '#007AFF',
   justifyContent: 'center',
   alignItems: 'center',

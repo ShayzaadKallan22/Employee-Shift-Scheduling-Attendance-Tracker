@@ -5,6 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, SafeAreaView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
@@ -37,6 +39,9 @@ const Shift = () => {
   const [colleagueShiftDateStrings, setColleagueShiftDateStrings] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [shifts, setShifts] = useState([]);
+  const [suggestedColleagues, setSuggestedColleagues] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [approvalRecommendations, setApprovalRecommendations] = useState({});
 
   //Helper function to sort dates
   const sortByDate = (requests) =>
@@ -114,6 +119,38 @@ const Shift = () => {
     fetchEmpShiftDates();
   }, [requestingEmployeeId]);
 
+  //Fetch suggested colleagues for swaps.
+  useEffect(() => {
+  const fetchSuggestedColleagues = async () => {
+    if (!requestingEmployeeId || !assignedDate) return;
+    
+    try {
+      //Format date as YYYY-MM-DD
+      const dateStr = assignedDate.toISOString().split('T')[0];
+      
+      console.log('Fetching suggestions for:', { requestingEmployeeId, dateStr });
+      
+      const response = await fetch(
+        `${API_URL}/api/shift-swap/suggested-colleagues?employee_id=${requestingEmployeeId}&shift_date=${dateStr}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Suggested colleagues:', data);
+        setSuggestedColleagues(data);
+        setShowSuggestions(data.length > 0);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch suggestions:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+    }
+  };
+
+  fetchSuggestedColleagues();
+}, [assignedDate, requestingEmployeeId]);
+
   //Fetch employee colleagues with same role.
   useEffect(() => {
     if (!requestingEmployeeId) return;
@@ -185,6 +222,38 @@ const Shift = () => {
     fetchColleagueShiftDates();
   }, [selectedColleague]);
 
+  //Fetch approval recommendations for colleague requests.
+  useEffect(() => {
+  const fetchApprovalRecommendations = async () => {
+    if (!colleagueRequests.length) return;
+
+    const recommendations = {};
+    
+    for (const request of colleagueRequests) {
+      if (request.status === 'pending') {
+        try {
+          const response = await fetch(
+            `${API_URL}/api/shift-swap/approval-recommendation?swap_id=${request.id}&approving_employee_id=${requestingEmployeeId}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            recommendations[request.id] = data;
+          }
+        } catch (error) {
+          console.error('Error fetching recommendation for request:', request.id, error);
+        }
+      }
+    }
+    
+    setApprovalRecommendations(recommendations);
+  };
+
+  if (activeTab === 'Swap' && colleagueRequests.length > 0) {
+    fetchApprovalRecommendations();
+  }
+}, [colleagueRequests, activeTab, requestingEmployeeId]);
+
   //Mark colleague's assigned shift dates on the calendar
   const markedColleagueDates = colleagueShiftDateStrings.reduce((acc, dateStr) => {
     acc[dateStr] = {
@@ -200,16 +269,18 @@ const Shift = () => {
 
   //Mark employee assigned shift dates on the Calendar
   const markedAssignedDates = empShiftDateStrings.reduce((acc, dateStr) => {
-    acc[dateStr] = {
-      selected: true,
-      selectedColor: '#007bff',
-      customStyles: {
-        text: { color: 'white' },
-        container: { backgroundColor: '#007bff' },
+  acc[dateStr] = {
+    selected: true,
+    selectedColor: 'rgba(0, 123, 255, 0.3)', 
+    selectedTextColor: '#007bff',
+    customStyles: {
+      container: {
+        borderRadius: 5,
       }
-    };
-    return acc;
-  }, {});
+    }
+  };
+  return acc;
+}, {});
 
   //Mark dates for schedule calendar
   const markedDates = shifts.reduce((acc, shift) => {
@@ -353,7 +424,72 @@ const Shift = () => {
     }
   };
 
-  const renderRequestCard = (request, isMyRequest = false) => (
+  //Render colleague suggestions.
+  const renderColleagueSuggestions = () => (
+  <View style={styles.suggestionsContainer}>
+    <Text style={styles.suggestionsTitle}>
+      <Ionicons name="lightbulb" size={16} color="#FFA500" /> Suggested Colleagues
+    </Text>
+    <Text style={styles.suggestionsSubtitle}>Based on compatibility and availability</Text>
+    
+    {suggestedColleagues.slice(0, 3).map((colleague, index) => (
+      <TouchableOpacity 
+        key={colleague.employee_id}
+        style={[
+          styles.suggestionCard,
+          colleague.compatibility_level === 'High' && styles.highCompatibility,
+          colleague.compatibility_level === 'Medium' && styles.mediumCompatibility,
+          colleague.compatibility_level === 'Low' && styles.lowCompatibility
+        ]}
+        onPress={() => {
+          setSelectedColleague(colleague.employee_id);
+          setShowSuggestions(false);
+        }}
+      >
+        <View style={styles.suggestionHeader}>
+          <Text style={styles.suggestionName}>{colleague.name}</Text>
+          <View style={[
+            styles.compatibilityBadge,
+            colleague.compatibility_level === 'High' && styles.highBadge,
+            colleague.compatibility_level === 'Medium' && styles.mediumBadge,
+            colleague.compatibility_level === 'Low' && styles.lowBadge
+          ]}>
+            <Text style={styles.compatibilityText}>
+              {colleague.compatibility_level} Match
+            </Text>
+          </View>
+        </View>
+        
+        <View style={styles.suggestionStats}>
+          <Text style={styles.suggestionStat}>
+            <Icon name="checkmark-circle" size={16} color="green" /> {colleague.successful_swaps_count} successful swaps
+          </Text>
+          <Text style={styles.suggestionStat}>
+           <FontAwesome5 name="calendar-alt" size={16} color="#fff" /> {colleague.available_dates?.length || 0} available dates
+          </Text>
+        </View>
+        
+        {colleague.available_dates && colleague.available_dates.length > 0 && (
+          <Text style={styles.availableDates}>
+            Next available date: {colleague.available_dates[1]}
+          </Text>
+        )}
+      </TouchableOpacity>
+    ))}
+    
+    <TouchableOpacity 
+      style={styles.viewAllButton}
+      onPress={() => setShowSuggestions(false)}
+    >
+      <Text style={styles.viewAllText}>View All Colleagues</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const renderRequestCard = (request, isMyRequest = false) => {
+  const recommendation = approvalRecommendations[request.id];
+  
+  return (
     <View key={request.id} style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <Text style={styles.requestTitle}>Request #{request.id}</Text>
@@ -370,7 +506,46 @@ const Shift = () => {
         </View>
       </View>
 
-      {/* Show different text based on whether it's my request or a request to me */}
+      {/* System Recommendation Banner */}
+      {!isMyRequest && recommendation && request.status === 'pending' && (
+        <View style={[
+          styles.recommendationBanner,
+          recommendation.recommendation === 'approve' && styles.approveBanner,
+          recommendation.recommendation === 'reject' && styles.rejectBanner,
+          recommendation.recommendation === 'neutral' && styles.neutralBanner
+        ]}>
+          <Text style={styles.recommendationTitle}>
+            <Ionicons name="robot" size={16} color="#ffffffc4" /> 
+            {recommendation.recommendation === 'approve' ? ' Recommended to Approve' :
+            recommendation.recommendation === 'reject' ? ' Recommended to Reject' :
+            ' Consider Carefully'}
+          </Text>
+          <Text style={styles.recommendationScore}>
+            Recommendation Confidence: {recommendation.score}%
+          </Text>
+          
+          {recommendation.reasons.length > 0 && (
+            <View style={styles.reasonList}>
+              {recommendation.reasons.map((reason, index) => (
+                <Text key={index} style={styles.reasonText}>
+                  <Icon name="checkmark-circle" size={16} color="green" /> {reason}
+                </Text>
+              ))}
+            </View>
+          )}
+          
+          {recommendation.warnings.length > 0 && (
+            <View style={styles.warningList}>
+              {recommendation.warnings.map((warning, index) => (
+                <Text key={index} style={styles.warningText}>
+                  <Ionicons name="alert" size={16} color="orange" /> {warning}
+                </Text>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
       {isMyRequest ? (
         <>
           <Text style={styles.requestText}>Requested from: {request.colleague || 'Unknown'}</Text>
@@ -385,23 +560,32 @@ const Shift = () => {
         </>
       )}
 
-      {/* Only show action buttons for requests that need my approval (not my own requests) */}
+      {/* Action buttons with recommendation influence */}
       {!isMyRequest && activeTab === 'Swap' && request.status === 'pending' && (
         <View style={styles.actionButtons}>
           <TouchableOpacity 
-            style={[styles.actionButton, styles.declineButton]}
-            onPress={() => respondToRequest(request.id, 'rejected')}>
+            style={[
+              styles.actionButton, 
+              styles.declineButton,
+              recommendation?.recommendation === 'reject' && styles.highlightedAction
+            ]}
+            onPress={() => respondToRequest(request.id, 'rejected')}
+          >
             <Text style={styles.buttonText}>Decline</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.actionButton, styles.confirmButton]}
-            onPress={() => respondToRequest(request.id, 'approved')}>
+            style={[
+              styles.actionButton, 
+              styles.confirmButton,
+              recommendation?.recommendation === 'approve' && styles.highlightedAction
+            ]}
+            onPress={() => respondToRequest(request.id, 'approved')}
+          >
             <Text style={styles.buttonText}>Approve</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Show status message for my own requests */}
       {isMyRequest && (
         <Text style={[
           styles.requestText, 
@@ -415,13 +599,19 @@ const Shift = () => {
       )}
     </View>
   );
+};
 
   const selectedShift = shifts.find(shift => shift.fullDate === selectedDate);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.header}>Shifts</Text>
+        <View style={styles.appBar}>
+                <View style={styles.appBarContent}>
+                  <Icon name="swap-horizontal-outline" size={24} color="#ffffff" />
+                  <Text style={styles.appBarTitle}> Shift </Text>
+                </View>
+        </View>
         
         <View style={styles.tabContainer}>
           <TouchableOpacity 
@@ -584,6 +774,9 @@ const Shift = () => {
                     </Picker>
                   </View>
 
+                  {/**Show colleague suggestions for shift swap */}
+                  {showSuggestions && suggestedColleagues.length > 0 && renderColleagueSuggestions()}
+
                   <Text style={styles.label}>Assigned Date:</Text>
                   <TouchableOpacity
                     style={styles.dateInput}
@@ -696,6 +889,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingBottom: 0,
+  },
+  appBar: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2a2a'
+  },
+  appBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appBarTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 10,
   },
   header: {
     fontSize: 24,
@@ -985,6 +1197,151 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     position: 'absolute',
     bottom: 4,
+  },
+  suggestionsContainer: {
+    backgroundColor: '#2c2c2c',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+  },
+  suggestionsTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  suggestionsSubtitle: {
+    color: '#aaaaaa',
+    fontSize: 14,
+    marginBottom: 15,
+  },
+  suggestionCard: {
+    backgroundColor: '#3a3a3a',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007bff',
+  },
+  highCompatibility: {
+    borderLeftColor: '#4CAF50',
+  },
+  mediumCompatibility: {
+    borderLeftColor: '#FFA500',
+  },
+  lowCompatibility: {
+    borderLeftColor: '#FF4444',
+  },
+  suggestionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  suggestionName: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  compatibilityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  highBadge: {
+    backgroundColor: '#4CAF50',
+  },
+  mediumBadge: {
+    backgroundColor: '#FFA500',
+  },
+  lowBadge: {
+    backgroundColor: '#FF4444',
+  },
+  compatibilityText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  suggestionStats: {
+    marginBottom: 8,
+  },
+  suggestionStat: {
+    color: '#cccccc',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  availableDates: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  viewAllButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  viewAllText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+
+  //Recommendation Styles
+  recommendationBanner: {
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+  approveBanner: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  rejectBanner: {
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF4444',
+  },
+  neutralBanner: {
+    backgroundColor: 'rgba(255, 165, 0, 0.2)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFA500',
+  },
+  recommendationTitle: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  recommendationScore: {
+    color: '#cccccc',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  reasonList: {
+    marginBottom: 5,
+  },
+  reasonText: {
+    color: '#4CAF50',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  warningList: {
+    marginBottom: 5,
+  },
+  warningText: {
+    color: '#FFA500',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  highlightedAction: {
+    transform: [{ scale: 1.05 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
 });
 
