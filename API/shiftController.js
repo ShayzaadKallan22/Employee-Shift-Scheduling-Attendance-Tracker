@@ -85,6 +85,8 @@ exports.getEmployeeStatus = async (req, res) => {
         let lastClockIn = null;
         let attendanceStatus = null;
         let onTime = null;
+        
+
 
         if (attendanceRows.length > 0) {
             const attendance = attendanceRows[0];
@@ -93,12 +95,51 @@ exports.getEmployeeStatus = async (req, res) => {
             onTime = attendance.on_time;
         }
 
+       const [attendanceStats] = await db.query(
+            `SELECT 
+                COUNT(*) as total_past_shifts,
+                SUM(CASE WHEN s.status_ = 'completed' THEN 1 ELSE 0 END) as completed_shifts,
+                SUM(CASE WHEN s.status_ = 'missed' THEN 1 ELSE 0 END) as missed_shifts
+             FROM t_shift s
+             WHERE s.employee_id = ?
+             AND s.date_ < CURDATE()
+             AND s.status_ IN ('completed', 'missed')`,
+            [employeeId]
+        );
+
+        const stats = attendanceStats[0];
+        let attendancePercentage = 0;
+
+        //Get recent shift history (last 10 shifts)
+        const [recentShifts] = await db.query(
+            `SELECT COUNT(*) as recent_shifts_count
+             FROM t_shift
+             WHERE employee_id = ?
+             AND date_ < CURDATE()
+             ORDER BY date_ DESC
+             LIMIT 10`,
+            [employeeId]
+        );
+       if (recentShifts.length > 0) {
+        attendancePercentage = Math.round((stats.completed_shifts / stats.total_past_shifts) * 100);
+       }
+        console.log('Attendance stats:', stats, 'Attendance Percentage:', attendancePercentage);
+        //Construct response object
         res.json({
             status: employee.status_, //From t_employee table
             last_clock_in: lastClockIn, //From t_attendance table
             attendance_status: attendanceStatus, //From t_attendance table
             on_time: onTime,
-            employee_name: `${employee.first_name} ${employee.last_name}`
+            employee_name: `${employee.first_name} ${employee.last_name}`,
+            attendance_metrics: {
+                completed_shifts: stats.completed_shifts,
+                missed_shifts: stats.missed_shifts,
+                attendance_percentage: attendancePercentage,
+                //Performance rating based on attendance
+                performance_rating: attendancePercentage >= 70 ? 'Excellent' :
+                                   attendancePercentage >= 60 ? 'Good' :
+                                   attendancePercentage >= 50 ? 'Average' : 'Very poor, improvement needed.'
+            }
         });
 
     } catch (err) {
@@ -230,15 +271,15 @@ exports.cancelShift = async (req, res) => {
 
             console.log(notificationValues);
            try {
+                console.log('Inserting notifications for managers:', notificationValues);
                 await db.query(
                     `INSERT INTO t_notification 
                     (employee_id, message, sent_time, read_status, notification_type_id)
                     VALUES ?`,
-                    [notificationValues] 
+                    [notificationValues]
                 );
             } catch (notifErr) {
                 console.error('Error inserting notifications:', notifErr);
-                
             }
             
            for(const mgr of managerRows) {
@@ -252,7 +293,6 @@ exports.cancelShift = async (req, res) => {
                     );
                 } catch (msgErr) {
                     console.error(`Error inserting message for manager ${mgr.employee_id}:`, msgErr);
-                    
                 }
             }
         }

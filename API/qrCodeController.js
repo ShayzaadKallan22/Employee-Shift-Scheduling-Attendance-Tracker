@@ -161,8 +161,8 @@ exports.scanQR = async (req, res) => {
 };
 
 //Scheduled job to auto clock-out employees who forgot to clock out at the end of their shift.
-//Runs daily at midnight.
-cron.schedule('0 0 * * *', async () => {
+//Runs minute 30 of every hour.
+cron.schedule('30 * * * *', async () => {
   //console.log('Running auto clock-out job at midnight...');
 
   try {

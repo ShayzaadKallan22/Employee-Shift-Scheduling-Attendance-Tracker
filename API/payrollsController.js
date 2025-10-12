@@ -83,7 +83,7 @@ exports.genPayslipPDF = async (req, res) => {
     const grossPay = baseAmount + overtimeAmount;
     const deductions = 0; 
     const netPay = parseFloat(data.total_amount);
-
+   
     //Header with company name and logo area
     drawBox(0, 0, 595, 120, '#1a1a1a');
     doc.fillColor('#FFFFFF')
@@ -109,12 +109,12 @@ exports.genPayslipPDF = async (req, res) => {
        .font('Helvetica-Bold')
        .text('PAYSLIP ID:', 70, yPosition + 15)
        .font('Helvetica')
-       .text(`#${data.payroll_id}`, 160, yPosition + 15);
+       .text(`${data.payroll_id}`, 160, yPosition + 15);
 
     doc.font('Helvetica-Bold')
        .text('PAYMENT DATE:', 70, yPosition + 35)
        .font('Helvetica')
-       .text(new Date(data.payment_date).toLocaleDateString('en-ZA', { 
+       .text(new Date(data.payment_date).toLocaleDateString('en-CA', { 
          year: 'numeric', 
          month: 'long', 
          day: 'numeric' 
@@ -136,7 +136,7 @@ exports.genPayslipPDF = async (req, res) => {
 
     yPosition += 90;
 
-    // Employee Information Section
+    //Employee Information Section
     doc.fillColor('#007bff')
        .fontSize(11)
        .font('Helvetica-Bold')
@@ -178,15 +178,15 @@ exports.genPayslipPDF = async (req, res) => {
        .font('Helvetica')
        .text(data.phone_number, 70, yPosition + 15);
 
-    doc.fillColor('#666666')
-       .fontSize(9)
-       .font('Helvetica-Bold')
-       .text('PAYMENT PERIOD', 300, yPosition);
+   //  doc.fillColor('#666666')
+   //     .fontSize(9)
+   //     .font('Helvetica-Bold')
+   //     .text('PAYMENT PERIOD', 300, yPosition);
     
-    doc.fillColor('#1a1a1a')
-       .fontSize(11)
-       .font('Helvetica')
-       .text(data.period || 'N/A', 300, yPosition + 15);
+   //  doc.fillColor('#1a1a1a')
+   //     .fontSize(11)
+   //     .font('Helvetica')
+   //     .text(data.payment_date || 'N/A', 300, yPosition + 15);
 
     yPosition += 50;
 

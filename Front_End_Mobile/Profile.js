@@ -57,7 +57,7 @@ const ProfileScreen = () => {
       return;
     }
 
-    const employee_id = profileData.employeeId.replace('EMP-', '');
+    const employee_id = await AsyncStorage.getItem('employee_id');
 
     try{
       const res = await fetch(`${API_URL}/api/profile/update/${employee_id}`, {
@@ -65,10 +65,11 @@ const ProfileScreen = () => {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(profileData),
       });
+       Alert.alert('Profile updated successfully');
+       useEffect(() => {
+        fetchEmpProfile();
+       }, []);
 
-       const updated = await res.json();
-       setProfileData(updated);
-      //  console.log('Saved:', profileData);
     }catch(err){
        Alert.alert('Error saving profile:', err);
     }
@@ -112,6 +113,7 @@ if(loading){
     </SafeAreaView>
   );
 }
+//If profile data is not available, show an error message.
   const ProfileField = ({ label, value, editable, onChangeText, keyboardType = 'default', style }) => (
   <View style={styles.infoRow}>
     <Text style={styles.label}>{label}:</Text>

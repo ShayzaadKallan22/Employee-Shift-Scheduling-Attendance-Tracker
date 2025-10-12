@@ -343,6 +343,17 @@ exports.getSuggestedColleagues = async (req, res) => {
     const currentShift = currentShiftRows[0];
     console.log('Current shift:', currentShift);
 
+    //Check if the shift has an event.
+    const hasEvent = currentShift.event_id !== null;
+    const eventWarning = hasEvent ? {
+        hasEvent: true,
+        eventName: currentShift.event_name,
+        message: `This shift falls within a "${currentShift.event_name}" event. Swapping may result in losing extra earnings.`
+    } :{
+        hasEvent: false,
+        message: null
+    };
+
     //Check if start_time is null and set default if necessary
     const shiftStartTime = currentShift.start_time || '09:00:00';
     
@@ -355,14 +366,14 @@ exports.getSuggestedColleagues = async (req, res) => {
         (
           40 +
           COALESCE((
-            SELECT 20 FROM t_shift_swap ss 
+            SELECT 30 FROM t_shift_swap ss 
             WHERE ss.requesting_employee_id = e.employee_id 
             AND ss.status_ = 'approved' 
             AND ss.approval_date_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
             LIMIT 1
           ), 0) +
           COALESCE((
-            SELECT 15 FROM t_shift s2 
+            SELECT 10 FROM t_shift s2 
             LEFT JOIN t_event ev ON s2.date_ BETWEEN ev.start_date AND ev.end_date 
             WHERE s2.employee_id = e.employee_id 
             AND s2.date_ = ? 
@@ -370,7 +381,7 @@ exports.getSuggestedColleagues = async (req, res) => {
             LIMIT 1
           ), 0) +
           COALESCE((
-            SELECT 15 FROM t_leave l 
+            SELECT 10 FROM t_leave l 
             WHERE l.employee_id = e.employee_id 
             AND ? BETWEEN l.start_date AND l.end_date 
             AND l.status_ = 'approved' 
@@ -398,7 +409,14 @@ exports.getSuggestedColleagues = async (req, res) => {
          WHERE s4.employee_id = e.employee_id 
          AND s4.date_ >= CURDATE() 
          AND s4.date_ <= DATE_ADD(CURDATE(), INTERVAL 25 DAY)
-         AND s4.status_ = 'scheduled') AS upcoming_shifts
+         AND s4.status_ = 'scheduled') AS upcoming_shifts,
+
+        (SELECT COUNT(*) FROM t_shift s5 
+         LEFT JOIN t_event ev ON s5.date_ BETWEEN ev.start_date AND ev.end_date
+         WHERE s5.employee_id = e.employee_id 
+         AND s5.date_ >= CURDATE() 
+         AND s5.status_ = 'scheduled'
+         AND ev.event_id IS NOT NULL) AS event_shift_count
 
        FROM t_employee e
        WHERE e.role_id = ? 
@@ -444,11 +462,24 @@ exports.getSuggestedColleagues = async (req, res) => {
           [colleague.employee_id, employee_id]
         );
 
+        //Format available dates with event information.
+        const available_dates = availableShifts.map(shift => ({
+          date: shift.date_.toLocaleDateString(),
+          hasEvent: shift.event_id !== null,
+          eventName: shift.event_name || null,
+          payMultiplier: shift.pay_multiplier || 1.0
+        }));
+
+        const hasEventShifts = available_dates.some(date => date.hasEvent);
+
         return {
           ...colleague,
           available_dates: availableShifts.map(s => s.date_.toLocaleDateString()),
-          compatibility_level: colleague.compatibility_score >= 75 ? 'High' : 
-                             colleague.compatibility_score >= 55 ? 'Medium' : 'Low'
+          compatibility_level: colleague.compatibility_score >= 70 ? 'High' : 
+                               colleague.compatibility_score >= 41 ? 'Moderate' : 'Low',
+          compatibility_score: Math.min(100, colleague.compatibility_score), //Cap at 100
+          hasEventShifts: hasEventShifts,
+          eventShiftCount: colleague.event_shift_count || 0
         };
       })
     );
@@ -466,7 +497,7 @@ exports.getSuggestedColleagues = async (req, res) => {
     res.status(500).json({ 
       message: 'Server error', 
       error: error.message,
-      details: error.sql ? 'SQL error - check logs' : 'Unknown error'
+      details: error.sql ? 'SQL error' : 'Unknown error'
     });
   }
 };

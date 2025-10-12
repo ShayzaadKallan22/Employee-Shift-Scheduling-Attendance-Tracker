@@ -52,24 +52,21 @@ exports.getEmpProfile = async(req, res)=> {
 
 //Update employee profile
 exports.updateProfile = async(req, res) =>{
-
-    const{ id } = req.params;
-    const{ name, email, cellNumber, status} = req.body;
-    if (!name || !email || !cellNumber || !status) {
+    console.log('Update profile request body:', req.body);
+    const{ employee_id } = req.params;
+    const{ email, cellNumber} = req.body;
+    if (!email || !cellNumber) {
        return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const [first_name, last_name = ''] = name.split(' ');
+    //const [first_name, last_name = ''] = name.split(' ');
 
     try{
         await db.query(
             `UPDATE t_employee SET
-              first_name = ?,
-              last_name = ?,
               email = ?,
-              phone_number = ?,
-              status_ = ?,
-            WHERE employee_id = ?`, [first_name, last_name, email, cellNumber, status, id]
+              phone_number = ?
+            WHERE employee_id = ?`, [email, cellNumber, employee_id]
         );
 
         const [updated] = await db.query(
@@ -82,7 +79,7 @@ exports.updateProfile = async(req, res) =>{
               r.title AS role
             FROM t_employee e
             LEFT JOIN t_role r ON e.role_id = r.role_id
-            WHERE e.employee_id = ?`, [id]
+            WHERE e.employee_id = ?`, [employee_id]
         );
 
         res.json({
@@ -93,6 +90,7 @@ exports.updateProfile = async(req, res) =>{
             role: updated.role,
             status: updated.status_
         });
+        console.log('Profile updated successfully');
     }catch(error) {
         console.error('Error updating your profile:', error);
         res.status(500).json({error: 'Failure updating the profile'});
