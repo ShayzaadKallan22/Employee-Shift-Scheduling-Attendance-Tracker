@@ -12,9 +12,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB limit for sick note uploads.
 const cron = require('node-cron');   //For scheduling tasks.
 const { type } = require('os');
 
-//Cron job to update leave status at midnight
-//This job runs every day at midnight to update leave statuses
-cron.schedule('0 0 * * *', async () => {
+//Runs at 0 minutes past every hour (1:00, 2:00, 3:00, etc.)
+cron.schedule('0 * * * *', async () => {
   try {
     //Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0];
@@ -56,9 +55,9 @@ cron.schedule('0 0 * * *', async () => {
              [role.role]
         );
         if (employees.length === 0) {
-            console.log('No standby employees found for role:', row.role);
+            console.log('No standby employees found for role:', role.role);
              await db.execute(
-               `DELETE FROM t_shift WHERE employee_id = ? AND date_ BETWEEN ? AND ?`,
+                `DELETE FROM t_shift WHERE employee_id = ? AND date_ >= ? AND date_ <= ?`,
                 [row.employee_id, row.start_date, row.end_date]
             );
         }else {

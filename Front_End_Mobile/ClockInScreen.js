@@ -10,6 +10,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Location from 'expo-location';
@@ -35,6 +36,10 @@ const ClockInScreen = () => {
   const [cancelNotes, setCancelNotes] = useState('');
   const [strikeCount, setStrikeCount] = useState(0);
   const [endTime, setEndTime] = useState(null);
+  const [attendance, setAttendance] = useState(null);
+  const [completed, setCompleted] = useState(null);
+  const [missed, setMissed] = useState(null);
+  const [rating, setRating] = useState(null); 
   //Animation values
   const pulseAnim = new Animated.Value(1);
   const buttonScale = new Animated.Value(1);
@@ -96,8 +101,16 @@ const ClockInScreen = () => {
         //Fetch attendance status first
         const statusRes = await axios.get(`${API_URL}/api/shifts/status/${employeeId}`);
         const status = statusRes.data.status;
+        const attendance = statusRes.data.attendance_metrics.attendance_percentage; 
+        const completed = statusRes.data.attendance_metrics.completed_shifts; 
+        const missed = statusRes.data.attendance_metrics.missed_shifts;
+        const rating = statusRes.data.attendance_metrics.performance_rating;
         setAttendanceStatus(status);
-        setLastClockIn(statusRes.data.last_clock_in); // FIXED: Use correct property name
+        setLastClockIn(statusRes.data.last_clock_in);
+        setAttendance(attendance);
+        setCompleted(completed);
+        setMissed(missed);
+        setRating(rating);
         // console.log('Attendance status:', statusRes.data);
         
         //Fetch upcoming shifts
@@ -518,6 +531,39 @@ const ClockInScreen = () => {
             Last attendance: {new Date(lastClockIn).toLocaleString()}
           </Text>
         )}
+        {/* <Text style={styles.statusMessage}>{completed} Completed shifts</Text>
+        <Text style={styles.statusMessage}>{missed} missed shifts</Text> */}
+        <Text style={styles.statusMessage}>Shifts completed: {attendance}%</Text>
+        
+          <View style={styles.statusContainer}>
+          {/* <Icon 
+            name={
+              attendance >= 70 ? "trophy" :
+              attendance >= 60 ? "checkmark-circle" :
+              attendance >= 50 ? "alert-circle" : "warning"
+            } 
+            size={16} 
+            color={
+              attendance >= 70 ? "#FFD700" : 
+              attendance >= 60 ? "#4CAF50" : 
+              attendance >= 50 ? "#FF9800" :
+              "#F44336"
+            } 
+          /> */}
+          <Text style={[
+            styles.statusMessage,
+            {
+              color: attendance >= 70 ? "#FFD700" : 
+                    attendance >= 60 ? "#4CAF50" : 
+                    attendance >= 50 ? "#FF9800" :
+                    "#F44336"
+            }
+          ]}>
+            {attendance >= 70 ? 'Excellent attendance, well done!' :
+            attendance >= 60 ? 'Good attendance, keep it up!' :
+            attendance >= 50 ? 'Average attendance' : 'Warning: Attendance Improvement needed.'}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -781,10 +827,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', 
+    marginVertical: 5,
+  },
   statusMessage: {
-    color: '#ffffff',
+    marginLeft: 0, 
     fontSize: 14,
-    marginBottom: 4,
+    fontWeight: '500',
+    color: '#ffffff',
   },
   statusTime: {
     color: '#aaaaaa',
@@ -1001,6 +1053,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
+  iconAlign: {
+  marginBottom: -30,
+},
 });
 
 export default ClockInScreen;

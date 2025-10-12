@@ -44,7 +44,7 @@ const Payslip = () => {
         return;
       }
       setEmployeeId(id);
-      // Fetch all payslips first to find the most recent one
+      //Fetch all payslips first to find the most recent one
       fetchAllPayslips(id);
     };
     initialize();
@@ -57,7 +57,7 @@ const Payslip = () => {
       console.log('API Response:', res.data);
       
       if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        // Find the most recent payslip
+        //Find the most recent payslip
         const sortedPayslips = res.data.sort((a, b) => 
           new Date(b.payment_date) - new Date(a.payment_date)
         );
@@ -122,6 +122,7 @@ const Payslip = () => {
     }
   };
 
+  //Handle date selection from calendar
   const onDateChange = (dayObj) => {
     const date = dayjs(dayObj.dateString);
     if (date.day() !== 2) {
@@ -135,6 +136,7 @@ const Payslip = () => {
     }
   };
 
+  //Download and share payslip PDF
   const downloadPayslip = async (payrollId) => {
     if (!employeeId) return alert('Employee not found.');
 
@@ -161,6 +163,7 @@ const Payslip = () => {
     }
   };
 
+  //Mark selected date on calendar
   const getMarkedDates = () => {
     if (!selectedDate) return {};
     return {
@@ -172,11 +175,13 @@ const Payslip = () => {
     };
   };
 
+  //Disable all days except Tuesdays
   const disableNonTuesdays = (dateStr) => {
     const date = dayjs(dateStr);
     return date.day() !== 2;
   };
 
+  //Calculate gross pay from base and overtime
   const calculateGrossPay = () => {
     if (!selectedPayslip) return 0;
     const baseAmount = parseFloat(selectedPayslip.base_hours || 0) * parseFloat(selectedPayslip.base_hourly_rate || 0);
@@ -184,6 +189,7 @@ const Payslip = () => {
     return (baseAmount + overtimeAmount).toFixed(2);
   };
 
+  //Main render
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0f0f' }}>
       <View style={styles.appBar}>

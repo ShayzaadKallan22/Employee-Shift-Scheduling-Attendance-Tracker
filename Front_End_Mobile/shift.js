@@ -438,12 +438,33 @@ const Shift = () => {
         style={[
           styles.suggestionCard,
           colleague.compatibility_level === 'High' && styles.highCompatibility,
-          colleague.compatibility_level === 'Medium' && styles.mediumCompatibility,
+          colleague.compatibility_level === 'Moderate' && styles.mediumCompatibility,
           colleague.compatibility_level === 'Low' && styles.lowCompatibility
         ]}
         onPress={() => {
-          setSelectedColleague(colleague.employee_id);
-          setShowSuggestions(false);
+          //Show warning for low compatibility
+          if (colleague.compatibility_level === 'Low') {
+            Alert.alert(
+              "Low Compatibility Match",
+              `This swap might not be ideal. Would you like to continue?`,
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel"
+                },
+                {
+                  text: "Continue Anyway",
+                  onPress: () => {
+                    setSelectedColleague(colleague.employee_id);
+                    setShowSuggestions(false);
+                  }
+                }
+              ]
+            );
+          } else {
+            setSelectedColleague(colleague.employee_id);
+            setShowSuggestions(false);
+          }
         }}
       >
         <View style={styles.suggestionHeader}>
@@ -451,11 +472,13 @@ const Shift = () => {
           <View style={[
             styles.compatibilityBadge,
             colleague.compatibility_level === 'High' && styles.highBadge,
-            colleague.compatibility_level === 'Medium' && styles.mediumBadge,
+            colleague.compatibility_level === 'Moderate' && styles.mediumBadge,
             colleague.compatibility_level === 'Low' && styles.lowBadge
           ]}>
+          {/* {colleague.compatibility_level === 'High' || colleague.compatibility_level=== 'Moderate' && <Icon name="thumbs-up" size={16} color="#fff" />}
+          {colleague.compatibility_level === 'Low' && <Icon name="thumbs-down" size={16} color="#fff" />} */}
             <Text style={styles.compatibilityText}>
-              {colleague.compatibility_level} Match
+              {colleague.compatibility_level} match
             </Text>
           </View>
         </View>
@@ -467,11 +490,17 @@ const Shift = () => {
           <Text style={styles.suggestionStat}>
            <FontAwesome5 name="calendar-alt" size={16} color="#fff" /> {colleague.available_dates?.length || 0} available dates
           </Text>
+          <Text style={styles.suggestionStat}>
+            <Ionicons name="handshake-outline" size={16} color="#fff" /> {colleague.compatibility_score}% compatibility
+          </Text>
+          <Text style= {styles.suggestionStat}>
+            <Icon name="star-outline" size={16} color="#fff" /> {colleague.event_shift_count || 0} upcoming premium shifts
+          </Text>
         </View>
         
         {colleague.available_dates && colleague.available_dates.length > 0 && (
           <Text style={styles.availableDates}>
-            Next available date: {colleague.available_dates[1]}
+            Next available date: {colleague.available_dates[0]}
           </Text>
         )}
       </TouchableOpacity>
@@ -1190,7 +1219,6 @@ const styles = StyleSheet.create({
     fontSize: 6,
     fontWeight: 'bold',
   },
-  //Dot indicator
   dot: {
     width: 4,
     height: 4,
@@ -1218,10 +1246,11 @@ const styles = StyleSheet.create({
   suggestionCard: {
     backgroundColor: '#3a3a3a',
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     marginBottom: 10,
     borderLeftWidth: 4,
     borderLeftColor: '#007bff',
+    width: '105%',
   },
   highCompatibility: {
     borderLeftColor: '#4CAF50',
@@ -1281,6 +1310,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 10,
+    width: '105%',
   },
   viewAllText: {
     color: '#ffffff',
