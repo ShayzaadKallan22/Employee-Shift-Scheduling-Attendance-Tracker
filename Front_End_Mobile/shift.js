@@ -128,7 +128,7 @@ const Shift = () => {
       //Format date as YYYY-MM-DD
       const dateStr = assignedDate.toISOString().split('T')[0];
       
-      console.log('Fetching suggestions for:', { requestingEmployeeId, dateStr });
+      //console.log('Fetching suggestions for:', { requestingEmployeeId, dateStr });
       
       const response = await fetch(
         `${API_URL}/api/shift-swap/suggested-colleagues?employee_id=${requestingEmployeeId}&shift_date=${dateStr}`
@@ -136,15 +136,16 @@ const Shift = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Suggested colleagues:', data);
+       //console.log('Suggested colleagues:', data);
         setSuggestedColleagues(data);
         setShowSuggestions(data.length > 0);
       } else {
         const errorText = await response.text();
-        console.error('Failed to fetch suggestions:', response.status, errorText);
+        //console.error('Failed to fetch suggestions:', response.status, errorText);
       }
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      //console.error('Error fetching suggestions:', error);
+      setSuggestedColleagues([]);
     }
   };
 
@@ -241,7 +242,8 @@ const Shift = () => {
             recommendations[request.id] = data;
           }
         } catch (error) {
-          console.error('Error fetching recommendation for request:', request.id, error);
+          //console.error('Error fetching recommendation for request', request.id, error);  
+          setApprovalRecommendations({});
         }
       }
     }

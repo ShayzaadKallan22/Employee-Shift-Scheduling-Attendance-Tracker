@@ -64,17 +64,17 @@ const Payslip = () => {
         const mostRecentPayslip = sortedPayslips[0];
         const mostRecentDate = dayjs(mostRecentPayslip.payment_date).format('YYYY-MM-DD');
         
-        console.log('Most recent payslip date:', mostRecentDate);
+        //console.log('Most recent payslip date:', mostRecentDate);
         setSelectedDate(mostRecentDate);
         setPayslip(mostRecentPayslip);
       } else {
-        console.log('No payslips found');
+        //console.log('No payslips found');
         const latestTuesday = getLatestTuesday();
         setSelectedDate(latestTuesday);
         setPayslip(null);
       }
     } catch (err) {
-      console.error('Error fetching payslips:', err);
+      //console.error('Error fetching payslips:', err);
       Alert.alert('Failed to load payslips.');
       setPayslip(null);
     } finally {
@@ -93,7 +93,7 @@ const Payslip = () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/payroll/${id}`);
-      console.log('Looking for date:', dateToFetch);
+      //console.log('Looking for date:', dateToFetch);
       
       if (res.data && Array.isArray(res.data)) {
         const payslipForDate = res.data.find(p => {
@@ -101,20 +101,20 @@ const Payslip = () => {
           return formattedDate === dateToFetch;
         });
 
-        console.log('Found payslip:', payslipForDate);
+        //console.log('Found payslip:', payslipForDate);
 
         if (payslipForDate) {
           setPayslip(payslipForDate);
         } else {
-          console.log('No payslip found for date:', dateToFetch);
+          //console.log('No payslip found for date:', dateToFetch);
           setPayslip(null);
         }
       } else {
-        console.log('Invalid response data:', res.data);
+        //console.log('Invalid response data:', res.data);
         setPayslip(null);
       }
     } catch (err) {
-      console.error('Error fetching payslips:', err);
+      //console.error('Error fetching payslips:', err);
       Alert.alert('Failed to load payslips.');
       setPayslip(null);
     } finally {

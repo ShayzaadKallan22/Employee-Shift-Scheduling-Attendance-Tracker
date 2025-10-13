@@ -271,9 +271,8 @@ const ClockInScreen = () => {
 
   //Verify if location is within allowed range.
   const verifyLocation = (location) => {
-  
-    return true;
-    //Workplace coordinates (example: UJ APK)
+    console.log('User location:', location.coords);
+    //Workplace coordinates.
     const workplaceCoords = { latitude: -26.1821, longitude: 27.9992 }; //UJ APK
     const distance = calculateDistance(
       location.coords.latitude,
@@ -281,11 +280,12 @@ const ClockInScreen = () => {
       workplaceCoords.latitude,
       workplaceCoords.longitude
     );
-    return distance <= 200; //Within 200 meters
+    return distance <= 800; //Within 800 meters
   };
 
   //Calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    console.log(`Calculating distance between (${lat1}, ${lon1}) and (${lat2}, ${lon2})`);
     const R = 6371; //Earth's radius in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -560,9 +560,9 @@ const ClockInScreen = () => {
                     "#F44336"
             }
           ]}>
-            {attendance >= 70 ? 'Excellent attendance, well done!' :
+            {attendance >= 70 ? 'Excellent attendance, keep it up!' :
             attendance >= 60 ? 'Good attendance, keep it up!' :
-            attendance >= 50 ? 'Average attendance' : 'Warning: Attendance Improvement needed.'}
+            attendance >= 50 ? 'Average attendance' : 'Warning: Attendance Improvement Needed!'}
           </Text>
         </View>
       </View>
