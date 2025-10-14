@@ -1,3 +1,4 @@
+<!-- Yatin -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -138,123 +139,76 @@
             <div class="content">
                 <!-- Navbar Start -->
                 <div id="navbar-container">
-          <nav
-            class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0"
-          >
-            <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
-              <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
-            </a>
-            <a href="#" class="sidebar-toggler flex-shrink-0">
-              <i class="fa fa-bars"></i>
-            </a>
-            <div class="navbar-nav align-items-center ms-auto">
-              <!-- Messages dropdown -->
-              <div class="nav-item dropdown me-3">
-                <a
-                  href="#"
-                  class="nav-link dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  <i class="fa fa-envelope me-lg-2"></i>
-                  <span class="d-none d-lg-inline-flex">Messages</span>
-                  <span
-                    id="messageCount"
-                    class="badge bg-success ms-1"
-                    style="font-size: 0.75rem; display: none"
-                    >0</span
-                  >
-                </a>
-                <div
-                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
-                  style="width: 350px"
-                >
-                  <div
-                    id="recent-messages"
-                    class="overflow-auto"
-                    style="max-height: 400px"
-                  >
-                    <div class="text-center py-3">
-                      <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </div>
-                  </div>
-                  <hr class="dropdown-divider m-0" />
-                  <a
-                    href="message-employee.html"
-                    class="dropdown-item text-center"
-                    >See all messages</a
-                  >
-                </div>
-              </div>
+                    <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+                        <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+                            <h2 class="text-primary mb-0"><i class="fa fa-user-tie"></i></h2>
+                        </a>
+                        <a href="#" class="sidebar-toggler flex-shrink-0">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <div class="navbar-nav align-items-center ms-auto">
+                            <!-- Messages dropdown -->
+                            <div class="nav-item dropdown me-3">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fa fa-envelope me-lg-2"></i>
+                                    <span class="d-none d-lg-inline-flex">Messages</span>
+                                    <span id="messageCount" class="badge bg-success ms-1"
+                                        style="font-size: 0.75rem; display: none">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                                    style="width: 350px">
+                                    <div id="recent-messages" class="overflow-auto" style="max-height: 400px">
+                                        <div class="text-center py-3">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="dropdown-divider m-0" />
+                                    <a href="message-employee.html" class="dropdown-item text-center">See all
+                                        messages</a>
+                                </div>
+                            </div>
 
-              <!-- Notification dropdown -->
-              <div class="nav-item dropdown">
-                <a
-                  href="#"
-                  class="nav-link dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  <i class="fa fa-bell me-lg-2"></i>
-                  <span class="d-none d-lg-inline-flex">Notifications</span>
-                  <span
-                    id="notificationCount"
-                    class="badge bg-danger ms-1"
-                    style="font-size: 0.75rem; display: none"
-                    >0</span
-                  >
-                </a>
-                <div
-                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
-                  style="width: 350px"
-                >
-                  <div
-                    id="recent-notifications"
-                    class="overflow-auto"
-                    style="max-height: 400px"
-                  >
-                    <div class="text-center py-3">
-                      <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </div>
-                  </div>
-                  <hr class="dropdown-divider m-0" />
-                  <a
-                    href="ViewAllNotifications.html"
-                    class="dropdown-item text-center"
-                    >See all notifications</a
-                  >
-                </div>
-              </div>
+                            <!-- Notification dropdown -->
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fa fa-bell me-lg-2"></i>
+                                    <span class="d-none d-lg-inline-flex">Notifications</span>
+                                    <span id="notificationCount" class="badge bg-danger ms-1"
+                                        style="font-size: 0.75rem; display: none">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
+                                    style="width: 350px">
+                                    <div id="recent-notifications" class="overflow-auto" style="max-height: 400px">
+                                        <div class="text-center py-3">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="dropdown-divider m-0" />
+                                    <a href="ViewAllNotifications.html" class="dropdown-item text-center">See all
+                                        notifications</a>
+                                </div>
+                            </div>
 
-              <!-- User dropdown -->
-              <div class="nav-item dropdown">
-                <a
-                  href="#"
-                  class="nav-link dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  <img
-                    class="rounded-circle me-lg-2"
-                    src="img/user.jpg"
-                    alt=""
-                    style="width: 40px; height: 40px"
-                  />
-                  <span class="d-none d-lg-inline-flex" id="nav-profile-name"
-                    >Loading...</span
-                  >
-                </a>
-                <div
-                  class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0"
-                >
-                  <a href="my-profile.html" class="dropdown-item">My Profile</a>
-                  <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                            <!-- User dropdown -->
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                    <img class="rounded-circle me-lg-2" src="img/user.jpg" alt=""
+                                        style="width: 40px; height: 40px" />
+                                    <span class="d-none d-lg-inline-flex" id="nav-profile-name">Loading...</span>
+                                </a>
+                                <div
+                                    class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                                    <a href="my-profile.html" class="dropdown-item">My Profile</a>
+                                    <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
                 </div>
-              </div>
-            </div>
-          </nav>
-        </div>
                 <!-- Navbar End -->
 
                 <!-- Leave Table -->
@@ -281,70 +235,7 @@
                             </div>
 
                             <div class="table-responsive">
-                                <!-- <table class="table table-hover mb-0">
-                                    <thead class="text-white">
-                                        <tr>
-                                            <th>Employee</th>
-                                            <th>Role</th>
-                                            <th v-for="type in leaveTypes" :key="type.leave_type_id">{{ type.name_ }}
-                                            </th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-if="loading">
-                                            <td :colspan="leaveTypes.length + 3" class="text-center">Loading leave
-                                                data...</td>
-                                        </tr>
-                                        <template v-else v-for="employee in employees" :key="employee.employee_id">
-                                            <tr data-bs-toggle="collapse"
-                                                :data-bs-target="'#leaveDetails' + employee.employee_id"
-                                                style="cursor: pointer;">
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="img/user.jpg" class="rounded-circle me-2" alt=""
-                                                            style="width: 30px; height: 30px;">
-                                                        <span>{{ employee.first_name }} {{ employee.last_name }} (EMP-{{
-                                                            employee.employee_id }})</span>
-                                                    </div>
-                                                </td>
-                                                <td>{{ employee.role_title }}</td>
-                                                <td v-for="type in leaveTypes" :key="type.leave_type_id">
-                                                    {{ getRemainingDays(employee, type.leave_type_id) }}
-                                                </td>
-                                                <td><span class="badge"
-                                                        :class="employee.status_ === 'active' ? 'bg-success' : 'bg-secondary'">
-                                                        {{ employee.status_ }}
-                                                    </span></td>
-                                            </tr>
-                                            <tr class="collapse fade bg-secondary"
-                                                :id="'leaveDetails' + employee.employee_id">
-                                                <td :colspan="leaveTypes.length + 3">
-                                                    <div class="p-3" style="max-height: 200px; overflow-y: auto;">
-                                                        <h6 class="mb-3">Recent Leave Requests</h6>
-                                                        <ul class="list-group list-group-flush"
-                                                            v-if="employee.leave_requests && employee.leave_requests.length">
-                                                            <li v-for="request in employee.leave_requests"
-                                                                :key="request.leave_id"
-                                                                class="list-group-item bg-dark text-white d-flex justify-content-between">
-                                                                <span>{{ getLeaveTypeName(request.leave_type_id) }}: {{
-                                                                    formatDate(request.start_date) }} to {{
-                                                                    formatDate(request.end_date)
-                                                                    }}</span>
-                                                                <span class="badge" :class="{
-                                                        'bg-success': request.status_ === 'approved',
-                                                        'bg-warning': request.status_ === 'pending',
-                                                        'bg-danger': request.status_ === 'rejected'
-                                                    }">{{ request.status_ }}</span>
-                                                            </li>
-                                                        </ul>
-                                                        <div v-else class="text-muted">No recent leave requests</div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table> -->
+
                                 <table class="table table-hover mb-0">
                                     <thead class="text-white">
                                         <tr>
@@ -366,13 +257,7 @@
                                             <tr data-bs-toggle="collapse"
                                                 :data-bs-target="'#leaveDetails' + employee.employee_id"
                                                 style="cursor: pointer;">
-                                                <!-- <td>
-          <div class="d-flex align-items-center">
-            <img src="img/user.jpg" class="rounded-circle me-2" alt="" 
-                 style="width: 30px; height: 30px;">
-            <span>{{ employee.first_name }} {{ employee.last_name }} </span>
-          </div>
-        </td> -->
+
 
                                                 <td>
                                                     <div class="d-flex align-items-center">
@@ -386,14 +271,7 @@
                                                     </div>
                                                 </td>
                                                 <td>{{ employee.role_title }}</td>
-                                                <!-- <td v-for="type in leaveTypes" :key="type.leave_type_id">
-          <span :class="{
-            'text-danger': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 3,
-            'text-warning': getRemainingDays(employee, type.leave_type_id).split('/')[0] <= 7
-          }">
-            {{ getRemainingDays(employee, type.leave_type_id) }}
-          </span>
-        </td> -->
+
                                                 <td v-for="type in leaveTypes" :key="type.leave_type_id">
                                                     <template v-if="type.leave_type_id == 2"> <!-- Sick Leave -->
                                                         {{ getRemainingDays(employee, type.leave_type_id) }}
@@ -411,10 +289,10 @@
                                                 </td>
                                                 <td>
                                                     <span class="badge" :class="{
-            'bg-success': employee.status_ === 'Working',
-            'text-warning': employee.status_ === 'On Leave',
-            'bg-secondary': employee.status_ === 'Not Working'
-          }">
+                                                    'bg-success': employee.status_ === 'Working',
+                                                    'text-warning': employee.status_ === 'On Leave',
+                                                    'bg-secondary': employee.status_ === 'Not Working'
+                                                }">
                                                         {{ employee.status_ }}
                                                     </span>
                                                 </td>
@@ -429,11 +307,7 @@
                                                             <li v-for="request in employee.leave_requests"
                                                                 :key="request.leave_id"
                                                                 class="list-group-item bg-dark text-white d-flex justify-content-between">
-                                                                <!-- <span>
-                  {{ getLeaveTypeName(request.leave_type_id, request) }}: 
-                  {{ formatDate(request.start_date) }} to {{ formatDate(request.end_date) }}
-                  ({{ request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1 }} days)
-                </span> -->
+
                                                                 <span
                                                                     v-html="getLeaveTypeName(request.leave_type_id, request, employee)"></span>
                                                                 {{ formatDate(request.start_date) }} to {{
@@ -441,18 +315,12 @@
                                                                 ({{ request.days_taken || (new Date(request.end_date) -
                                                                 new Date(request.start_date)) / (1000 * 60 * 60 * 24) +
                                                                 1 }} days)
-                                                                <!-- <span class="badge" :class="{
-                  'bg-success': request.status_ === 'approved',
-                  'bg-warning': request.status_ === 'pending',
-                  'bg-danger': request.status_ === 'rejected'
-                }">
-                  {{ request.status_ }}
-                </span> -->
+
                                                                 <span class="badge bg-transparent" :style="{
-  color: request.status_ === 'approved' ? '#198754' :
-         request.status_ === 'pending'  ? '#ffc107' :
-         request.status_ === 'rejected' ? '#dc3545' : ''
-}">
+                                                                    color: request.status_ === 'approved' ? '#198754' :
+                                                                            request.status_ === 'pending'  ? '#ffc107' :
+                                                                            request.status_ === 'rejected' ? '#dc3545' : ''
+                                                                    }">
                                                                     {{ request.status_ }}
                                                                 </span>
 
