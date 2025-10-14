@@ -4,13 +4,13 @@ const cron = require('node-cron');
 const db = require('./db');
 
 const BUDGET_ADJUSTMENT_FACTOR = 0.5; //Aggresiveness
-const MIN_BUDGET = 30000; //Minimum budget to prevent going too low
+const MIN_BUDGET = 20000; //Minimum budget to prevent going too low
 const MAX_BUDGET = 130000; //Maximum budget cap
 
 
 async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
     try {
-        const MIN_BUDGET = 30000;  //Minimum allowed budget (R10,000)
+        const MIN_BUDGET = 20000;  //Minimum allowed budget (R10,000)
         const MAX_BUDGET = 130000;  //Maximum allowed budget (R100,000)
         const BUFFER_PERCENTAGE = 0.4; //20% buffer above/below actual spend
         
@@ -31,8 +31,8 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
         `, [currentPaymentDate]);
         
         const currentBudget = currentBudgetRow.length > 0 
-            ? parseFloat(currentBudgetRow[0].adjusted_budget) || 30000
-            : 30000;
+            ? parseFloat(currentBudgetRow[0].adjusted_budget) || 20000
+            : 20000;
 
         //Calculate new budget
         let newBudget;
@@ -105,7 +105,7 @@ async function adjustBudgetForNextPeriod(currentPaymentDate, actualSpend) {
         return newBudget;
     } catch (err) {
         console.error('Error adjusting budget:', err);
-        return 30000; //Fallback to default
+        return 20000; //Fallback to default
     }
 }
 
@@ -555,7 +555,7 @@ exports.getPayrollSummary = async (req, res) => {
             LIMIT 1
         `, [paymentDate]);
 
-        const budget = budgetRows.length > 0 ? budgetRows[0].adjusted_budget : 30000;
+        const budget = budgetRows.length > 0 ? budgetRows[0].adjusted_budget : 20000;
 
         //Query the payroll table for summary data
         const query = `
@@ -624,8 +624,8 @@ exports.getBudgetForDate = async (req, res) => {
         
         //Ensure budget is never negative
         const budget = rows.length > 0 
-            ? Math.max(30000, rows[0].budget) //Minimum R10,000
-            : 30000; //Default
+            ? Math.max(20000, rows[0].budget) //Minimum R10,000
+            : 20000; //Default
          
         res.status(200).json({ budget });
     } catch (err) {
@@ -676,8 +676,8 @@ exports.getBudgetComparison = async (req, res) => {
         //If no current budget data, return default response
         if (currentBudgetRows.length === 0) {
             return res.status(200).json({
-                currentBudget: 30000,
-                previousBudget: 30000,
+                currentBudget: 20000,
+                previousBudget: 20000,
                 adjustment: 0,
                 adjustmentPercentage: 0,
                 adjustmentReason: 'No budget history available',
@@ -687,10 +687,10 @@ exports.getBudgetComparison = async (req, res) => {
             });
         }
         
-        const currentBudget = parseFloat(currentBudgetRows[0].current_budget) || 30000;
+        const currentBudget = parseFloat(currentBudgetRows[0].current_budget) || 20000;
         const previousBudget = previousBudgetRows.length > 0 
-            ? parseFloat(previousBudgetRows[0].previous_budget) || 30000 
-            : 30000;
+            ? parseFloat(previousBudgetRows[0].previous_budget) || 20000 
+            : 20000;
         
         //Calculate adjustment
         const adjustment = currentBudget - previousBudget;
@@ -724,8 +724,8 @@ exports.getBudgetComparison = async (req, res) => {
         console.error('Error in getBudgetComparison:', err);
         res.status(500).json({ 
             message: 'Server error',
-            currentBudget: 30000,
-            previousBudget: 30000,
+            currentBudget: 20000,
+            previousBudget: 20000,
             adjustment: 0,
             adjustmentPercentage: 0,
             adjustmentReason: 'Error loading budget comparison',
