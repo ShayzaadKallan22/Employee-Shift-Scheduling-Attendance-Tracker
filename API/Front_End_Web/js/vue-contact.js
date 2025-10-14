@@ -1,3 +1,4 @@
+// Yatin
 document.addEventListener('DOMContentLoaded', () => {
     const { createApp } = Vue;
 
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // window.location.href = `tel:${this.selectedEmployee.phone_number}`;
             },
             emailEmployee() {
-                // Open default email client
+                //Open default email client
                 window.location.href = `mailto:${this.selectedEmployee.email}`;
             }
         }

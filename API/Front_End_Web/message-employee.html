@@ -741,47 +741,6 @@
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
 
-    <!-- Cancellation Response Modal -->
-    <!-- <div class="modal fade" id="cancellationResponseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-light">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        {{ responseAction === 'approve' ? 'Approve' : 'Deny' }} Cancellation Request
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div v-if="activeCancellation" class="mb-3">
-                        <p><strong>Shift:</strong> {{ formatDate(activeCancellation.shift_date) }} ({{ activeCancellation.start_time }} - {{ activeCancellation.end_time }})</p>
-                        <p><strong>Reason:</strong> {{ activeCancellation.reason }}</p>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Response Notes</label>
-                        <textarea class="form-control bg-secondary text-light" v-model="responseNotes" 
-                                  rows="3" placeholder="Add any notes for the employee..."></textarea>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <small>
-                            <i class="fas fa-info-circle me-1"></i>
-                            This employee has {{ selectedEmployee.cancellation_count || 0 }} 
-                            previous cancellation(s).
-                        </small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn" 
-                            :class="responseAction === 'approve' ? 'btn-success' : 'btn-danger'"
-                            @click="submitCancellationResponse">
-                        {{ responseAction === 'approve' ? 'Approve' : 'Deny' }} Request
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div> -->
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

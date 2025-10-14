@@ -1,3 +1,4 @@
+// Yatin
 const express = require('express');
 const router = express.Router();
 const pool = require('./db');
@@ -44,11 +45,11 @@ router.get('/conversation/:senderId/:receiverId', async (req, res) => {
     }
 });
 
-// Get recent messages for navbar dropdown
+//Get recent messages for navbar dropdown
 router.get('/recent/:employeeId', async (req, res) => {
     try {
         const { employeeId } = req.params;
-        
+
         const [messages] = await pool.query(`
             SELECT m.*, 
                 CASE 
@@ -83,16 +84,16 @@ router.get('/recent/:employeeId', async (req, res) => {
     }
 });
 
-// Get unread message count
+//Get unread message count
 router.get('/unread/count/:employeeId', async (req, res) => {
     try {
         const { employeeId } = req.params;
-        
+
         const [result] = await pool.query(
             'SELECT COUNT(*) as unreadCount FROM t_message WHERE receiver_id = ? AND read_status = "unread"',
             [employeeId]
         );
-        
+
         res.json({ unreadCount: result[0].unreadCount });
     } catch (err) {
         console.error('Error fetching unread count:', err);
@@ -135,32 +136,12 @@ router.post('/send', async (req, res) => {
     }
 });
 
-//mark messages as read...needs work
-// router.post('/mark-read', async (req, res) => {
-//     try {
-//         const { message_ids } = req.body;
 
-//         if (!message_ids || !Array.isArray(message_ids)) {
-//             return res.status(400).json({ error: 'Invalid message IDs' });
-//         }
-
-//         await pool.query(
-//             'UPDATE t_message SET read_status = "read" WHERE message_id IN (?)',
-//             [message_ids]
-//         );
-
-//         res.json({ success: true });
-//     } catch (err) {
-//         console.error('Error marking messages as read:', err);
-//         res.status(500).json({ error: 'Server error' });
-//     }
-// });
-
-// Get shift cancellation requests for a conversation
+//Get shift cancellation requests for a conversation
 router.get('/cancellations/:employeeId', async (req, res) => {
     try {
         const { employeeId } = req.params;
-        
+
         const [cancellations] = await pool.query(`
             SELECT sc.*, s.start_time, s.end_time, s.date_ as shift_date
             FROM t_shift_cancellations sc
@@ -168,7 +149,7 @@ router.get('/cancellations/:employeeId', async (req, res) => {
             WHERE sc.employee_id = ?
             ORDER BY sc.requested_at DESC
         `, [employeeId]);
-        
+
         res.json(cancellations);
     } catch (err) {
         console.error('Error fetching cancellations:', err);
@@ -176,16 +157,16 @@ router.get('/cancellations/:employeeId', async (req, res) => {
     }
 });
 
-// Get cancellation count for an employee
+//Get cancellation count for an employee
 router.get('/cancellation-count/:employeeId', async (req, res) => {
     try {
         const { employeeId } = req.params;
-        
+
         const [result] = await pool.query(
             'SELECT COUNT(*) as count FROM t_shift_cancellations WHERE employee_id = ?',
             [employeeId]
         );
-        
+
         res.json({ count: result[0].count });
     } catch (err) {
         console.error('Error fetching cancellation count:', err);
@@ -193,20 +174,20 @@ router.get('/cancellation-count/:employeeId', async (req, res) => {
     }
 });
 
-// Process shift cancellation response
+//Process shift cancellation response
 router.post('/cancellation-response', async (req, res) => {
     try {
         const { cancellation_id, status_, response_notes, manager_id } = req.body;
-        
-        // Update cancellation status
+
+        //Update cancellation status
         await pool.query(
             `UPDATE t_shift_cancellations 
              SET status_ = ?, response_notes = ?, responded_at = NOW(), processed = 1 
              WHERE cancellation_id = ?`,
             [status_, response_notes, cancellation_id]
         );
-        
-        // Get cancellation details for notification
+
+        //Get cancellation details for notification
         const [cancellation] = await pool.query(`
             SELECT sc.*, s.shift_date, s.start_time, s.end_time,
                    e.first_name, e.last_name, e.employee_id
@@ -215,29 +196,29 @@ router.post('/cancellation-response', async (req, res) => {
             JOIN t_employee e ON sc.employee_id = e.employee_id
             WHERE sc.cancellation_id = ?
         `, [cancellation_id]);
-        
+
         if (cancellation.length > 0) {
             const cancelData = cancellation[0];
             const statusText = status_ === 'approved' ? 'approved' : 'rejected';
-            
-            // Create notification for employee
+
+            //Create notification for employee
             await pool.query(
                 `INSERT INTO t_notification 
                  (employee_id, message, sent_time, read_status, notification_type_id)
                  VALUES (?, ?, NOW(), 'unread', 3)`,
-                [cancelData.employee_id, 
-                 `Your shift cancellation request for ${cancelData.shift_date} has been ${statusText}.`]
+                [cancelData.employee_id,
+                `Your shift cancellation request for ${cancelData.shift_date} has been ${statusText}.`]
             );
-            
-            // Send message to employee about the decision
+
+            //Send message to employee about the decision
             await pool.query(
                 `INSERT INTO t_message (sender_id, receiver_id, content) 
                  VALUES (?, ?, ?)`,
-                [manager_id, cancelData.employee_id, 
-                 `Your shift cancellation for ${cancelData.shift_date} has been ${statusText}. ${response_notes || ''}`]
+                [manager_id, cancelData.employee_id,
+                    `Your shift cancellation for ${cancelData.shift_date} has been ${statusText}. ${response_notes || ''}`]
             );
         }
-        
+
         res.json({ success: true });
     } catch (err) {
         console.error('Error processing cancellation response:', err);
@@ -257,7 +238,7 @@ router.post('/mark-read', async (req, res) => {
             return res.status(400).json({ error: 'Invalid message IDs' });
         }
 
-        // Log the SQL query that will be executed
+        //Logging the SQL query that will be executed
         console.log('Executing SQL: UPDATE t_message SET read_status = "read" WHERE message_id IN (?)', [message_ids]);
 
         const [result] = await pool.query(

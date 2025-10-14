@@ -313,14 +313,15 @@ exports.generateQR = async (req, res) => {
       //Get employees who have completed their normal shifts today (both clocked in and scanned proof QR)
       const [employees] = await connection.query(
         `SELECT DISTINCT e.employee_id, e.role_id
-         FROM t_employee e
-         JOIN t_shift s ON e.employee_id = s.employee_id
-         WHERE e.role_id IN (${roles.map(() => '?').join(',')})
-         AND e.status_ != 'On Leave'  
-         AND s.status_ = 'completed'  
-         AND s.shift_type = 'normal'
-         AND CONCAT(s.end_date, ' ', s.end_time) >= DATE_SUB(NOW(), INTERVAL 5 HOUR)`,  
-         roles
+        FROM t_employee e
+        JOIN t_shift s ON e.employee_id = s.employee_id
+        WHERE e.role_id IN (${roles.map(() => '?').join(',')})
+        AND e.status_ != 'On Leave'  
+        AND s.shift_type = 'normal'
+        AND s.end_date = CURDATE()  
+        AND s.status_ = 'completed'
+        AND TIMESTAMPDIFF(HOUR, CONCAT(s.end_date, ' ', s.end_time), NOW()) <= 5`,  
+        roles
       );
 
       //GET RID 

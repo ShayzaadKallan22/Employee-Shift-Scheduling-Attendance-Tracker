@@ -1,3 +1,4 @@
+// Yatin
 document.addEventListener('DOMContentLoaded', () => {
   const { createApp } = Vue;
 
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     computed: {
-      // Add a computed property to safely access filtered employees
+      //added a computed property to safely access filtered employees
       displayEmployees() {
         return this.filteredEmployees.length > 0 ? this.filteredEmployees : this.employees;
       }
@@ -33,23 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.fetchChartData();
     },
     methods: {
-
-  //     filterEmployees() {
-  //   if (!this.searchQuery.trim()) {
-  //     this.filteredEmployees = [...this.employees];
-  //     return;
-  //   }
-
-  //   const query = this.searchQuery.toLowerCase();
-  //   this.filteredEmployees = this.employees.filter(employee =>
-  //     employee.first_name.toLowerCase().includes(query) ||
-  //     employee.last_name.toLowerCase().includes(query) ||
-  //     employee.role_title.toLowerCase().includes(query) ||
-  //     `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(query)
-  //   );
-  // },
-
-  
+ 
 
   filterEmployees() {
         if (!this.searchQuery.trim()) {
@@ -79,42 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
   return first + last;
 },
 
-      // async fetchLeaveData() {
-      //   try {
-      //     console.log("Fetching leave data...");
-      //     this.loading = true;
-      //     this.error = null;
-
-      //     const [empResponse, typesResponse] = await Promise.all([
-      //       fetch('http://localhost:3000/api/leave/employee-summary'),
-      //       fetch('http://localhost:3000/api/leave/types')
-      //     ]);
-
-      //     if (!empResponse.ok) {
-      //       const errorData = await empResponse.json().catch(() => ({}));
-      //       throw new Error(errorData.message || 'Failed to fetch employee data');
-      //     }
-
-      //     if (!typesResponse.ok) {
-      //       const errorData = await typesResponse.json().catch(() => ({}));
-      //       throw new Error(errorData.message || 'Failed to fetch leave types');
-      //     }
-
-      //     this.employees = await empResponse.json();
-      //     this.leaveTypes = await typesResponse.json();
-
-      //     console.log("Data loaded successfully:", {
-      //       employees: this.employees,
-      //       leaveTypes: this.leaveTypes
-      //     });
-
-      //   } catch (err) {
-      //     console.error('Error fetching leave data:', err);
-      //     this.error = err.message;
-      //   } finally {
-      //     this.loading = false;
-      //   }
-      // },
       
         async fetchLeaveData() {
     try {
@@ -178,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       initChart(chartData) {
         const ctx = document.getElementById('leaveChart').getContext('2d');
 
-        // Destroy previous chart if it exists
+        //Destroy previous chart if it exists
         if (this.chart) {
           this.chart.destroy();
         }
@@ -249,38 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${remaining}/${balance.max_days}`;
       },
 
-      // getLeaveTypeName(typeId, request, employee) {
-      //   if (!this.leaveTypes.length) return 'Loading...';
-      //   const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
-      //   let typeName = type ? type.name_ : 'Unknown';
-        
-      //   // Always show clickable PDF icon for sick leave
-      //   if (typeId == 2) {
-      //     const hasNote = request.sick_note;
-      //     const iconStyle = hasNote ? 
-      //       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
-      //       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
-      //     typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
-      //                   ${iconStyle}
-      //                   onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
-      //   }
-        
-      //   return typeName;
-      // },
 
       getLeaveTypeName(typeId, request, employee) {
   if (!this.leaveTypes.length) return 'Loading...';
   const type = this.leaveTypes.find(t => t.leave_type_id == typeId);
   let typeName = type ? type.name_ : 'Unknown';
   
-  // Always show clickable PDF icon for sick leave
+  //always show clickable PDF icon for sick leave
   if (typeId == 2) {
     const hasNote = request.sick_note;
     const iconStyle = hasNote ? 
       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"' : 
       'style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"';
     
-    // Use the Supabase URL directly from the database
+    //using the Supabase URL directly from the database
     typeName += ` <i class="fas fa-file-pdf ms-2 ${hasNote ? 'text-danger' : 'text-danger'}" 
                   ${iconStyle}
                   onclick="window.location.href='/view-sick-note.html?note=${encodeURIComponent(request.sick_note)}&employeeId=${employee.employee_id}&startDate=${request.start_date}&endDate=${request.end_date}&employeeName=${encodeURIComponent(employee.first_name + ' ' + employee.last_name)}&daysTaken=${request.days_taken || (new Date(request.end_date) - new Date(request.start_date)) / (1000 * 60 * 60 * 24) + 1}'"></i>`;
