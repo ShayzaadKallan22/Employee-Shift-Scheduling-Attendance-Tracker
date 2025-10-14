@@ -57,7 +57,7 @@ const ProfileScreen = () => {
       return;
     }
 
-    const employee_id = profileData.employeeId.replace('EMP-', '');
+    const employee_id = await AsyncStorage.getItem('employee_id');
 
     try{
       const res = await fetch(`${API_URL}/api/profile/update/${employee_id}`, {
@@ -65,10 +65,11 @@ const ProfileScreen = () => {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(profileData),
       });
+       Alert.alert('Profile updated successfully');
+       useEffect(() => {
+        fetchEmpProfile();
+       }, []);
 
-       const updated = await res.json();
-       setProfileData(updated);
-      //  console.log('Saved:', profileData);
     }catch(err){
        Alert.alert('Error saving profile:', err);
     }
@@ -112,6 +113,7 @@ if(loading){
     </SafeAreaView>
   );
 }
+//If profile data is not available, show an error message.
   const ProfileField = ({ label, value, editable, onChangeText, keyboardType = 'default', style }) => (
   <View style={styles.infoRow}>
     <Text style={styles.label}>{label}:</Text>
@@ -129,7 +131,12 @@ if(loading){
   return (
   <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
-      <Text style={styles.header}>My Profile</Text>
+      <View style={styles.appBar}>
+          <View style={styles.appBarContent}>
+            <Icon name="person" size={24} color="#ffffff" />
+              <Text style={styles.appBarTitle}> My Profile </Text>
+          </View>
+      </View>
 
       <View style={styles.profilePictureContainer}>
         <View style={styles.initialsContainer}>
@@ -194,6 +201,25 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0, 
   },
+  appBar: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2a2a'
+  },
+  appBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appBarTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 10,
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -209,6 +235,7 @@ const styles = StyleSheet.create({
   width: 100,
   height: 100,
   borderRadius: 50,
+  marginTop: 10,
   backgroundColor: '#007AFF',
   justifyContent: 'center',
   alignItems: 'center',

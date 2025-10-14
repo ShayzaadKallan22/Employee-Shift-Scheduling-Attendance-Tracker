@@ -147,6 +147,8 @@ const MessagesAndNotifications = () => {
     return activeMessageTab === 'Unread' ? conv.unread : !conv.unread;
   });
 
+  const unreadConversationsCount = conversations.filter(conv => conv.unread).length;
+
   const formatNotificationType = (type) => {
     if (!type) return '';
     let formatted = type.replace(/_/g, ' ');
@@ -165,9 +167,18 @@ const MessagesAndNotifications = () => {
             style={[styles.mainTabButton, activeMainTab === tab && styles.mainActiveTab]}
             onPress={() => setActiveMainTab(tab)}
           >
+           <View style={styles.tabWithBadge}>
             <Text style={[styles.mainTabText, activeMainTab === tab && styles.mainActiveTabText]}>
               {tab}
             </Text>
+              {tab === 'Messages' && unreadConversationsCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
+                  </Text>
+                </View>
+              )}
+           </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -321,18 +332,50 @@ const styles = StyleSheet.create({
   },
   mainTabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#1a1a1a',
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    borderBottomColor: '#333',
-    borderBottomWidth: 1,
-    
+    backgroundColor: '#2a2a2a',
+    margin: 16,
+    borderRadius: 12,
+    padding: 4,
   },
-  mainTabButton: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#555' },
-  mainActiveTab: { backgroundColor: '#007bff', borderColor: '#007bff' },
-  mainTabText: { color: '#aaaaaa', fontWeight: '600' },
-  mainActiveTabText: { color: '#fff' },
+  mainTabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  mainActiveTab: {
+    backgroundColor: '#007bff',
+  },
+  mainTabText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  mainActiveTabText: {
+    color: '#fff',
+  },
+   tabWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -12,
+    backgroundColor: '#ff4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   tabContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10, paddingHorizontal: 5, left: 10, right: 10 },
   tabButton: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#555', size: 12 },
   activeTab: { backgroundColor: '#007bff', borderColor: '#007bff' },

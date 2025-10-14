@@ -1,4 +1,4 @@
-// js/vue-registration.js
+//AUTHOR: Shayzaad
 const { createApp } = Vue;
 
 createApp({
@@ -32,23 +32,23 @@ createApp({
     computed: {
         availableRoles() {
             if (this.formData.type_ === 'manager') {
-                // Only Leader role for managers
+                //Only Leader role for managers
                 return this.allRoles.filter(role => role.value === 'leader');
             } else if (this.formData.type_ === 'employee') {
-                // All roles except Leader for employees
+                //All roles except Leader for employees
                 return this.allRoles.filter(role => role.value !== 'leader');
             } else {
-                // No user type selected, show no roles
+                //No user type selected, show no roles
                 return [];
             }
         }
     },
     watch: {
         'formData.type_'(newType) {
-            // Reset role selection when user type changes
+            //Reset role selection when user type changes
             this.formData.role_id = '';
             
-            // Auto-select Leader if Manager is selected
+            //auto-select Leader if Manager is selected
             if (newType === 'manager') {
                 this.formData.role_id = 'leader';
             }
@@ -56,7 +56,7 @@ createApp({
     },
     methods: {
         async handleSubmit() {
-            // Validate form
+            //Validate form
             if (!this.validateForm()) {
                 return;
             }
@@ -65,7 +65,7 @@ createApp({
             this.clearAlert();
             
             try {
-                // Send data to API
+                //Send data to API
                 const response = await fetch('http://localhost:3000/auth/register', {
                     method: 'POST',
                     headers: {
@@ -80,10 +80,10 @@ createApp({
                     throw new Error(data.message || 'Registration failed');
                 }
                 
-                // Registration successful
+                //Registration successful
                 this.showAlert(`Employee registered successfully! Temporary password: ${data.temporaryPassword}`, 'success');
                 
-                // Reset form
+                //Reset form
                 this.resetForm();
                 
             } catch (error) {
@@ -95,7 +95,7 @@ createApp({
         },
         
         validateForm() {
-            // Check required fields
+            //check required fields
             if (!this.formData.first_name.trim()) {
                 this.showAlert('First name is required', 'danger');
                 return false;
@@ -111,7 +111,7 @@ createApp({
                 return false;
             }
             
-            // Validate email format
+            //Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(this.formData.email)) {
                 this.showAlert('Please enter a valid email address', 'danger');
@@ -145,7 +145,7 @@ createApp({
             this.alert.message = message;
             this.alert.type = type;
             
-            // Auto-clear non-success alerts after 5 seconds
+            //Auto-clear non-success alerts after 5 seconds
             if (type !== 'success') {
                 setTimeout(() => {
                     this.clearAlert();
