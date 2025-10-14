@@ -91,6 +91,30 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     methods: {
 
+      formatSADate(dateString) {
+        if (!dateString || dateString.startsWith('0000-00-00')) {
+          return "None";
+        }
+
+        try {
+          const date = new Date(dateString);
+
+          //check if date is valid
+          if (isNaN(date.getTime())) {
+            return "Invalid Date";
+          }
+
+          return date.toLocaleDateString('en-ZA', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        } catch (err) {
+          console.error('Error formatting date:', err, dateString);
+          return "Invalid Date";
+        }
+      },
+
       async viewEmployeeShifts(employeeId) {
         try {
           const response = await fetch(`http://localhost:3000/api/employee/${employeeId}/shifts`);
@@ -889,29 +913,29 @@ document.addEventListener('DOMContentLoaded', () => {
       },
 
       formatEventDate(dateString) {
-        if (!dateString || dateString.startsWith('0000-00-00')) {
-          return "None";
-        }
+  if (!dateString || dateString.startsWith('0000-00-00')) {
+    return "None";
+  }
 
-        try {
-          const date = new Date(dateString);
+  try {
+    const date = new Date(dateString);
 
-          //Check if the date is valid
-          if (isNaN(date.getTime())) {
-            return "Invalid Date";
-          }
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
 
-          return date.toLocaleDateString('en-GB', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          });
-        } catch (err) {
-          console.error('Error formatting date:', err, dateString);
-          return "Invalid Date";
-        }
-      },
+    return date.toLocaleDateString('en-ZA', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (err) {
+    console.error('Error formatting date:', err, dateString);
+    return "Invalid Date";
+  }
+},
 
       formatEventDateRange(startDate, endDate) {
         if (!startDate || !endDate) return "Date not set";

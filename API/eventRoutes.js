@@ -597,7 +597,7 @@ const sendImmediateEventNotifications = async (eventId, messageType = 'assignmen
     console.log(`Starting notification process for event ${eventId}`);
 
     const [event] = await db.query(
-      `SELECT event_name, start_date, start_time, location 
+      `SELECT event_name, start_date, end_date, start_time, location 
        FROM t_event WHERE event_id = ?`,
       [eventId]
     );
@@ -610,6 +610,18 @@ const sendImmediateEventNotifications = async (eventId, messageType = 'assignmen
     const eventData = event[0];
     console.log(`Found event: ${eventData.event_name}`);
 
+    // Format dates for South Africa
+    const formatSADate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const formattedStartDate = formatSADate(eventData.start_date);
+    const formattedEndDate = formatSADate(eventData.end_date);
 
     const [assignedEmployees] = await db.query(
       `SELECT e.employee_id, e.first_name, e.email, r.title as role_title
@@ -631,11 +643,11 @@ const sendImmediateEventNotifications = async (eventId, messageType = 'assignmen
     const currentDate = new Date();
 
     if (messageType === 'assignment') {
-      message = `Your role has been assigned to event "${eventData.event_name}" on ${eventData.start_date} at ${eventData.start_time} (${eventData.location}). Check your schedule to see if you'll be working during the event.`;
+      message = `Your role has been assigned to event "${eventData.event_name}" from ${formattedStartDate} to ${formattedEndDate} at ${eventData.start_time} (${eventData.location}). Check your schedule to see if you'll be working during the event.`;
     } else if (messageType === 'reminder') {
       const eventDate = new Date(eventData.start_date);
       const daysUntilEvent = Math.ceil((eventDate - currentDate) / (1000 * 60 * 60 * 24));
-      message = `Reminder: Event "${eventData.event_name}" is in ${daysUntilEvent} days (${eventData.start_date} at ${eventData.start_time}, ${eventData.location}).`;
+      message = `Reminder: Event "${eventData.event_name}" is in ${daysUntilEvent} days (${formattedStartDate} at ${eventData.start_time}, ${eventData.location}).`;
     }
 
     let notificationCount = 0;
@@ -733,9 +745,9 @@ router.post('/:eventId/assignment-notifications', async (req, res) => {
   const { eventId } = req.params;
 
   try {
-    //Get event details
+    //get event details
     const [eventRows] = await db.execute(
-      `SELECT event_name, start_date FROM t_event WHERE event_id = ?`,
+      `SELECT event_name, start_date, end_date FROM t_event WHERE event_id = ?`,
       [eventId]
     );
 
@@ -745,7 +757,20 @@ router.post('/:eventId/assignment-notifications', async (req, res) => {
 
     const event = eventRows[0];
 
-    //Get assigned staff
+    //format dates for South Africa
+    const formatSADate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const formattedStartDate = formatSADate(event.start_date);
+    const formattedEndDate = formatSADate(event.end_date);
+
+    //get assigned staff
     const [staffRows] = await db.execute(
       `SELECT ee.employee_id, e.first_name, e.email 
        FROM t_event_employee ee 
@@ -754,7 +779,7 @@ router.post('/:eventId/assignment-notifications', async (req, res) => {
       [eventId]
     );
 
-    //Create immediate assignment notifications only
+    //create immediate assignment notifications only
     for (const staff of staffRows) {
       await db.execute(
         `INSERT INTO t_notification 
@@ -762,7 +787,7 @@ router.post('/:eventId/assignment-notifications', async (req, res) => {
          VALUES (?, ?, NOW(), 'unread', 7)`,
         [
           staff.employee_id,
-          `You have been assigned to event "${event.event_name}" starting on ${new Date(event.start_date).toLocaleDateString()}.`
+          `You have been assigned to event "${event.event_name}" from ${formattedStartDate} to ${formattedEndDate}.`
         ]
       );
     }
