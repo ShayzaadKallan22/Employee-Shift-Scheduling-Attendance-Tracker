@@ -54,7 +54,7 @@ const Payslip = () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/payroll/${id}`);
-      console.log('API Response:', res.data);
+      //console.log('API Response:', res.data);
       
       if (res.data && Array.isArray(res.data) && res.data.length > 0) {
         //Find the most recent payslip
