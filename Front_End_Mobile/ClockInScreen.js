@@ -129,7 +129,7 @@ const ClockInScreen = () => {
         //console.log('Strike count:', strikeCount);
         
       } catch (error) {
-        console.error('Error fetching data:', error);
+        //console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -281,12 +281,12 @@ const ClockInScreen = () => {
       workplaceCoords.latitude,
       workplaceCoords.longitude
     );
-    return distance <= 800; //Within 800 meters
+    return distance <= 1500; //Within 1500 meters as UJ APK is a very huge campus.
   };
 
   //Calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    console.log(`Calculating distance between (${lat1}, ${lon1}) and (${lat2}, ${lon2})`);
+    //console.log(`Calculating distance between (${lat1}, ${lon1}) and (${lat2}, ${lon2})`);
     const R = 6371; //Earth's radius in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -296,6 +296,7 @@ const ClockInScreen = () => {
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c * 1000; //Distance in meters
+    //console.log(`Calculated distance: ${distance} meters`);
     return distance;
   };
 
@@ -563,7 +564,7 @@ const ClockInScreen = () => {
           ]}>
             {attendance >= 70 ? 'Excellent attendance, keep it up!' :
             attendance >= 60 ? 'Good attendance, keep it up!' :
-            attendance >= 50 ? 'Average attendance' : 'Warning: Attendance Improvement Needed!'}
+            attendance >= 50 ? 'Average attendance, Improvement Needed!' : 'Warning: Attendance Improvement Needed!'}
           </Text>
         </View>
       </View>

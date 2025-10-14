@@ -44,6 +44,7 @@ exports.createShiftSwap = async (req, res) => {
     requesting_employee_id,
     approving_employee_id
   } = req.body;
+
   //Check if all the required fields have been entered.
   if (!original_shift_id || !requested_shift_id || !requesting_employee_id || !approving_employee_id) {
     return res.status(400).json({ message: 'Missing required fields' });
@@ -171,59 +172,85 @@ exports.getColleagueRequests = async (req, res) => {
   }
 };
 
-//get own Shift dates.
-exports.getEmpShiftDates = async (req,res) =>{
+//Get available shift dates for the employee to swap.
+exports.getEmpShiftDates = async (req, res) => {
+  const { employee_id } = req.params;
 
-  const {employee_id} = req.params;
-
-  if(!employee_id){
-    return res.status(400).json({message: 'Employee ID is required, could not be found.'});
+  if (!employee_id) {
+    return res.status(400).json({ message: 'Employee ID is required, could not be found.' });
   }
 
   try {
-    const[rows] = await db.execute(
-      `SELECT DISTINCT DATE(date_) AS date_
-       FROM t_shift
-       WHERE employee_id = ?
-       AND date_ >= CURDATE()
-       ORDER BY date_`, [employee_id]
+    const [rows] = await db.execute(
+      `SELECT DISTINCT DATE(s.date_) AS date_
+       FROM t_shift s
+       WHERE s.employee_id = ?
+         AND s.date_ >= CURDATE()
+         AND NOT EXISTS (
+           SELECT 1 FROM t_shift_swap ss
+           WHERE (ss.original_shift_id = s.shift_id OR ss.requested_shift_id = s.shift_id)
+             AND ss.status_ = 'pending'
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM t_leave l
+           WHERE l.employee_id = s.employee_id
+             AND l.status_ = 'approved'
+             AND s.date_ BETWEEN l.start_date AND l.end_date
+         )
+       ORDER BY date_`, 
+      [employee_id]
     );
+    
     const dateStrings = rows.map(row => row.date_.toLocaleDateString('en-CA'));
     console.log(dateStrings);
 
     res.status(200).json(dateStrings);
-  }catch(error){
+  } catch (error) {
     console.error('Error fetching employee shift dates:', error);
-    res.status(500).json({message: 'Server error'});
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
 
 //Get available shift dates for a selected colleague.
 exports.getColleagueShiftDates = async (req, res) => {
-  const {employee_id} = req.params;
+  const { employee_id } = req.params;
 
-  if(!employee_id){
-    return res.status(400).json({message: 'Employee ID is required.'});
+  if (!employee_id) {
+    return res.status(400).json({ message: 'Employee ID is required.' });
   }
 
-  try{
+  try {
     const [rows] = await db.execute(
-       `SELECT DISTINCT DATE(date_) AS date_
-        FROM t_shift
-        WHERE employee_id = ?
-        AND date_ >= CURDATE()
-        ORDER BY date_`, [employee_id]     
+      `SELECT DISTINCT DATE(s.date_) AS date_
+       FROM t_shift s
+       WHERE s.employee_id = ?
+         AND s.date_ >= CURDATE()
+         AND NOT EXISTS (
+           SELECT 1 FROM t_shift_swap ss
+           WHERE (ss.original_shift_id = s.shift_id OR ss.requested_shift_id = s.shift_id)
+             AND ss.status_ = 'pending'
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM t_leave l
+           WHERE l.employee_id = s.employee_id
+             AND l.status_ = 'approved'
+             AND s.date_ BETWEEN l.start_date AND l.end_date
+         )
+       ORDER BY date_`, 
+      [employee_id]
     );
+    
     const dateStrings = rows.map(row => row.date_.toLocaleDateString('en-CA'));
     console.log('Colleague:', dateStrings);
 
     res.status(200).json(dateStrings);
-  }catch(error){
+  } catch (error) {
     console.error('Error fetching colleague shift dates:', error);
-    res.status(500).json({message: 'Server error.'});
+    res.status(500).json({ message: 'Server error.' });
   }
 };
+
 //Approve or decline a shift swap
 exports.respondToSwap = async (req, res) => {
   const { swap_id, action } = req.body;
