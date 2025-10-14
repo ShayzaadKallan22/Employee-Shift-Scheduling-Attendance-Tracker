@@ -271,15 +271,16 @@ const ClockInScreen = () => {
 
   //Verify if location is within allowed range.
   const verifyLocation = (location) => {
-    console.log('User location:', location.coords);
-    //Workplace coordinates.
-    const workplaceCoords = { latitude: -26.1821, longitude: 27.9992 }; //UJ APK
+    //console.log('User location:', location.coords);
+    //Workplace coordinates (example: UJ APK)
+    const workplaceCoords = { latitude: -26.1834, longitude: 27.9988 }; //UJ APK
     const distance = calculateDistance(
       location.coords.latitude,
       location.coords.longitude,
       workplaceCoords.latitude,
       workplaceCoords.longitude
     );
+    //console.log(`Distance to workplace: ${distance} meters`);
     return distance <= 1500; //Within 1500 meters as UJ APK is a very huge campus.
   };
 
