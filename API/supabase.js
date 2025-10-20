@@ -1,8 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // Get environment variables with fallback values
-const supabaseUrl = process.env.SUPABASE_URL || 'https://vnedzjklbydlvjbcqlsh.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuZWR6amtsYnlkbHZqYmNxbHNoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzkzMDQxMCwiZXhwIjoyMDczNTA2NDEwfQ.8cC_ttUN3yiAxj59eM3t_SsCCdzkfs56fpD9jkSOB7s';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
 // Add better error message for debugging
 if (!supabaseUrl || supabaseUrl === 'https://example.supabase.co') {
